@@ -1,0 +1,44 @@
+<html>
+
+<head>
+    <link href="c3.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+    <style>
+        .c3-grid line {
+            stroke: rgba(220, 220, 220, 0.5);
+        }
+        
+        .c3-xgrid,
+        .c3-ygrid {
+            stroke-dasharray: 1;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="chart1"></div>
+    <button id="transform1">Transform Chart 1</button>
+    <div id="chart2"></div>
+
+    <div id="chart4"></div>
+    <button id="transform4">Transform Chart 4</button>
+
+    <div id="chart5"></div>
+    <button id="transform5">Transform Chart 5</button>
+    <button id="transform5D">Toggle Per Session</button>
+
+    <div id="chart6"></div>
+    <button id="transform6">Transform Chart 6</button>
+
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="c3.js"></script>
+    <script src="c3-chart-generator.js"></script>
+    <script src="lassi_data.js"></script>
+    <!--<script src=colorbrewer.js></script>-->
+    <script src="c3-test.js"></script>
+
+</body>
+
+</html>
