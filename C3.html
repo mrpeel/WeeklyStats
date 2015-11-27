@@ -51,6 +51,7 @@
     <script src="c3-test.js"></script>
     <script src="ratelimitpromises.js"></script>
     <script src="ga.js"></script>
+    <script src="chart-data-retrieval.js"></script>
     <!--Load the analytics API-->
     <script>
         (function(w, d, s, g, js, fjs) {
@@ -91,23 +92,7 @@
 
 
             gapi.analytics.auth.on('success', function(response) {
-                //Set-up request with rate limit - 5 requests per second
-                var requestTester = new GARequests(5);
-
-                requestTester.queryGA({
-                    "start-date": "2015-09-21",
-                    "end-date": "2015-09-27",
-                    "ids": "ga:89463991",
-                    "dimensions": "ga:date,ga:dayOfWeek",
-                    "metrics": ["ga:users"],
-                    "sort": ["ga:date"]
-                }).then(function(results) {
-                    console.table(results.columHeaders);
-                    console.table(results.rows);
-                    console.log(results.rows);
-                }).catch(function(err) {
-                    console.log(err);
-                });
+                retrieveWeeklyUsers("2015-10-19", "2015-10-25", "ga:89463991");
             });
         });
 

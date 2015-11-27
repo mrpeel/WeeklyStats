@@ -348,8 +348,8 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
     statsChartContext.horizontalLabelClassName = "horizontal-label-position";
 
     //Prepare the horizontal label class for each data series
-    statsChartContext.labels.forEach(function (val) {
-        chartClasses[val] = statsChartContext.horizontalLabelClassName;
+    statsChartContext.columnData.forEach(function (val) {
+        chartClasses[val[0]] = statsChartContext.horizontalLabelClassName;
     });
 
 
