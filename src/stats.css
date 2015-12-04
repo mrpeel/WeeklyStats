@@ -1,0 +1,58 @@
+.Header-auth .gapi-analytics-auth-styles-signinbutton {
+    background: hsl(34, 93%, 54%);
+    border-radius: 0;
+    display: block;
+    padding: 1em 1.5em;
+    -webkit-transition: background-color .2s cubic-bezier(.4, 0, .2, 1);
+    transition: background-color .2s cubic-bezier(.4, 0, .2, 1);
+    width: auto;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton:hover {
+    background: hsl(16, 87%, 54%);
+    cursor: pointer;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton-buttonText,
+.Header-auth .gapi-analytics-auth-styles-signinbutton-image {
+    display: inline-block;
+    vertical-align: middle;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton-image {
+    background: url('/public/images/ga-mark-white.svg') no-repeat 0 50%;
+    background-size: 1.5em;
+    border: 0;
+    height: 1.5em;
+    padding-left: 2.5em;
+    width: auto;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton-image:after {
+    content: 'Click here to authorize\00a0\00a0â†’';
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton-buttonText,
+.Header-signOut {
+    display: none;
+}
+@media (min-width: 1024px) {
+    .Header.is-open .Header-auth {
+        background: #fff;
+        border-radius: .5em;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, .1);
+        padding: 0 .5em;
+        position: absolute;
+        line-height: 2.4em;
+        right: 6em;
+        /* covers the width of the user icon + spacing */
+        text-align: right;
+        top: 2em;
+    }
+    .Header.is-open .Header-auth * {
+        vertical-align: baseline;
+    }
+    .Header-auth .gapi-analytics-auth-styles-signinbutton {
+        font-size: 1em;
+        padding: 1.5em 3em;
+        text-align: left;
+    }
+}
+aside {
+    display: block;
+}

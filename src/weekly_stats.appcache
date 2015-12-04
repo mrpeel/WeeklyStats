@@ -1,0 +1,12 @@
+CACHE MANIFEST
+#  @@timestamp
+
+# Explicitly cached entries
+CACHE:
+weekly-stats-c3.min.js
+weekly_stats.min.css
+
+# All other resources (e.g. sites) require the user to be online. 
+NETWORK:
+*
+

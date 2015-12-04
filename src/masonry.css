@@ -1,0 +1,21 @@
+  @media screen and (max-width: 1280px) {
+      .card {
+          width: 94%;
+      }
+  }
+  @media screen and (min-width: 1281px) {
+      .card {
+          width: 47%;
+      }
+  }
+  body {
+      background-color: rgb(238, 238, 238);
+  }
+  .grid-sizer {
+      width: 50%;
+  }
+  .card {
+      background-color: white;
+      padding: 5px;
+      margin-bottom: 10px;
+  }
