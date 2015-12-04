@@ -1,0 +1,124 @@
+<html>
+
+<head>
+    <link href="weekly-stats-c3.css" rel="stylesheet" type="text/css">
+    <!--<link href="salvatorre.css" rel="stylesheet" type="text/css">-->
+    <!--<link href="masonry.css" rel="stylesheet" type="text/css">-->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+    <div class="Header-block">
+    </div>
+    <aside class="Header-auth" id="header-auth">
+        <div class="Header-embedApi" id="embed-api-auth-container">
+            <div style="display: block;">
+                <div class="gapi-analytics-auth-styles-signinbutton gapi-analytics-auth-styles-signinbutton:hover" title="Access Google Analytics"><span class="gapi-analytics-auth-styles-signinbutton-image"></span><span class="gapi-analytics-auth-styles-signinbutton-buttonText">Access Google Analytics</span></div>
+            </div>
+            <div style="display: none;"></div>
+        </div>
+        <button class="Header-signOut LinkButton" id="header-sign-out">
+            Sign Out</button>
+    </aside>
+
+
+
+
+    <!--<div id="grid" class="salvattore" data-columns>-->
+    <div id="grid" class="masonry-layout">
+        <div class="grid-sizer"></div>
+        <div class="card">
+            <div id="weekly-users-overall"></div>
+            <button id="weekly-users-overall-button">Transform Overall Weekly Users Chart</button>
+        </div>
+        <div class="card">
+            <div id="weekly-users-lassi"></div>
+            <button id="weekly-users-lassi-button">Transform LASSI Weekly Users Chart</button>
+        </div>
+        <div class="card">
+            <div id="weekly-users-spear"></div>
+            <button id="weekly-users-spear-button">Transform LASSI SPEAR Weekly Users Chart</button>
+        </div>
+        <div class="card">
+            <div id="weekly-users-smes"></div>
+            <button id="weekly-users-smes-button">Transform SMES Weekly Users Chart</button>
+        </div>
+        <div class="card">
+            <div id="weekly-users-smes-edit"></div>
+            <button id="weekly-users-smes-edit-button">Transform SMES Edit Weekly Users Chart</button>
+        </div>
+        <div class="card">
+            <div id="weekly-users-vicnames"></div>
+            <button id="weekly-users-vicnames-button">Transform VICNAMES Weekly Users Chart</button>
+        </div>
+        <div class="card">
+            <div id="weekly-users-landata-tpi"></div>
+            <button id="weekly-users-landata-tpi-button">Transform LANDATA TPI Weekly Users Chart</button>
+        </div>
+        <div class="card">
+            <div id="weekly-users-landata-vmt"></div>
+            <button id="weekly-users-landata-vmt-button">Transform LANDATA VMT Weekly Users Chart</button>
+        </div>
+
+    </div>
+
+    <script src="..\lib\d3.v3.min.js"></script>
+    <script src="..\lib\c3.min.js"></script>
+    <script src="..\lib\masonry.pkgd.min.js"></script>
+    <!--<script src="..\lib\salvattore.min.js"></script>-->
+    <script src="weekly-stats-c3.js"></script>
+    <!--<script src="lassi_data.js"></script>
+    <script src="ratelimitpromises.js"></script>
+    <script src="ga.js"></script>
+    <script src="c3-chart-generator.js"></script>
+    <script src="c3-test.js"></script>-->
+    <!--Load the analytics API-->
+    <script>
+        (function(w, d, s, g, js, fjs) {
+            g = w.gapi || (w.gapi = {});
+            g.analytics = {
+                q: [],
+                ready: function(cb) {
+                    this.q.push(cb)
+                }
+            };
+            js = d.createElement(s);
+            fjs = d.getElementsByTagName(s)[0];
+            js.src = 'https://apis.google.com/js/platform.js';
+            fjs.parentNode.insertBefore(js, fjs);
+            js.onload = function() {
+                g.load('analytics')
+            };
+        }(window, document, 'script'));
+
+    </script>
+    <!-- When the Analytics API is ready - authorise and get going -->
+    <script>
+        gapi.analytics.ready(function() {
+
+            console.log("Analytics ready");
+
+            // Authorize the user.
+            var CLIENT_ID = '940998236407-ll26vtigl8bs52nt0ld3cumii6kmesmg.apps.googleusercontent.com';
+            var gaId = 'ga:89463991';
+            var accountName = '';
+
+
+            gapi.analytics.auth.authorize({
+                container: 'embed-api-auth-container',
+                clientid: CLIENT_ID,
+            });
+
+
+
+            gapi.analytics.auth.on('success', function(response) {
+                retrieveData("2015-10-19", "2015-10-25", "ga:89463991");
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>
