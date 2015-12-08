@@ -5,7 +5,7 @@
  * General chart class containing the common data and methods 
  * required to draw a vertical bar, horiztonal bar and area chart 
  */
-var C3StatsChart = function (columnData, pageElement, labels, seriesLabels) {
+var C3StatsChart = function(columnData, pageElement, labels, seriesLabels) {
     "use strict";
 
     this.columnData = columnData;
@@ -49,7 +49,7 @@ var C3StatsChart = function (columnData, pageElement, labels, seriesLabels) {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.createWeekDayAreaChart = function () {
+C3StatsChart.prototype.createWeekDayAreaChart = function() {
     "use strict";
 
     //capture execution context to enable usage within functions
@@ -132,7 +132,7 @@ C3StatsChart.prototype.createWeekDayAreaChart = function () {
  * @return {None}
  */
 
-C3StatsChart.prototype.createStaticVerticalTwoSeriesBarChart = function () {
+C3StatsChart.prototype.createStaticVerticalTwoSeriesBarChart = function() {
     "use strict";
 
     //capture execution context to enable usage within functions
@@ -170,6 +170,7 @@ C3StatsChart.prototype.createStaticVerticalTwoSeriesBarChart = function () {
                     centered: true,
                     outer: false,
                     fit: false,
+                    count: statsChartContext.labels.length,
                     width: 500
                 }
 
@@ -226,7 +227,7 @@ C3StatsChart.prototype.createStaticVerticalTwoSeriesBarChart = function () {
  * @return {None}
  */
 
-C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLabel) {
+C3StatsChart.prototype.createStackedVerticalBarChart = function(verticalAxisLabel) {
     "use strict";
 
     //capture execution context to enable usage within functions
@@ -319,7 +320,7 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
  * @return {None}
  */
 
-C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
+C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
     "use strict";
 
     //capture execution context to enable usage within functions
@@ -341,8 +342,8 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
 
 
     //Calculate the maximum individual and total values - required for re-scaling the chart
-    statsChartContext.columnData.forEach(function (valArray) {
-        valArray.forEach(function (val) {
+    statsChartContext.columnData.forEach(function(valArray) {
+        valArray.forEach(function(val) {
             //If value is a number, add to total and check for max
             if (typeof val === 'number') {
                 statsChartContext.chartMaxTotalValue = statsChartContext.chartMaxTotalValue + val;
@@ -358,7 +359,7 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
     statsChartContext.horizontalLabelClassName = "horizontal-label-position";
 
     //Prepare the horizontal label class for each data series
-    statsChartContext.columnData.forEach(function (val) {
+    statsChartContext.columnData.forEach(function(val) {
         chartClasses[val[0]] = statsChartContext.horizontalLabelClassName;
     });
 
@@ -381,7 +382,7 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
             columns: statsChartContext.columnData,
             type: 'bar',
             labels: {
-                format: function (v, id, i, j) {
+                format: function(v, id, i, j) {
                     return statsChartContext.labels[j];
                 }
             },
@@ -431,7 +432,7 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
         color: {
             pattern: chartColors.bigSets[20]
         },
-        onrendered: function () {
+        onrendered: function() {
             //Move the labels into position
             statsChartContext.moveLabelsXPos();
         }
@@ -449,7 +450,7 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
  * @param {number} newMaxValue The new maximum value which should be used to ensure the correct scale.
  * @return {None}
  */
-C3StatsChart.prototype.refreshChartData = function (columnData, labels, seriesLabels) {
+C3StatsChart.prototype.refreshChartData = function(columnData, labels, seriesLabels) {
     "use strict";
 
     var statsChartContext = this;
@@ -488,7 +489,7 @@ C3StatsChart.prototype.refreshChartData = function (columnData, labels, seriesLa
  * @param {number} newMaxValue The new maximum value which should be used to ensure the correct scale.
  * @return {None}
  */
-C3StatsChart.prototype.transformHorizontalStackedGrouped = function () {
+C3StatsChart.prototype.transformHorizontalStackedGrouped = function() {
     "use strict";
 
     var statsChartContext = this;
@@ -509,7 +510,7 @@ C3StatsChart.prototype.transformHorizontalStackedGrouped = function () {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.transformVerticalStackedGrouped = function () {
+C3StatsChart.prototype.transformVerticalStackedGrouped = function() {
     "use strict";
 
     var statsChartContext = this;
@@ -529,7 +530,7 @@ C3StatsChart.prototype.transformVerticalStackedGrouped = function () {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.transformAreaBar = function () {
+C3StatsChart.prototype.transformAreaBar = function() {
     "use strict";
 
     var statsChartContext = this;
@@ -550,14 +551,14 @@ C3StatsChart.prototype.transformAreaBar = function () {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.moveLabelsXPos = function () {
+C3StatsChart.prototype.moveLabelsXPos = function() {
     "use strict";
 
     var statsChartContext = this;
 
     if (statsChartContext.chartType === "individual") {
         //Move all labels to left and set text to black
-        window.setTimeout(function () {
+        window.setTimeout(function() {
 
             d3.selectAll("div#" + statsChartContext.pageElement + " .c3-target-" + statsChartContext.horizontalLabelClassName + " .c3-text").attr("x", 15).style({
                 fill: "black",
@@ -567,7 +568,7 @@ C3StatsChart.prototype.moveLabelsXPos = function () {
         }, 1500);
     } else {
         //Set text to transparent
-        window.setTimeout(function () {
+        window.setTimeout(function() {
 
             d3.selectAll("div#" + statsChartContext.pageElement + " .c3-target-" + statsChartContext.horizontalLabelClassName + " .c3-text").style({
                 opacity: 0
@@ -583,12 +584,12 @@ C3StatsChart.prototype.moveLabelsXPos = function () {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.rescaleHorizontal = function (maxValue) {
+C3StatsChart.prototype.rescaleHorizontal = function(maxValue) {
     "use strict";
 
     var statsChartContext = this;
 
-    window.setTimeout(function () {
+    window.setTimeout(function() {
         statsChartContext.chart.axis.max({
             y: maxValue
         });
@@ -601,21 +602,29 @@ C3StatsChart.prototype.rescaleHorizontal = function (maxValue) {
 var chartColors = {
     bigSets: {
         13: ["#92E5F7", "#F3AB67", "#FABDE5", "#BCE385", "#AAB591", "#FFA3A8", "#9EF1B3", "#FEF4A3", "#C8E1FF", "#BAF6F0",
-             "#FBBCBD", "#EEA8B5", "#AFD0F1"],
+            "#FBBCBD", "#EEA8B5", "#AFD0F1"
+        ],
         14: ["#FF998E", "#89F1F5", "#C5CA69", "#D3C8F5", "#7BD39A", "#F49CC0", "#E9FFE5", "#F9A667", "#88C4E5", "#A1BEA7",
-             "#ACBB7F", "#DEF0A2", "#9AB8CB", "#B1C0ED"],
+            "#ACBB7F", "#DEF0A2", "#9AB8CB", "#B1C0ED"
+        ],
         15: ["#D1DDF3", "#F6BF63", "#89C593", "#F9B7A9", "#F3F4D1", "#5CC5C2", "#C9D17B", "#C0FBF2", "#FCB1CD", "#CBF8B1",
-             "#B4ACB9", "#F7DBA4", "#7FE4F4", "#DAA37E", "#D2C7F2"],
+            "#B4ACB9", "#F7DBA4", "#7FE4F4", "#DAA37E", "#D2C7F2"
+        ],
         16: ["#B0D2FE", "#EDCB65", "#F2989C", "#8EFCE5", "#AADC8D", "#E6E4DA", "#FACDA0", "#D19EC3", "#B1C292", "#5BC6B5",
-             "#CBF6BE", "#ADBBD2", "#DDA37A", "#C0BF5F", "#FEE78C", "#F3B9D3"],
+            "#CBF6BE", "#ADBBD2", "#DDA37A", "#C0BF5F", "#FEE78C", "#F3B9D3"
+        ],
         17: ["#8DE5E1", "#F4A1AA", "#B8CC6E", "#C0BBE1", "#90EEAF", "#D0AC72", "#FFDAC9", "#DBE5EC", "#CCFACF", "#A8B37E",
-             "#FBC1E0", "#87B9AB", "#F9DC98", "#BBF9A3", "#D3AFA6", "#76F4CA", "#F8ADB2"],
+            "#FBC1E0", "#87B9AB", "#F9DC98", "#BBF9A3", "#D3AFA6", "#76F4CA", "#F8ADB2"
+        ],
         18: ["#72CBCA", "#FBC06D", "#D8AEDE", "#BAEBA2", "#EAD9C1", "#F49C83", "#C3D56C", "#80FFE6", "#6DBE87", "#C6AEB3",
-             "#EFF0AE", "#BDAE8C", "#D5EFCC", "#F0D190", "#FAD3F5", "#FEEFE9", "#96C989", "#D2B9E9"],
+            "#EFF0AE", "#BDAE8C", "#D5EFCC", "#F0D190", "#FAD3F5", "#FEEFE9", "#96C989", "#D2B9E9"
+        ],
         19: ["#76F6E3", "#EEB965", "#D4B4E2", "#C9F69B", "#B4B498", "#FEABB4", "#92B1BB", "#EDD8D6", "#81C98E", "#F3EFB0",
-             "#A7CCF5", "#E3A075", "#C1F6DC", "#68C5B4", "#E6D572", "#FFC590", "#E0FBBB", "#C4AF8E", "#F5DD86"],
+            "#A7CCF5", "#E3A075", "#C1F6DC", "#68C5B4", "#E6D572", "#FFC590", "#E0FBBB", "#C4AF8E", "#F5DD86"
+        ],
         20: ["#C6E793", "#F39187", "#A0BCD5", "#6FD1B5", "#FACD8C", "#F8DAE1", "#B0F6F6", "#FDA06C", "#E8E775", "#B3B5B1",
-             "#C5A880", "#C5BF6F", "#DBA29B", "#B2E9BD", "#FACFAB", "#91C481", "#E3A967", "#FFABAC", "#C8CCE9", "#AAD77A"]
+            "#C5A880", "#C5BF6F", "#DBA29B", "#B2E9BD", "#FACFAB", "#91C481", "#E3A967", "#FFABAC", "#C8CCE9", "#AAD77A"
+        ]
     },
     smallSets: {
         2: ["#f57366", "#afe064"],

@@ -1,26 +1,22 @@
 /*-- Chart --*/
 
-.c3-grid line {
-    stroke: rgba(220, 220, 220, 0.5);
-}
-.c3-xgrid,
-.c3-ygrid {
-    stroke-dasharray: 1;
-}
 .c3 svg {
     font-family: 'Roboto';
-    font-size: : 1em;
+    font-size: 1em;
 }
+
 .c3 path,
 .c3 line {
     fill: none;
     stroke: #000;
 }
+
 .c3 text {
     -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;
 }
+
 .c3-legend-item-tile,
 .c3-xgrid-focus,
 .c3-ygrid,
@@ -28,13 +24,16 @@
 .c3-bars path {
     shape-rendering: crispEdges;
 }
+
 .c3-chart-arc path {
     stroke: #fff;
 }
+
 .c3-chart-arc text {
     fill: #fff;
     font-size: 13px;
 }
+
 
 /*-- Axis --*/
 
@@ -42,15 +41,19 @@
 /*-- Grid --*/
 
 .c3-grid line {
-    stroke: #aaa;
+    stroke: #d8d8d8;
+    opacity: 0.5;
 }
+
 .c3-grid text {
     fill: #aaa;
 }
+
 .c3-xgrid,
 .c3-ygrid {
-    stroke-dasharray: 3 3;
+    stroke-dasharray: 1;
 }
+
 
 /*-- Text on Chart --*/
 
@@ -59,11 +62,13 @@
     font-size: 2em;
 }
 
+
 /*-- Line --*/
 
 .c3-line {
     stroke-width: 1px;
 }
+
 
 /*-- Point --*/
 
@@ -71,32 +76,39 @@
     stroke-width: 1px;
     stroke: white;
 }
+
 .c3-selected-circle {
     fill: white;
     stroke-width: 2px;
 }
+
 
 /*-- Bar --*/
 
 .c3-bar {
     stroke-width: 0;
 }
+
 .c3-bar._expanded_ {
     fill-opacity: 0.75;
 }
+
 
 /*-- Focus --*/
 
 .c3-target.c3-focused {
     opacity: 1;
 }
+
 .c3-target.c3-focused path.c3-line,
 .c3-target.c3-focused path.c3-step {
     stroke-width: 2px;
 }
+
 .c3-target.c3-defocused {
     opacity: 0.3 !important;
 }
+
 
 /*-- Region --*/
 
@@ -105,11 +117,13 @@
     fill-opacity: 0.1;
 }
 
+
 /*-- Brush --*/
 
 .c3-brush .extent {
     fill-opacity: 0.1;
 }
+
 
 /*-- Select - Drag --*/
 
@@ -120,9 +134,11 @@
     font-size: 1em;
     padding-right: 20px;
 }
+
 .c3-legend-item-hidden {
     opacity: 0.15;
 }
+
 .c3-legend-background {
     opacity: 0.75;
     fill: white;
@@ -130,11 +146,13 @@
     stroke-width: 1;
 }
 
+
 /*-- Tooltip --*/
 
 .c3-tooltip-container {
     z-index: 10;
 }
+
 .c3-tooltip {
     font-family: 'Roboto';
     border-collapse: collapse;
@@ -146,9 +164,11 @@
     box-shadow: 7px 7px 12px -9px #777777;
     opacity: 0.9;
 }
+
 .c3-tooltip tr {
     border: 1px solid #CCC;
 }
+
 .c3-tooltip th {
     background-color: #aaa;
     font-size: 14px;
@@ -156,21 +176,25 @@
     text-align: left;
     color: #FFF;
 }
+
 .c3-tooltip td {
     font-size: 13px;
     padding: 3px 6px;
     background-color: #fff;
     border-left: 1px dotted #999;
 }
+
 .c3-tooltip td > span {
     display: inline-block;
     width: 10px;
     height: 10px;
     margin-right: 6px;
 }
+
 .c3-tooltip td.value {
     text-align: right;
 }
+
 
 /*-- Area --*/
 
@@ -179,53 +203,79 @@
     opacity: 0.2;
 }
 
+
 /*-- Arc --*/
 
 .c3-chart-arcs-title {
     dominant-baseline: middle;
     font-size: 1.3em;
 }
+
 .c3-chart-arcs .c3-chart-arcs-background {
     fill: #e0e0e0;
     stroke: none;
 }
+
 .c3-chart-arcs .c3-chart-arcs-gauge-unit {
     fill: #000;
     font-size: 16px;
 }
+
 .c3-chart-arcs .c3-chart-arcs-gauge-max {
     fill: #777;
 }
+
 .c3-chart-arcs .c3-chart-arcs-gauge-min {
     fill: #777;
 }
+
 .c3-chart-arc .c3-gauge-value {
     fill: #000;
     /*  font-size: 28px !important;*/
 }
+@media screen and (max-width: 940px) {
+    .card {
+        width: calc(100% - 20px);
+    }
+    .grid-sizer {
+        width: 100%;
+    }
+}
 
-  @media screen and (max-width: 1280px) {
-      .card {
-          width: 94%;
-      }
-  }
-  @media screen and (min-width: 1281px) {
-      .card {
-          width: 47%;
-      }
-  }
-  body {
-      background-color: rgb(238, 238, 238);
-  }
-  .grid-sizer {
-      width: 50%;
-  }
-  .card {
-      background-color: white;
-      padding: 5px;
-      margin-bottom: 10px;
-  }
+@media screen and (min-width: 941px) and (max-width: 1280px) {
+    .card {
+        width: calc(50% - 20px);
+    }
+    .grid-sizer {
+        width: 50%;
+    }
+    .card.full-width {
+        width: calc(100% - 20px);
+    }
+}
 
+@media screen and (min-width: 1281px) {
+    .card {
+        width: calc(33.3% - 20px);
+    }
+    .grid-sizer {
+        width: 33.3%;
+    }
+    .card.full-width {
+        width: calc(100% - 20px);
+        ;
+    }
+}
+
+body {
+    background-color: rgb(238, 238, 238);
+}
+
+.card {
+    background-color: white;
+    padding: 5px;
+    margin-bottom: 10px;
+}
 .Header-auth .gapi-analytics-auth-styles-signinbutton {
     background: hsl(34, 93%, 54%);
     border-radius: 0;

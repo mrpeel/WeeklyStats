@@ -1,4 +1,4 @@
-/*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts*/
+/*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts*/
 
 /** 
  * Retrieves the data required for each of the charts and executes required processing, then returns the data as an object.
@@ -16,11 +16,18 @@
 var ASSERT_ENABLED = true;
 var ASSERT_ERROR = true;
 var PAGE_TITLE_EXCLUSION_FILTER = 'ga:PageTitle!=Redirect;ga:PageTitle!=(not set);ga:PageTitle!=Home page;ga:PageTitle!=www.Event-Tracking.com;ga:PageTitle!=News';
+//The application names which will be reported back from Google Analytics
+var APP_NAMES = ["LASSI - Land and Survey Spatial Information", "LASSI - SPEAR", "SMES - Survey Marks Enquiry Service", "SMES Edit - Survey Marks Enquiry Service",
+    "VICNAMES - The Register of Geographic Names", "LASSI - TPC", "LASSI - VMT"
+];
+var MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 var topPagesFilter;
 var topBrowsersFilter;
 var startDate, endDate, ids;
 var lastWeekStartDate, lastWeekEndDate;
 var lastYearStartDate, lastYearEndDate;
+var previousYearStartDate, previousYearEndDate;
 
 //Set-up requester with rate limit - 5 requests per second - this is a global variable so that the rate limit is applied wherever it is called
 var gaRequester = new GARequests(5);
@@ -31,20 +38,24 @@ var gaRequester = new GARequests(5);
  * visit numbers for individual aopplications
  */
 var currentWeekdayLabels = [];
-var Last12MonthsLabels = [];
-var YearlyDataLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+var last12MonthsLabels = [];
 var allApplicationData = [];
 var applicationData = {};
 
-/* 
+/** 
  * Run the data retrieval process
+ * @param {string or date} - rStartDate - the start date for the comparison period as a date or date string 
+ * @param {string or date} - rEndDate - the end date for the comparison period as a date or date string 
+ * @param {string} - rIds - the Google Aanalytics id string
  */
 
 function retrieveData(rStartDate, rEndDate, rIds) {
     "use strict";
 
-    assert(isDate(rStartDate), 'retrieveData assert failed - startDate: ' + startDate);
-    assert(isDate(rEndDate), 'retrieveData assert failed - endDate: ' + endDate);
+    assert(isDate(rStartDate), 'retrieveData assert failed - startDate: ' + rStartDate);
+    assert(new Date(rStartDate).getDay() === 1, 'retrieveData assert failed - startDate is not Monday: ' + rStartDate);
+    assert(isDate(rEndDate), 'retrieveData assert failed - endDate: ' + rEndDate);
+    assert(new Date(rEndDate).getDay() === 0, 'retrieveData assert failed - endDate is not Sunday: ' + rEndDate);
     assert(ids !== "", 'retrieveData assert failed - ids empty');
 
 
@@ -56,22 +67,28 @@ function retrieveData(rStartDate, rEndDate, rIds) {
     //Make sure the queue has been emptied
     gaRequester.clearQueryQueue();
 
+    //Set date and page filters
     setDates();
+    setPages();
 
     //Start retrieval process
-    retrieveTopPages()
-        .then(function () {
-            return retrieveTopBrowsers(5);
-        })
-        .then(function () {
+    retrieveTopBrowsers(5)
+        .then(function() {
             return retrieveWeeklyUsers();
 
         })
-        .then(function () {
+        .then(function() {
             buildWeeklyUsersCharts();
             return true;
         })
-        .catch(function (err) {
+        .then(function() {
+            return retrieveYearlyUsers();
+        })
+        .then(function() {
+            buildYearlyUsersCharts();
+            return true;
+        })
+        .catch(function(err) {
             console.log(err);
         });
 
@@ -108,13 +125,43 @@ function setDates() {
     //Go back a year then add one day to get the first of the following month
     lastYearStartDate = dateAdd(dateAdd(lastYearEndDate, "y", -1), "d", 1);
 
+    //Set-up previous year time period
+    previousYearStartDate = dateAdd(lastYearStartDate, "y", -1);
+    previousYearEndDate = dateAdd(lastYearEndDate, "y", -1);
+
+    //Set-up yearly month labels for the time period selected
+    last12MonthsLabels.length = 0;
+    for (var monthCounter = 0; monthCounter <= 11; monthCounter++) {
+        last12MonthsLabels.push(MONTH_LABELS[(lastYearStartDate.getMonth() + monthCounter) % 12]);
+    }
+
 }
 
 /**
- * Retrieves the top pages which are then used for all other queries
- * @param {starteDate, endDate} the primary comparison period as dates or strings
-            {ids} string with the GA ids
-            {numberToRetrieve} the number of pages to retrieve
+ * Sets the page filter based on the constant APP_NAMES and initialises an object for each app name to hold data
+ */
+function setPages() {
+    "use strict";
+
+    //Make sure topPages string is empty
+    topPagesFilter = "";
+
+    //Build page filter which will be used in all other queries & initialise the data arrays to hold other data
+    APP_NAMES.forEach(function(appName) {
+        if (topPagesFilter !== "") {
+            topPagesFilter = topPagesFilter + ",";
+        }
+        topPagesFilter = topPagesFilter + "ga:pageTitle==" + appName;
+
+        //Initialise an object for each application returned
+        applicationData[appName] = {};
+    });
+
+
+}
+
+/**
+ * Retrieves the top pages which are then used for all other queries. 
  * @return {Promise} a promise which wil resolve after the data has been populated
  */
 function retrieveTopPages() {
@@ -124,7 +171,7 @@ function retrieveTopPages() {
     assert(isDate(endDate), 'retrieveTopPages assert failed - endDate: ' + endDate);
 
 
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
         //Make sure topPages string is empty
         topPagesFilter = "";
 
@@ -136,10 +183,10 @@ function retrieveTopPages() {
             "dimensions": "ga:pageTitle",
             "filters": PAGE_TITLE_EXCLUSION_FILTER,
             "sort": "-ga:pageviews"
-        }).then(function (results) {
+        }).then(function(results) {
 
             //Build page filter which will be used in all other queries & initialise the data arrays to hold other data
-            results.rows.forEach(function (dataRow) {
+            results.rows.forEach(function(dataRow) {
                 if (topPagesFilter !== "") {
                     topPagesFilter = topPagesFilter + ",";
                 }
@@ -150,7 +197,7 @@ function retrieveTopPages() {
             });
 
             resolve(true);
-        }).catch(function (err) {
+        }).catch(function(err) {
             console.log(err);
             reject(err);
         });
@@ -173,7 +220,7 @@ function retrieveTopBrowsers(numberToRetrieve) {
     assert(typeof numberToRetrieve === "number", 'retrieveTopPages assert failed - numberToRetrieve: ' + numberToRetrieve);
 
 
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
         //Make sure topPages string is empty
         topBrowsersFilter = "";
 
@@ -185,10 +232,10 @@ function retrieveTopBrowsers(numberToRetrieve) {
             "dimensions": "ga:browser",
             "sort": "-ga:pageviews",
             "max-results": numberToRetrieve
-        }).then(function (results) {
+        }).then(function(results) {
 
             //Build browser filter which will be used in other queries
-            results.rows.forEach(function (dataRow) {
+            results.rows.forEach(function(dataRow) {
                 if (topBrowsersFilter !== "") {
                     topBrowsersFilter = topBrowsersFilter + ",";
                 }
@@ -197,7 +244,7 @@ function retrieveTopBrowsers(numberToRetrieve) {
             });
 
             resolve(true);
-        }).catch(function (err) {
+        }).catch(function(err) {
             console.log(err);
             reject(err);
         });
@@ -206,8 +253,7 @@ function retrieveTopBrowsers(numberToRetrieve) {
 }
 
 /**
- * Retrieve the weekly users 
- * @param {starteDate, endDate} the primary comparison period - formatted strings in format"YYYY-MM-DD"
+ * Retrieve the weekly users data for individual applications and the overall total
  * @return {Promise} a promise which wil resolve with the data
  */
 function retrieveWeeklyUsers() {
@@ -217,7 +263,7 @@ function retrieveWeeklyUsers() {
     assert(isDate(endDate), 'retrieveWeeklyUsers assert failed - endDate: ' + endDate);
 
 
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
 
         gaRequester.queryGA({
             "start-date": formatDateString(startDate, "query"),
@@ -227,7 +273,7 @@ function retrieveWeeklyUsers() {
             "metrics": "ga:users",
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:date"
-        }).then(function (results) {
+        }).then(function(results) {
             //map in 0 values for current week user data
             allApplicationData.currentWeekUserData = [0, 0, 0, 0, 0, 0, 0];
 
@@ -235,20 +281,22 @@ function retrieveWeeklyUsers() {
                 applicationData[appName].currentWeekUserData = [0, 0, 0, 0, 0, 0, 0];
             }
 
-            results.rows.forEach(function (dataRow) {
-                /*Results structure -   dataRow[0] = appName
-                                        dataRow[1] = realDate
-                                        dataRow[2] = dayIndex
-                                        dataRow[3] = value
-                */
-                //Record value for each application
-                applicationData[dataRow[0]].currentWeekUserData[+dataRow[2]] = +dataRow[3];
-                //Add value to all application total
-                allApplicationData.currentWeekUserData[+dataRow[2]] = allApplicationData.currentWeekUserData[+dataRow[2]] + (+dataRow[3]);
-            });
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = realDate
+                                            dataRow[2] = dayIndex
+                                            dataRow[3] = value
+                    */
+                    //Record value for each application
+                    applicationData[dataRow[0]].currentWeekUserData[+dataRow[2]] = +dataRow[3];
+                    //Add value to all application total
+                    allApplicationData.currentWeekUserData[+dataRow[2]] = allApplicationData.currentWeekUserData[+dataRow[2]] + (+dataRow[3]);
+                });
+            }
 
             return true;
-        }).then(function () {
+        }).then(function() {
 
             return gaRequester.queryGA({
                 "start-date": formatDateString(lastWeekStartDate, "query"),
@@ -259,7 +307,7 @@ function retrieveWeeklyUsers() {
                 "filters": topPagesFilter,
                 "sort": "ga:pageTitle,ga:date"
             });
-        }).then(function (results) {
+        }).then(function(results) {
             //map in 0 values for current week user data
             allApplicationData.lastWeekUserData = [0, 0, 0, 0, 0, 0, 0];
 
@@ -267,20 +315,22 @@ function retrieveWeeklyUsers() {
                 applicationData[appName].lastWeekUserData = [0, 0, 0, 0, 0, 0, 0];
             }
 
-            results.rows.forEach(function (dataRow) {
-                /*Results structure -   dataRow[0] = appName
-                                        dataRow[1] = realDate
-                                        dataRow[2] = dayIndex
-                                        dataRow[3] = value
-                */
-                //Record value for each application
-                applicationData[dataRow[0]].lastWeekUserData[+dataRow[2]] = +dataRow[3];
-                //Add value to all application total
-                allApplicationData.lastWeekUserData[+dataRow[2]] = allApplicationData.lastWeekUserData[+dataRow[2]] + (+dataRow[3]);
-            });
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = realDate
+                                            dataRow[2] = dayIndex
+                                            dataRow[3] = value
+                    */
+                    //Record value for each application
+                    applicationData[dataRow[0]].lastWeekUserData[+dataRow[2]] = +dataRow[3];
+                    //Add value to all application total
+                    allApplicationData.lastWeekUserData[+dataRow[2]] = allApplicationData.lastWeekUserData[+dataRow[2]] + (+dataRow[3]);
+                });
+            }
 
             return true;
-        }).then(function () {
+        }).then(function() {
             //N.B. Setting max-results required - default is 1000 rows at a time - with 7 apps * 365 days need 2555 to get all in one request
             //    10,000 allows up to 27 applications
             return gaRequester.queryGA({
@@ -293,51 +343,148 @@ function retrieveWeeklyUsers() {
                 "sort": "ga:pageTitle,ga:date",
                 "max-results": 10000
             });
-        }).then(function (results) {
+        }).then(function(results) {
             var appName;
             //map in empty arrays for each day of the week
             allApplicationData.lastYearMedianUserData = [0, 0, 0, 0, 0, 0, 0];
 
             for (appName in applicationData) {
                 applicationData[appName].lastYearUserData = [
-                                                            [], [], [], [], [], [], []
-                                                            ];
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    []
+                ];
                 applicationData[appName].lastYearMedianUserData = [0, 0, 0, 0, 0, 0, 0];
             }
             var convertedDayIndex;
 
-            results.rows.forEach(function (dataRow) {
-                /*Results structure -   dataRow[0] = appName
-                                        dataRow[1] = dayofWeek Index
-                                        dataRow[2] = date
-                                        dataRow[3] = value
-                */
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = dayofWeek Index
+                                            dataRow[2] = date
+                                            dataRow[3] = value
+                    */
 
-                //Need to convert from standard week Sun (0) - Sat (6) to our week Mon (0) - Sun (6)
-                convertedDayIndex = (+dataRow[1]) - 1;
-                if (convertedDayIndex === -1) {
-                    convertedDayIndex = 6;
+                    //Need to convert from standard week Sun (0) - Sat (6) to our week Mon (0) - Sun (6)
+                    convertedDayIndex = (+dataRow[1]) - 1;
+                    if (convertedDayIndex === -1) {
+                        convertedDayIndex = 6;
+                    }
+
+                    //Push value to 
+                    applicationData[dataRow[0]].lastYearUserData[convertedDayIndex].push(+dataRow[3]);
+                });
+
+                //Loop through each day array within each application and determine median
+                for (appName in applicationData) {
+                    applicationData[appName].lastYearUserData.forEach(function(dayArray, index) {
+                        //Re-sort array into numeric order
+                        sortNumericalArrayAsc(dayArray);
+                        //Choose middle array value (median)
+                        applicationData[appName].lastYearMedianUserData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
+                        //Add median value for this application to the overall median value
+                        allApplicationData.lastYearMedianUserData[index] = allApplicationData.lastYearMedianUserData[index] + (dayArray[Math.round(dayArray.length / 2)] || 0);
+                    });
                 }
+            }
 
-                //Push value to 
-                applicationData[dataRow[0]].lastYearUserData[convertedDayIndex].push(+dataRow[3]);
+            resolve(true);
+
+        }).catch(function(err) {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
+
+/**
+ * Retrieve the yearly users data for individual applications and the overall total
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveYearlyUsers() {
+    "use strict";
+
+    assert(isDate(lastYearStartDate), 'retrieveYearlyUsers assert failed - lastYearStartDate: ' + lastYearStartDate);
+    assert(isDate(lastYearEndDate), 'retrieveYearlyUsers assert failed - lastYearEndDate: ' + lastYearEndDate);
+    assert(isDate(previousYearStartDate), 'retrieveYearlyUsers assert failed - previousYearStartDate: ' + previousYearStartDate);
+    assert(isDate(previousYearEndDate), 'retrieveYearlyUsers assert failed - previousYearEndDate: ' + previousYearEndDate);
+
+
+    return new Promise(function(resolve, reject) {
+
+        gaRequester.queryGA({
+            "start-date": formatDateString(lastYearStartDate, "query"),
+            "end-date": formatDateString(lastYearEndDate, "query"),
+            "ids": ids,
+            "dimensions": "ga:pageTitle,ga:yearMonth,ga:nthMonth",
+            "metrics": "ga:users",
+            "filters": topPagesFilter,
+            "sort": "ga:pageTitle,ga:yearMonth"
+        }).then(function(results) {
+            //map in 0 values for current week user data
+            allApplicationData.thisYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            for (var appName in applicationData) {
+                applicationData[appName].thisYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            }
+
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = yearMonth
+                                            dataRow[2] = monthIndex
+                                            dataRow[3] = value
+                    */
+                    //Record value for each application
+                    applicationData[dataRow[0]].thisYearUserData[+dataRow[2]] = +dataRow[3];
+                    //Add value to all application total
+                    allApplicationData.thisYearUserData[+dataRow[2]] = allApplicationData.thisYearUserData[+dataRow[2]] + (+dataRow[3]);
+                });
+            }
+
+            return true;
+        }).then(function() {
+
+            return gaRequester.queryGA({
+                "start-date": formatDateString(previousYearStartDate, "query"),
+                "end-date": formatDateString(previousYearEndDate, "query"),
+                "ids": ids,
+                "dimensions": "ga:pageTitle,ga:yearMonth,ga:nthMonth",
+                "metrics": "ga:users",
+                "filters": topPagesFilter,
+                "sort": "ga:pageTitle,ga:nthMonth"
             });
+        }).then(function(results) {
+            //map in 0 values for current week user data
+            allApplicationData.previousYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-            //Loop through each day array within each application and determine median
-            for (appName in applicationData) {
-                applicationData[appName].lastYearUserData.forEach(function (dayArray, index) {
-                    //Re-sort array into numeric order
-                    sortNumericalArrayAsc(dayArray);
-                    //Choose middle array value (median)
-                    applicationData[appName].lastYearMedianUserData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
-                    //Add median value for this application to the overall median value
-                    allApplicationData.lastYearMedianUserData[index] = allApplicationData.lastYearMedianUserData[index] + (dayArray[Math.round(dayArray.length / 2)] || 0);
+            for (var appName in applicationData) {
+                applicationData[appName].previousYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            }
+
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = yearMonth
+                                            dataRow[2] = monthIndex
+                                            dataRow[3] = value
+                    */
+                    //Record value for each application
+                    applicationData[dataRow[0]].previousYearUserData[+dataRow[2]] = +dataRow[3];
+                    //Add value to all application total
+                    allApplicationData.previousYearUserData[+dataRow[2]] = allApplicationData.previousYearUserData[+dataRow[2]] + (+dataRow[3]);
                 });
             }
 
             resolve(true);
 
-        }).catch(function (err) {
+        }).catch(function(err) {
             console.log(err);
             reject(err);
         });
@@ -373,7 +520,7 @@ function endDatePreviousMonth(dateValue) {
     "use strict";
 
     //Check that this really is a date
-    assert(isDate(dateValue), 'dateAdd assert failed - dateValue: ' + dateValue);
+    assert(isDate(dateValue), 'endDatePreviousMonth assert failed - dateValue: ' + dateValue);
 
     var newDate = new Date(dateValue);
 
@@ -480,7 +627,7 @@ function sortNumericalArrayAsc(numericalArray) {
 
     assert(Array.isArray(numericalArray), 'sortNumericalArrayAsc assert failed - numericalArray: ' + numericalArray);
 
-    numericalArray.sort(function (a, b) {
+    numericalArray.sort(function(a, b) {
         return a - b;
     });
 
@@ -496,7 +643,7 @@ function sortNumericalArrayDesc(numericalArray) {
 
     assert(Array.isArray(numericalArray), 'sortNumericalArrayDesc assert failed - numericalArray: ' + numericalArray);
 
-    numericalArray.sort(function (a, b) {
+    numericalArray.sort(function(a, b) {
         return b - a;
     });
 

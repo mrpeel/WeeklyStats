@@ -26,9 +26,9 @@
 
 
     <!--<div id="grid" class="salvattore" data-columns>-->
-    <div id="grid" class="masonry-layout">
+    <div id="masonry-grid">
         <div class="grid-sizer"></div>
-        <div class="card">
+        <!--<div class="card full-width">
             <div id="weekly-users-overall"></div>
             <button id="weekly-users-overall-button">Transform Overall Weekly Users Chart</button>
         </div>
@@ -59,7 +59,33 @@
         <div class="card">
             <div id="weekly-users-landata-vmt"></div>
             <button id="weekly-users-landata-vmt-button">Transform LANDATA VMT Weekly Users Chart</button>
+        </div> -->
+
+        <!-- Yearly comparisons  -->
+        <!--<div class="card full-width">
+            <div id="yearly-users-overall"></div>
         </div>
+        <div class="card">
+            <div id="yearly-users-lassi"></div>
+        </div>
+        <div class="card">
+            <div id="yearly-users-spear"></div>
+        </div>
+        <div class="card">
+            <div id="yearly-users-smes"></div>
+        </div>
+        <div class="card">
+            <div id="yearly-users-smes-edit"></div>
+        </div>
+        <div class="card">
+            <div id="yearly-users-vicnames"></div>
+        </div>
+        <div class="card">
+            <div id="yearly-users-landata-tpi"></div>
+        </div>
+        <div class="card">
+            <div id="yearly-users-landata-vmt"></div>
+        </div> -->
 
     </div>
 
@@ -91,7 +117,6 @@
                 g.load('analytics')
             };
         }(window, document, 'script'));
-
     </script>
     <!-- When the Analytics API is ready - authorise and get going -->
     <script>
@@ -113,10 +138,9 @@
 
 
             gapi.analytics.auth.on('success', function(response) {
-                retrieveData("2015-10-19", "2015-10-25", "ga:89463991");
+                retrieveData("2015-11-30", "2015-12-06", "ga:89463991");
             });
         });
-
     </script>
 
 </body>
