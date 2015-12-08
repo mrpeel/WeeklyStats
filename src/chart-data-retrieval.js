@@ -1,4 +1,4 @@
-/*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts*/
+/*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts, buildWeeklySessionCharts*/
 
 /** 
  * Retrieves the data required for each of the charts and executes required processing, then returns the data as an object.
@@ -86,6 +86,13 @@ function retrieveData(rStartDate, rEndDate, rIds) {
         })
         .then(function() {
             buildYearlyUsersCharts();
+            return true;
+        })
+        .then(function() {
+            return retrieveWeeklySeesions();
+        })
+        .then(function() {
+            buildWeeklySessionCharts();
             return true;
         })
         .catch(function(err) {
@@ -490,6 +497,190 @@ function retrieveYearlyUsers() {
         });
     });
 
+}
+
+/**
+ * Retrieve the weekly session data for individual applications and the overall total
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveWeeklySeesions() {
+    "use strict";
+
+    assert(isDate(startDate), 'retrieveWeeklySeesions assert failed - startDate: ' + startDate);
+    assert(isDate(endDate), 'retrieveWeeklySeesions assert failed - endDate: ' + endDate);
+
+
+    return new Promise(function(resolve, reject) {
+
+        gaRequester.queryGA({
+            "start-date": formatDateString(startDate, "query"),
+            "end-date": formatDateString(endDate, "query"),
+            "ids": ids,
+            "dimensions": "ga:pageTitle,ga:date,ga:nthDay",
+            "metrics": "ga:avgSessionDuration",
+            "filters": topPagesFilter,
+            "sort": "ga:pageTitle,ga:date"
+        }).then(function(results) {
+            //map in 0 values for current week user data
+            allApplicationData.currentWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
+
+            for (var appName in applicationData) {
+                applicationData[appName].currentWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
+            }
+
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = realDate
+                                            dataRow[2] = dayIndex
+                                            dataRow[3] = value
+                    */
+                    //Record value for each application
+                    applicationData[dataRow[0]].currentWeekSessionData[+dataRow[2]] = roundTo2((+dataRow[3] / 60));
+                    //Add value to all application total
+                    allApplicationData.currentWeekSessionData[+dataRow[2]] = allApplicationData.currentWeekSessionData[+dataRow[2]] + roundTo2((+dataRow[3] / 60));
+                });
+
+                //Make overall average session for each day duration by dividing the overall number by the number of apps
+                for (var dayCounter = 0; dayCounter < allApplicationData.currentWeekSessionData.length; dayCounter++) {
+                    allApplicationData.currentWeekSessionData[dayCounter] = roundTo2(allApplicationData.currentWeekSessionData[dayCounter] / APP_NAMES.length);
+
+                }
+            }
+
+            return true;
+        }).then(function() {
+
+            return gaRequester.queryGA({
+                "start-date": formatDateString(lastWeekStartDate, "query"),
+                "end-date": formatDateString(lastWeekEndDate, "query"),
+                "ids": ids,
+                "dimensions": "ga:pageTitle,ga:date,ga:nthDay",
+                "metrics": "ga:avgSessionDuration",
+                "filters": topPagesFilter,
+                "sort": "ga:pageTitle,ga:date"
+            });
+        }).then(function(results) {
+            //map in 0 values for current week user data
+            allApplicationData.lastWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
+
+            for (var appName in applicationData) {
+                applicationData[appName].lastWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
+            }
+
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = realDate
+                                            dataRow[2] = dayIndex
+                                            dataRow[3] = value
+                    */
+                    //Record value for each application
+                    applicationData[dataRow[0]].lastWeekSessionData[+dataRow[2]] = roundTo2((+dataRow[3] / 60));
+                    //Add value to all application total
+                    allApplicationData.lastWeekSessionData[+dataRow[2]] = allApplicationData.lastWeekSessionData[+dataRow[2]] + roundTo2((+dataRow[3] / 60));
+                });
+
+                //Make overall average session for each day duration by dividing the overall number by the number of apps
+                for (var dayCounter = 0; dayCounter < allApplicationData.lastWeekSessionData.length; dayCounter++) {
+                    allApplicationData.lastWeekSessionData[dayCounter] = roundTo2(allApplicationData.lastWeekSessionData[dayCounter] / APP_NAMES.length);
+                }
+            }
+
+            return true;
+        }).then(function() {
+            //N.B. Setting max-results required - default is 1000 rows at a time - with 7 apps * 365 days need 2555 to get all in one request
+            //    10,000 allows up to 27 applications
+            return gaRequester.queryGA({
+                "start-date": formatDateString(lastYearStartDate, "query"),
+                "end-date": formatDateString(lastYearEndDate, "query"),
+                "ids": ids,
+                "dimensions": "ga:pageTitle,ga:dayOfWeek,ga:date",
+                "metrics": "ga:avgSessionDuration",
+                "filters": topPagesFilter,
+                "sort": "ga:pageTitle,ga:date",
+                "max-results": 10000
+            });
+        }).then(function(results) {
+            var appName;
+            //map in empty arrays for each day of the week
+            allApplicationData.lastYearMedianSessionData = [0, 0, 0, 0, 0, 0, 0];
+
+            for (appName in applicationData) {
+                applicationData[appName].lastYearSessionData = [
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    []
+                ];
+                applicationData[appName].lastYearMedianSessionData = [0, 0, 0, 0, 0, 0, 0];
+            }
+            var convertedDayIndex;
+
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = dayofWeek Index
+                                            dataRow[2] = date
+                                            dataRow[3] = value
+                    */
+
+                    //Need to convert from standard week Sun (0) - Sat (6) to our week Mon (0) - Sun (6)
+                    convertedDayIndex = (+dataRow[1]) - 1;
+                    if (convertedDayIndex === -1) {
+                        convertedDayIndex = 6;
+                    }
+
+                    //Push value to 
+                    applicationData[dataRow[0]].lastYearSessionData[convertedDayIndex].push(roundTo2((+dataRow[3] / 60)));
+                });
+
+                //Loop through each day array within each application and determine median
+                for (appName in applicationData) {
+                    applicationData[appName].lastYearSessionData.forEach(function(dayArray, index) {
+                        //Re-sort array into numeric order
+                        sortNumericalArrayAsc(dayArray);
+                        //Choose middle array value (median)
+                        applicationData[appName].lastYearMedianSessionData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
+                        //Add median value for this application to the overall median value
+                        allApplicationData.lastYearMedianSessionData[index] = allApplicationData.lastYearMedianSessionData[index] + (dayArray[Math.round(dayArray.length / 2)] || 0);
+                    });
+                }
+
+                //Make overall average session for each day duration by dividing the overall number by the number of apps
+                for (var dayCounter = 0; dayCounter < allApplicationData.lastYearMedianSessionData.length; dayCounter++) {
+                    allApplicationData.lastYearMedianSessionData[dayCounter] = roundTo2(allApplicationData.lastYearMedianSessionData[dayCounter] / APP_NAMES.length);
+
+                }
+
+            }
+
+            resolve(true);
+
+        }).catch(function(err) {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
+
+/**
+ * Takes a number value and trims is to a maximum of 2 decimal places
+ * @params {number} numValue -  a numberor string in a number format
+ * @return {number} a number trimeed to 2 decimal places
+ */
+function roundTo2(numValue) {
+    "use strict";
+
+    //Check that this really is a number value
+    assert(typeof numValue === "number", 'roundTo2 assert failed - numValue: ' + numValue);
+
+
+    return parseFloat(parseFloat(numValue).toFixed(2));
 }
 
 /**
