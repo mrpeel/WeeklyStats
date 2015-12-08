@@ -1,5 +1,5 @@
 /*global window, document, topPagesFilter, topBrowsersFilter, startDate, endDate, ids, lastWeekStartDate, lastWeekEndDate,  lastYearStartDate, lastYearEndDate */
-/*global currentWeekdayLabels, last12MonthsLabels,  YearlyDataLabels, allApplicationData, applicationData, APP_NAMES */
+/*global currentWeekdayLabels, last12MonthsLabels,  YearlyDataLabels, allApplicationData, applicationData, APP_NAMES, APP_LABELS, topBrowsersArray */
 /*global Masonry, formatDateString, C3StatsChart, assert */
 
 
@@ -119,6 +119,46 @@ function createElement(elementId, elementClassString, elementHTML, buttonId, tra
 
 }
 
+/* 
+    Build the yearly page breakdown chart
+      Relies on the daya already being present within:
+        allApplicationData.pageData
+        
+*/
+function buildYearlyPagesChart() {
+    "use strict";
+
+    var seriesArray = [];
+    var columnData = [];
+    var nextChartORef = chartRefs.length;
+
+    //Set-up overall chart
+
+    //Map in values for each page month combination to the series then add to the columnData
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Add in the application label as the data set name
+        allApplicationData.pageData[APP_NAMES[appCounter]].unshift(APP_LABELS[appCounter]);
+        //add data set to chart column data
+        columnData.push(allApplicationData.pageData[APP_NAMES[appCounter]]);
+    }
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('yearly-pages-overall-card',
+        'card full-width overall',
+        '<div id="yearly-pages-overall"></div><button id="yearly-pages-overall-button">Change overall yearly pages chart</button>',
+        'yearly-pages-overall-button',
+        "transformVerticalStackedGrouped", nextChartORef);
+
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-pages-overall", last12MonthsLabels, APP_LABELS);
+    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
+
+    msnry.layout();
+
+
+}
+
 
 /* 
     Build all weekly user charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
@@ -137,6 +177,7 @@ function buildWeeklyUsersCharts() {
 
     var currentWeekArray, lastWeekArray, lastYearArray;
     var columnData = [];
+    var nextChartORef = chartRefs.length;
 
     //Set-up overall chart
     currentWeekArray = ["Week starting " + formatDateString(startDate, "display")];
@@ -157,10 +198,10 @@ function buildWeeklyUsersCharts() {
         'card full-width home overall',
         '<div id="weekly-users-overall"></div><button id="weekly-users-overall-button">Change overall weekly users chart</button>',
         'weekly-users-overall-button',
-        "transformArea", 0);
+        "transformArea", nextChartORef);
 
-    chartRefs[0] = new C3StatsChart(columnData, "weekly-users-overall");
-    chartRefs[0].createWeekDayAreaChart();
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-users-overall");
+    chartRefs[nextChartORef].createWeekDayAreaChart();
 
     //Now run through each of the application charts
     for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
@@ -265,14 +306,14 @@ function buildYearlyUsersCharts() {
 /* 
     Build all weekly session dration charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
       Relies on the daya already being present within:
-        allApplicationData.currentWeekUserData
-        allApplicationData.lastWeekUserData
-        allApplicationData.lastYearMedianUserData
+        allApplicationData.currentWeekSessionData
+        allApplicationData.lastWeekSessionData
+        allApplicationData.lastYearMedianSessionData
         
         For each app:
-        applicationData[appName].currentWeekUserData
-        applicationData[appName].lastWeekUserData
-        applicationData[appName].lastYearMedianUserData
+        applicationData[appName].currentWeekSessionData
+        applicationData[appName].lastWeekSessionData
+        applicationData[appName].lastYearMedianSessionData
 */
 function buildWeeklySessionCharts() {
     "use strict";
@@ -340,6 +381,73 @@ function buildWeeklySessionCharts() {
 
 
 }
+
+/* 
+    Build all yearly browser usage charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the daya already being present within:
+        allApplicationData.browserData[browserName]
+        
+        For each app:
+        applicationData[appName].browserData[browserName]
+*/
+function buildYearlyBrowserCharts() {
+    "use strict";
+
+    var seriesArray = [];
+    var columnData = [];
+    var nextChartORef = chartRefs.length;
+
+    //Set-up overall chart
+
+    //Map in values for each browser month combination to the series then add to the columnData
+    topBrowsersArray.forEach(function(browserName) {
+        allApplicationData.browserData[browserName].unshift(browserName);
+        columnData.push(allApplicationData.browserData[browserName]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('yearly-browsers-overall-card',
+        'card full-width overall',
+        '<div id="yearly-browsers-overall"></div><button id="yearly-browsers-overall-button">Change overall yearly browsers chart</button>',
+        'yearly-browsers-overall-button',
+        "transformVerticalStackedGrouped", nextChartORef);
+
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-browsers-overall", last12MonthsLabels, topBrowsersArray);
+    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = [];
+        var nextChartRef = chartRefs.length;
+
+        //Map in values for each browser month combination to the series then add to the columnData
+        topBrowsersArray.forEach(function(browserName) {
+            applicationData[APP_NAMES[appCounter]].browserData[browserName].unshift(browserName);
+            columnData.push(applicationData[APP_NAMES[appCounter]].browserData[browserName]);
+        });
+
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('yearly-browsers-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="yearly-browsers-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-browsers-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' browsers chart</button>',
+            'yearly-browsers-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformVerticalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-browsers-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, topBrowsersArray);
+        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of visits");
+
+    }
+
+    msnry.layout();
+
+
+}
+
 
 
 function transformArea(chartRefNum) {

@@ -1,4 +1,4 @@
-/*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts, buildWeeklySessionCharts*/
+/*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts, buildWeeklySessionCharts, buildYearlyBrowserCharts, buildYearlyPagesChart*/
 
 /** 
  * Retrieves the data required for each of the charts and executes required processing, then returns the data as an object.
@@ -20,9 +20,11 @@ var PAGE_TITLE_EXCLUSION_FILTER = 'ga:PageTitle!=Redirect;ga:PageTitle!=(not set
 var APP_NAMES = ["LASSI - Land and Survey Spatial Information", "LASSI - SPEAR", "SMES - Survey Marks Enquiry Service", "SMES Edit - Survey Marks Enquiry Service",
     "VICNAMES - The Register of Geographic Names", "LASSI - TPC", "LASSI - VMT"
 ];
+var APP_LABELS = ["LASSI", "LASSI - SPEAR", "SMES", "SMES Edit", "VICNAMES", "LANDATA TPI", "LANDATA VMT"];
 var MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 var topPagesFilter;
+var topBrowsersArray = [];
 var topBrowsersFilter;
 var startDate, endDate, ids;
 var lastWeekStartDate, lastWeekEndDate;
@@ -74,6 +76,13 @@ function retrieveData(rStartDate, rEndDate, rIds) {
     //Start retrieval process
     retrieveTopBrowsers(5)
         .then(function() {
+            return retrieveYearlyPages();
+        })
+        .then(function() {
+            buildYearlyPagesChart();
+            return true;
+        })
+        .then(function() {
             return retrieveWeeklyUsers();
 
         })
@@ -89,10 +98,17 @@ function retrieveData(rStartDate, rEndDate, rIds) {
             return true;
         })
         .then(function() {
-            return retrieveWeeklySeesions();
+            return retrieveWeeklySessions();
         })
         .then(function() {
             buildWeeklySessionCharts();
+            return true;
+        })
+        .then(function() {
+            return retrieveYearlyBrowsers();
+        })
+        .then(function() {
+            buildYearlyBrowserCharts();
             return true;
         })
         .catch(function(err) {
@@ -168,40 +184,60 @@ function setPages() {
 }
 
 /**
- * Retrieves the top pages which are then used for all other queries. 
+ * Retrieves the yearly application (page) visit breakdown across apps. 
  * @return {Promise} a promise which wil resolve after the data has been populated
  */
-function retrieveTopPages() {
+function retrieveYearlyPages() {
     "use strict";
 
-    assert(isDate(startDate), 'retrieveTopPages assert failed - startDate: ' + startDate);
-    assert(isDate(endDate), 'retrieveTopPages assert failed - endDate: ' + endDate);
-
+    assert(isDate(startDate), 'retrieveYearlyPages assert failed - startDate: ' + startDate);
+    assert(isDate(endDate), 'retrieveYearlyPages assert failed - endDate: ' + endDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveYearlyPages assert failed - topPagesFilter: ' + topPagesFilter);
 
     return new Promise(function(resolve, reject) {
-        //Make sure topPages string is empty
-        topPagesFilter = "";
 
         gaRequester.queryGA({
-            "start-date": startDate,
-            "end-date": endDate,
+            "start-date": formatDateString(lastYearStartDate, "query"),
+            "end-date": formatDateString(lastYearEndDate, "query"),
             "ids": ids,
             "metrics": "ga:pageviews",
-            "dimensions": "ga:pageTitle",
-            "filters": PAGE_TITLE_EXCLUSION_FILTER,
-            "sort": "-ga:pageviews"
+            "dimensions": "ga:pageTitle,ga:yearMonth,ga:nthMonth",
+            "filters": topPagesFilter,
+            "sort": "ga:pageTitle,ga:yearMonth"
         }).then(function(results) {
 
-            //Build page filter which will be used in all other queries & initialise the data arrays to hold other data
-            results.rows.forEach(function(dataRow) {
-                if (topPagesFilter !== "") {
-                    topPagesFilter = topPagesFilter + ",";
-                }
-                topPagesFilter = topPagesFilter + "ga:pageTitle==" + dataRow[0];
 
-                //Initialise an object for each application returned
-                applicationData[dataRow[0]] = {};
+            allApplicationData.pageData = {};
+            allApplicationData.pageTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            APP_NAMES.forEach(function(appName) {
+                allApplicationData.pageData[appName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             });
+
+
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = yearMonth
+                                            dataRow[2] = monthIndex
+                                            dataRow[3] = value
+                    */
+                    //Record value
+                    allApplicationData.pageData[dataRow[0]][+dataRow[2]] = (+dataRow[3]);
+                    //Add value to total
+                    allApplicationData.pageTotals[+dataRow[2]] = allApplicationData.pageTotals[+dataRow[2]] + (+dataRow[3]);
+                });
+
+                //Need to convert raw numbers to percentages - using month totals for overall figures
+                APP_NAMES.forEach(function(appName) {
+                    for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
+                        allApplicationData.pageData[appName][monthCounter] = roundTo2(allApplicationData.pageData[appName][monthCounter] /
+                            allApplicationData.pageTotals[monthCounter] * 100);
+                    }
+                });
+
+
+            }
 
             resolve(true);
         }).catch(function(err) {
@@ -232,23 +268,26 @@ function retrieveTopBrowsers(numberToRetrieve) {
         topBrowsersFilter = "";
 
         gaRequester.queryGA({
-            "start-date": startDate,
-            "end-date": endDate,
+            "start-date": formatDateString(startDate, "query"),
+            "end-date": formatDateString(endDate, "query"),
             "ids": ids,
             "metrics": "ga:pageviews",
             "dimensions": "ga:browser",
             "sort": "-ga:pageviews",
             "max-results": numberToRetrieve
         }).then(function(results) {
+            topBrowsersArray.length = 0;
 
-            //Build browser filter which will be used in other queries
-            results.rows.forEach(function(dataRow) {
-                if (topBrowsersFilter !== "") {
-                    topBrowsersFilter = topBrowsersFilter + ",";
-                }
-                topBrowsersFilter = topBrowsersFilter + "ga:browser==" + dataRow[0];
-
-            });
+            //Build browser filter and array which will be used in other queries
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    if (topBrowsersFilter !== "") {
+                        topBrowsersFilter = topBrowsersFilter + ",";
+                    }
+                    topBrowsersFilter = topBrowsersFilter + "ga:browser==" + dataRow[0];
+                    topBrowsersArray.push(dataRow[0]);
+                });
+            }
 
             resolve(true);
         }).catch(function(err) {
@@ -268,6 +307,7 @@ function retrieveWeeklyUsers() {
 
     assert(isDate(startDate), 'retrieveWeeklyUsers assert failed - startDate: ' + startDate);
     assert(isDate(endDate), 'retrieveWeeklyUsers assert failed - endDate: ' + endDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveWeeklyUsers assert failed - topPagesFilter: ' + topPagesFilter);
 
 
     return new Promise(function(resolve, reject) {
@@ -434,7 +474,7 @@ function retrieveYearlyUsers() {
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:yearMonth"
         }).then(function(results) {
-            //map in 0 values for current week user data
+            //map in 0 values for current year data
             allApplicationData.thisYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
             for (var appName in applicationData) {
@@ -468,7 +508,7 @@ function retrieveYearlyUsers() {
                 "sort": "ga:pageTitle,ga:nthMonth"
             });
         }).then(function(results) {
-            //map in 0 values for current week user data
+            //map in 0 values for previous year data
             allApplicationData.previousYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
             for (var appName in applicationData) {
@@ -503,7 +543,7 @@ function retrieveYearlyUsers() {
  * Retrieve the weekly session data for individual applications and the overall total
  * @return {Promise} a promise which wil resolve with the data
  */
-function retrieveWeeklySeesions() {
+function retrieveWeeklySessions() {
     "use strict";
 
     assert(isDate(startDate), 'retrieveWeeklySeesions assert failed - startDate: ' + startDate);
@@ -667,6 +707,98 @@ function retrieveWeeklySeesions() {
     });
 
 }
+
+/**
+ * Retrieve the yearly browsers data for individual applications and the overall total
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveYearlyBrowsers() {
+    "use strict";
+
+    assert(isDate(lastYearStartDate), 'retrieveYearlyBrowsers assert failed - lastYearStartDate: ' + lastYearStartDate);
+    assert(isDate(lastYearEndDate), 'retrieveYearlyBrowsers assert failed - lastYearEndDate: ' + lastYearEndDate);
+
+
+    return new Promise(function(resolve, reject) {
+
+        gaRequester.queryGA({
+            "start-date": formatDateString(lastYearStartDate, "query"),
+            "end-date": formatDateString(lastYearEndDate, "query"),
+            "ids": ids,
+            "dimensions": "ga:pageTitle,ga:browser,ga:yearMonth,ga:nthMonth",
+            "metrics": "ga:pageviews",
+            "filters": topPagesFilter + ";" + topBrowsersFilter,
+            "sort": "ga:pageTitle,ga:browser,ga:yearMonth"
+        }).then(function(results) {
+            //map in 0 values for each browser month combination
+            allApplicationData.browserData = {};
+            allApplicationData.browserTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            topBrowsersArray.forEach(function(browserName) {
+                allApplicationData.browserData[browserName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            });
+
+
+            for (var appName in applicationData) {
+                applicationData[appName].browserData = {};
+                applicationData[appName].browserTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                topBrowsersArray.forEach(function(browserName) {
+                    applicationData[appName].browserData[browserName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                });
+
+            }
+
+            if (results) {
+                results.rows.forEach(function(dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = browser
+                                            dataRow[2] = yearMonth
+                                            dataRow[3] = monthIndex
+                                            dataRow[4] = value
+                    */
+                    //Record value for each application
+                    applicationData[dataRow[0]].browserData[dataRow[1]][+dataRow[3]] = +dataRow[4];
+                    //Add to browser monthly total value for each application
+                    applicationData[dataRow[0]].browserTotals[+dataRow[3]] = applicationData[dataRow[0]].browserTotals[+dataRow[3]] + (+dataRow[4]);
+
+                    //Add value to all application total
+                    allApplicationData.browserData[dataRow[1]][+dataRow[3]] = allApplicationData.browserData[dataRow[1]][+dataRow[3]] + (+dataRow[4]);
+                    //Add to browser monthly overall total value
+                    allApplicationData.browserTotals[+dataRow[3]] = allApplicationData.browserTotals[+dataRow[3]] + (+dataRow[4]);
+                });
+
+                //Need to convert raw numbers to percentages - using month totals for overall figures
+                topBrowsersArray.forEach(function(browserName) {
+                    for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
+                        allApplicationData.browserData[browserName][monthCounter] = roundTo2(allApplicationData.browserData[browserName][monthCounter] /
+                            allApplicationData.browserTotals[monthCounter] * 100);
+                    }
+                });
+
+                //Need to convert raw numbers to percentages - using month totals for each application
+                for (var appTName in applicationData) {
+                    topBrowsersArray.forEach(function(browserName) {
+                        for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
+                            applicationData[appTName].browserData[browserName][monthCounter] = roundTo2(applicationData[appTName].browserData[browserName][monthCounter] /
+                                applicationData[appTName].browserTotals[monthCounter] * 100);
+                        }
+                    });
+
+                }
+
+
+            }
+
+            resolve(true);
+
+        }).catch(function(err) {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
+
 
 /**
  * Takes a number value and trims is to a maximum of 2 decimal places
