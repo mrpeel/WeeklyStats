@@ -5,7 +5,7 @@
  * General chart class containing the common data and methods 
  * required to draw a vertical bar, horiztonal bar and area chart 
  */
-var C3StatsChart = function(columnData, pageElement, labels, seriesLabels) {
+var C3StatsChart = function (columnData, pageElement, labels, seriesLabels) {
     "use strict";
 
     this.columnData = columnData;
@@ -49,7 +49,7 @@ var C3StatsChart = function(columnData, pageElement, labels, seriesLabels) {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.createWeekDayAreaChart = function() {
+C3StatsChart.prototype.createWeekDayAreaChart = function () {
     "use strict";
 
     //capture execution context to enable usage within functions
@@ -91,6 +91,14 @@ C3StatsChart.prototype.createWeekDayAreaChart = function() {
             y: {
                 padding: {
                     left: 0
+                },
+                tick: {
+                    format: function (d) {
+                        if ((d / 1000) >= 10) {
+                            d = d / 1000 + "K";
+                        }
+                        return d;
+                    }
                 }
             }
 
@@ -132,7 +140,7 @@ C3StatsChart.prototype.createWeekDayAreaChart = function() {
  * @return {None}
  */
 
-C3StatsChart.prototype.createStaticVerticalTwoSeriesBarChart = function() {
+C3StatsChart.prototype.createStaticVerticalTwoSeriesBarChart = function () {
     "use strict";
 
     //capture execution context to enable usage within functions
@@ -178,7 +186,16 @@ C3StatsChart.prototype.createStaticVerticalTwoSeriesBarChart = function() {
             y: {
                 padding: {
                     left: 0
+                },
+                tick: {
+                    format: function (d) {
+                        if ((d / 1000) >= 10) {
+                            d = d / 1000 + "K";
+                        }
+                        return d;
+                    }
                 }
+
             }
 
         },
@@ -227,7 +244,7 @@ C3StatsChart.prototype.createStaticVerticalTwoSeriesBarChart = function() {
  * @return {None}
  */
 
-C3StatsChart.prototype.createStackedVerticalBarChart = function(verticalAxisLabel) {
+C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLabel) {
     "use strict";
 
     //capture execution context to enable usage within functions
@@ -265,7 +282,16 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function(verticalAxisLabe
                 },
                 padding: {
                     top: 0
+                },
+                tick: {
+                    format: function (d) {
+                        if ((d / 1000) >= 10) {
+                            d = d / 1000 + "K";
+                        }
+                        return d;
+                    }
                 }
+
             }
 
         },
@@ -320,7 +346,7 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function(verticalAxisLabe
  * @return {None}
  */
 
-C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
+C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
     "use strict";
 
     //capture execution context to enable usage within functions
@@ -340,10 +366,9 @@ C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
         chartHeight = 350;
     }
 
-
     //Calculate the maximum individual and total values - required for re-scaling the chart
-    statsChartContext.columnData.forEach(function(valArray) {
-        valArray.forEach(function(val) {
+    statsChartContext.columnData.forEach(function (valArray) {
+        valArray.forEach(function (val) {
             //If value is a number, add to total and check for max
             if (typeof val === 'number') {
                 statsChartContext.chartMaxTotalValue = statsChartContext.chartMaxTotalValue + val;
@@ -359,10 +384,9 @@ C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
     statsChartContext.horizontalLabelClassName = "horizontal-label-position";
 
     //Prepare the horizontal label class for each data series
-    statsChartContext.columnData.forEach(function(val) {
+    statsChartContext.columnData.forEach(function (val) {
         chartClasses[val[0]] = statsChartContext.horizontalLabelClassName;
     });
-
 
     statsChartContext.chart = c3.generate({
         bindto: document.getElementById(statsChartContext.pageElement),
@@ -370,7 +394,8 @@ C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
             duration: statsChartContext.transitionDuration
         },
         size: {
-            height: chartHeight
+            height: chartHeight,
+            width: document.getElementById(statsChartContext.pageElement).clientWidth
         },
         padding: {
             bottom: 20,
@@ -382,7 +407,7 @@ C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
             columns: statsChartContext.columnData,
             type: 'bar',
             labels: {
-                format: function(v, id, i, j) {
+                format: function (v, id, i, j) {
                     return statsChartContext.labels[j];
                 }
             },
@@ -406,7 +431,16 @@ C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
             y: {
                 padding: {
                     left: 0
+                },
+                tick: {
+                    format: function (d) {
+                        if ((d / 1000) >= 10) {
+                            d = d / 1000 + "K";
+                        }
+                        return d;
+                    }
                 }
+
             }
 
         },
@@ -432,16 +466,23 @@ C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
         color: {
             pattern: chartColors.bigSets[20]
         },
-        onrendered: function() {
+        onrendered: function () {
             //Move the labels into position
             statsChartContext.moveLabelsXPos();
+        },
+        onresize: function () {
+            //When window is resized, re-size the chart appropriately
+            statsChartContext.chart.resize({
+                height: chartHeight,
+                width: document.getElementById(statsChartContext.pageElement).clientWidth
+            });
         }
 
 
 
     });
 
-    statsChartContext.rescaleHorizontal();
+    statsChartContext.rescaleHorizontal(statsChartContext.chartMaxIndValue * 0.85);
 };
 
 
@@ -450,7 +491,7 @@ C3StatsChart.prototype.createHorizontalBarChart = function(verticalAxisLabel) {
  * @param {number} newMaxValue The new maximum value which should be used to ensure the correct scale.
  * @return {None}
  */
-C3StatsChart.prototype.refreshChartData = function(columnData, labels, seriesLabels) {
+C3StatsChart.prototype.refreshChartData = function (columnData, labels, seriesLabels) {
     "use strict";
 
     var statsChartContext = this;
@@ -489,7 +530,7 @@ C3StatsChart.prototype.refreshChartData = function(columnData, labels, seriesLab
  * @param {number} newMaxValue The new maximum value which should be used to ensure the correct scale.
  * @return {None}
  */
-C3StatsChart.prototype.transformHorizontalStackedGrouped = function() {
+C3StatsChart.prototype.transformHorizontalStackedGrouped = function () {
     "use strict";
 
     var statsChartContext = this;
@@ -510,7 +551,7 @@ C3StatsChart.prototype.transformHorizontalStackedGrouped = function() {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.transformVerticalStackedGrouped = function() {
+C3StatsChart.prototype.transformVerticalStackedGrouped = function () {
     "use strict";
 
     var statsChartContext = this;
@@ -530,7 +571,7 @@ C3StatsChart.prototype.transformVerticalStackedGrouped = function() {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.transformAreaBar = function() {
+C3StatsChart.prototype.transformAreaBar = function () {
     "use strict";
 
     var statsChartContext = this;
@@ -551,14 +592,14 @@ C3StatsChart.prototype.transformAreaBar = function() {
  * @param {None}
  * @return {None}
  */
-C3StatsChart.prototype.moveLabelsXPos = function() {
+C3StatsChart.prototype.moveLabelsXPos = function () {
     "use strict";
 
     var statsChartContext = this;
 
     if (statsChartContext.chartType === "individual") {
         //Move all labels to left and set text to black
-        window.setTimeout(function() {
+        window.setTimeout(function () {
 
             d3.selectAll("div#" + statsChartContext.pageElement + " .c3-target-" + statsChartContext.horizontalLabelClassName + " .c3-text").attr("x", 15).style({
                 fill: "black",
@@ -568,7 +609,7 @@ C3StatsChart.prototype.moveLabelsXPos = function() {
         }, 1500);
     } else {
         //Set text to transparent
-        window.setTimeout(function() {
+        window.setTimeout(function () {
 
             d3.selectAll("div#" + statsChartContext.pageElement + " .c3-target-" + statsChartContext.horizontalLabelClassName + " .c3-text").style({
                 opacity: 0
@@ -581,15 +622,15 @@ C3StatsChart.prototype.moveLabelsXPos = function() {
 /** 
  * Rescale the horiztonal axis (it is listed as the y axis because the horiztonal chart is a rotated version of a vertical chart).  Because labels are initially put to the 
  *   right of the data,  the scale displayed is incorrect.  After the labels have been moved, the chart needs to be re-scaled to make use of the extra room.
- * @param {None}
+ * @param {number} maxValue - the maximum value to set the scale to
  * @return {None}
  */
-C3StatsChart.prototype.rescaleHorizontal = function(maxValue) {
+C3StatsChart.prototype.rescaleHorizontal = function (maxValue) {
     "use strict";
 
     var statsChartContext = this;
 
-    window.setTimeout(function() {
+    window.setTimeout(function () {
         statsChartContext.chart.axis.max({
             y: maxValue
         });

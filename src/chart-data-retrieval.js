@@ -1,4 +1,5 @@
 /*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts, buildWeeklySessionCharts, buildYearlyBrowserCharts, buildYearlyPagesChart*/
+/*global buildVisitorReturnCharts*/
 
 /** 
  * Retrieves the data required for each of the charts and executes required processing, then returns the data as an object.
@@ -75,43 +76,50 @@ function retrieveData(rStartDate, rEndDate, rIds) {
 
     //Start retrieval process
     retrieveTopBrowsers(5)
-        .then(function() {
+        /*.then(function () {
             return retrieveYearlyPages();
         })
-        .then(function() {
+        .then(function () {
             buildYearlyPagesChart();
             return true;
         })
-        .then(function() {
+        .then(function () {
             return retrieveWeeklyUsers();
 
         })
-        .then(function() {
+        .then(function () {
             buildWeeklyUsersCharts();
             return true;
         })
-        .then(function() {
+        .then(function () {
             return retrieveYearlyUsers();
         })
-        .then(function() {
+        .then(function () {
             buildYearlyUsersCharts();
             return true;
         })
-        .then(function() {
+        .then(function () {
             return retrieveWeeklySessions();
         })
-        .then(function() {
+        .then(function () {
             buildWeeklySessionCharts();
             return true;
         })
-        .then(function() {
+        .then(function () {
             return retrieveYearlyBrowsers();
         })
-        .then(function() {
+        .then(function () {
             buildYearlyBrowserCharts();
             return true;
+        })*/
+        .then(function () {
+            return retrieveVisitorReturns();
         })
-        .catch(function(err) {
+        .then(function () {
+            buildVisitorReturnCharts();
+            return true;
+        })
+        .catch(function (err) {
             console.log(err);
         });
 
@@ -170,7 +178,7 @@ function setPages() {
     topPagesFilter = "";
 
     //Build page filter which will be used in all other queries & initialise the data arrays to hold other data
-    APP_NAMES.forEach(function(appName) {
+    APP_NAMES.forEach(function (appName) {
         if (topPagesFilter !== "") {
             topPagesFilter = topPagesFilter + ",";
         }
@@ -194,7 +202,7 @@ function retrieveYearlyPages() {
     assert(isDate(endDate), 'retrieveYearlyPages assert failed - endDate: ' + endDate);
     assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveYearlyPages assert failed - topPagesFilter: ' + topPagesFilter);
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
         gaRequester.queryGA({
             "start-date": formatDateString(lastYearStartDate, "query"),
@@ -204,19 +212,19 @@ function retrieveYearlyPages() {
             "dimensions": "ga:pageTitle,ga:yearMonth,ga:nthMonth",
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:yearMonth"
-        }).then(function(results) {
+        }).then(function (results) {
 
 
             allApplicationData.pageData = {};
             allApplicationData.pageTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-            APP_NAMES.forEach(function(appName) {
+            APP_NAMES.forEach(function (appName) {
                 allApplicationData.pageData[appName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             });
 
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = yearMonth
                                             dataRow[2] = monthIndex
@@ -229,7 +237,7 @@ function retrieveYearlyPages() {
                 });
 
                 //Need to convert raw numbers to percentages - using month totals for overall figures
-                APP_NAMES.forEach(function(appName) {
+                APP_NAMES.forEach(function (appName) {
                     for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                         allApplicationData.pageData[appName][monthCounter] = roundTo2(allApplicationData.pageData[appName][monthCounter] /
                             allApplicationData.pageTotals[monthCounter] * 100);
@@ -240,7 +248,7 @@ function retrieveYearlyPages() {
             }
 
             resolve(true);
-        }).catch(function(err) {
+        }).catch(function (err) {
             console.log(err);
             reject(err);
         });
@@ -263,7 +271,7 @@ function retrieveTopBrowsers(numberToRetrieve) {
     assert(typeof numberToRetrieve === "number", 'retrieveTopPages assert failed - numberToRetrieve: ' + numberToRetrieve);
 
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         //Make sure topPages string is empty
         topBrowsersFilter = "";
 
@@ -275,12 +283,12 @@ function retrieveTopBrowsers(numberToRetrieve) {
             "dimensions": "ga:browser",
             "sort": "-ga:pageviews",
             "max-results": numberToRetrieve
-        }).then(function(results) {
+        }).then(function (results) {
             topBrowsersArray.length = 0;
 
             //Build browser filter and array which will be used in other queries
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     if (topBrowsersFilter !== "") {
                         topBrowsersFilter = topBrowsersFilter + ",";
                     }
@@ -290,7 +298,7 @@ function retrieveTopBrowsers(numberToRetrieve) {
             }
 
             resolve(true);
-        }).catch(function(err) {
+        }).catch(function (err) {
             console.log(err);
             reject(err);
         });
@@ -310,7 +318,7 @@ function retrieveWeeklyUsers() {
     assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveWeeklyUsers assert failed - topPagesFilter: ' + topPagesFilter);
 
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
         gaRequester.queryGA({
             "start-date": formatDateString(startDate, "query"),
@@ -320,7 +328,7 @@ function retrieveWeeklyUsers() {
             "metrics": "ga:users",
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:date"
-        }).then(function(results) {
+        }).then(function (results) {
             //map in 0 values for current week user data
             allApplicationData.currentWeekUserData = [0, 0, 0, 0, 0, 0, 0];
 
@@ -329,7 +337,7 @@ function retrieveWeeklyUsers() {
             }
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = realDate
                                             dataRow[2] = dayIndex
@@ -343,7 +351,7 @@ function retrieveWeeklyUsers() {
             }
 
             return true;
-        }).then(function() {
+        }).then(function () {
 
             return gaRequester.queryGA({
                 "start-date": formatDateString(lastWeekStartDate, "query"),
@@ -354,7 +362,7 @@ function retrieveWeeklyUsers() {
                 "filters": topPagesFilter,
                 "sort": "ga:pageTitle,ga:date"
             });
-        }).then(function(results) {
+        }).then(function (results) {
             //map in 0 values for current week user data
             allApplicationData.lastWeekUserData = [0, 0, 0, 0, 0, 0, 0];
 
@@ -363,7 +371,7 @@ function retrieveWeeklyUsers() {
             }
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = realDate
                                             dataRow[2] = dayIndex
@@ -377,7 +385,7 @@ function retrieveWeeklyUsers() {
             }
 
             return true;
-        }).then(function() {
+        }).then(function () {
             //N.B. Setting max-results required - default is 1000 rows at a time - with 7 apps * 365 days need 2555 to get all in one request
             //    10,000 allows up to 27 applications
             return gaRequester.queryGA({
@@ -390,7 +398,7 @@ function retrieveWeeklyUsers() {
                 "sort": "ga:pageTitle,ga:date",
                 "max-results": 10000
             });
-        }).then(function(results) {
+        }).then(function (results) {
             var appName;
             //map in empty arrays for each day of the week
             allApplicationData.lastYearMedianUserData = [0, 0, 0, 0, 0, 0, 0];
@@ -410,7 +418,7 @@ function retrieveWeeklyUsers() {
             var convertedDayIndex;
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = dayofWeek Index
                                             dataRow[2] = date
@@ -429,7 +437,7 @@ function retrieveWeeklyUsers() {
 
                 //Loop through each day array within each application and determine median
                 for (appName in applicationData) {
-                    applicationData[appName].lastYearUserData.forEach(function(dayArray, index) {
+                    applicationData[appName].lastYearUserData.forEach(function (dayArray, index) {
                         //Re-sort array into numeric order
                         sortNumericalArrayAsc(dayArray);
                         //Choose middle array value (median)
@@ -442,7 +450,7 @@ function retrieveWeeklyUsers() {
 
             resolve(true);
 
-        }).catch(function(err) {
+        }).catch(function (err) {
             console.log(err);
             reject(err);
         });
@@ -463,7 +471,7 @@ function retrieveYearlyUsers() {
     assert(isDate(previousYearEndDate), 'retrieveYearlyUsers assert failed - previousYearEndDate: ' + previousYearEndDate);
 
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
         gaRequester.queryGA({
             "start-date": formatDateString(lastYearStartDate, "query"),
@@ -473,7 +481,7 @@ function retrieveYearlyUsers() {
             "metrics": "ga:users",
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:yearMonth"
-        }).then(function(results) {
+        }).then(function (results) {
             //map in 0 values for current year data
             allApplicationData.thisYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
@@ -482,7 +490,7 @@ function retrieveYearlyUsers() {
             }
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = yearMonth
                                             dataRow[2] = monthIndex
@@ -496,7 +504,7 @@ function retrieveYearlyUsers() {
             }
 
             return true;
-        }).then(function() {
+        }).then(function () {
 
             return gaRequester.queryGA({
                 "start-date": formatDateString(previousYearStartDate, "query"),
@@ -507,7 +515,7 @@ function retrieveYearlyUsers() {
                 "filters": topPagesFilter,
                 "sort": "ga:pageTitle,ga:nthMonth"
             });
-        }).then(function(results) {
+        }).then(function (results) {
             //map in 0 values for previous year data
             allApplicationData.previousYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
@@ -516,7 +524,7 @@ function retrieveYearlyUsers() {
             }
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = yearMonth
                                             dataRow[2] = monthIndex
@@ -531,7 +539,7 @@ function retrieveYearlyUsers() {
 
             resolve(true);
 
-        }).catch(function(err) {
+        }).catch(function (err) {
             console.log(err);
             reject(err);
         });
@@ -550,7 +558,7 @@ function retrieveWeeklySessions() {
     assert(isDate(endDate), 'retrieveWeeklySeesions assert failed - endDate: ' + endDate);
 
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
         gaRequester.queryGA({
             "start-date": formatDateString(startDate, "query"),
@@ -560,7 +568,7 @@ function retrieveWeeklySessions() {
             "metrics": "ga:avgSessionDuration",
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:date"
-        }).then(function(results) {
+        }).then(function (results) {
             //map in 0 values for current week user data
             allApplicationData.currentWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
 
@@ -569,7 +577,7 @@ function retrieveWeeklySessions() {
             }
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = realDate
                                             dataRow[2] = dayIndex
@@ -589,7 +597,7 @@ function retrieveWeeklySessions() {
             }
 
             return true;
-        }).then(function() {
+        }).then(function () {
 
             return gaRequester.queryGA({
                 "start-date": formatDateString(lastWeekStartDate, "query"),
@@ -600,7 +608,7 @@ function retrieveWeeklySessions() {
                 "filters": topPagesFilter,
                 "sort": "ga:pageTitle,ga:date"
             });
-        }).then(function(results) {
+        }).then(function (results) {
             //map in 0 values for current week user data
             allApplicationData.lastWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
 
@@ -609,7 +617,7 @@ function retrieveWeeklySessions() {
             }
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = realDate
                                             dataRow[2] = dayIndex
@@ -628,7 +636,7 @@ function retrieveWeeklySessions() {
             }
 
             return true;
-        }).then(function() {
+        }).then(function () {
             //N.B. Setting max-results required - default is 1000 rows at a time - with 7 apps * 365 days need 2555 to get all in one request
             //    10,000 allows up to 27 applications
             return gaRequester.queryGA({
@@ -641,7 +649,7 @@ function retrieveWeeklySessions() {
                 "sort": "ga:pageTitle,ga:date",
                 "max-results": 10000
             });
-        }).then(function(results) {
+        }).then(function (results) {
             var appName;
             //map in empty arrays for each day of the week
             allApplicationData.lastYearMedianSessionData = [0, 0, 0, 0, 0, 0, 0];
@@ -661,7 +669,7 @@ function retrieveWeeklySessions() {
             var convertedDayIndex;
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = dayofWeek Index
                                             dataRow[2] = date
@@ -680,7 +688,7 @@ function retrieveWeeklySessions() {
 
                 //Loop through each day array within each application and determine median
                 for (appName in applicationData) {
-                    applicationData[appName].lastYearSessionData.forEach(function(dayArray, index) {
+                    applicationData[appName].lastYearSessionData.forEach(function (dayArray, index) {
                         //Re-sort array into numeric order
                         sortNumericalArrayAsc(dayArray);
                         //Choose middle array value (median)
@@ -700,7 +708,7 @@ function retrieveWeeklySessions() {
 
             resolve(true);
 
-        }).catch(function(err) {
+        }).catch(function (err) {
             console.log(err);
             reject(err);
         });
@@ -719,7 +727,7 @@ function retrieveYearlyBrowsers() {
     assert(isDate(lastYearEndDate), 'retrieveYearlyBrowsers assert failed - lastYearEndDate: ' + lastYearEndDate);
 
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
         gaRequester.queryGA({
             "start-date": formatDateString(lastYearStartDate, "query"),
@@ -729,12 +737,12 @@ function retrieveYearlyBrowsers() {
             "metrics": "ga:pageviews",
             "filters": topPagesFilter + ";" + topBrowsersFilter,
             "sort": "ga:pageTitle,ga:browser,ga:yearMonth"
-        }).then(function(results) {
+        }).then(function (results) {
             //map in 0 values for each browser month combination
             allApplicationData.browserData = {};
             allApplicationData.browserTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-            topBrowsersArray.forEach(function(browserName) {
+            topBrowsersArray.forEach(function (browserName) {
                 allApplicationData.browserData[browserName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             });
 
@@ -742,14 +750,14 @@ function retrieveYearlyBrowsers() {
             for (var appName in applicationData) {
                 applicationData[appName].browserData = {};
                 applicationData[appName].browserTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                topBrowsersArray.forEach(function(browserName) {
+                topBrowsersArray.forEach(function (browserName) {
                     applicationData[appName].browserData[browserName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
                 });
 
             }
 
             if (results) {
-                results.rows.forEach(function(dataRow) {
+                results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
                                             dataRow[1] = browser
                                             dataRow[2] = yearMonth
@@ -768,7 +776,7 @@ function retrieveYearlyBrowsers() {
                 });
 
                 //Need to convert raw numbers to percentages - using month totals for overall figures
-                topBrowsersArray.forEach(function(browserName) {
+                topBrowsersArray.forEach(function (browserName) {
                     for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                         allApplicationData.browserData[browserName][monthCounter] = roundTo2(allApplicationData.browserData[browserName][monthCounter] /
                             allApplicationData.browserTotals[monthCounter] * 100);
@@ -777,7 +785,7 @@ function retrieveYearlyBrowsers() {
 
                 //Need to convert raw numbers to percentages - using month totals for each application
                 for (var appTName in applicationData) {
-                    topBrowsersArray.forEach(function(browserName) {
+                    topBrowsersArray.forEach(function (browserName) {
                         for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                             applicationData[appTName].browserData[browserName][monthCounter] = roundTo2(applicationData[appTName].browserData[browserName][monthCounter] /
                                 applicationData[appTName].browserTotals[monthCounter] * 100);
@@ -791,7 +799,7 @@ function retrieveYearlyBrowsers() {
 
             resolve(true);
 
-        }).catch(function(err) {
+        }).catch(function (err) {
             console.log(err);
             reject(err);
         });
@@ -799,6 +807,215 @@ function retrieveYearlyBrowsers() {
 
 }
 
+/**
+ * Retrieve the bnreakdown between new visitors and the time period between return visits for individual applications and the overall total
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveVisitorReturns() {
+    "use strict";
+
+    assert(isDate(previousYearStartDate), 'retrieveVisitorReturns assert failed - lastYearStartDate: ' + previousYearStartDate);
+    assert(isDate(lastYearEndDate), 'retrieveVisitorReturns assert failed - lastYearEndDate: ' + lastYearEndDate);
+
+
+    return new Promise(function (resolve, reject) {
+        //The first query breaks down new vs return visitors - only the new visitors are extracted from the results
+        gaRequester.queryGA({
+            "start-date": formatDateString(previousYearStartDate, "query"),
+            "end-date": formatDateString(lastYearEndDate, "query"),
+            "ids": ids,
+            "dimensions": "ga:pageTitle,ga:userType",
+            "metrics": "ga:pageviews",
+            "filters": topPagesFilter,
+            "sort": "ga:pageTitle,ga:userType"
+        }).then(function (results) {
+            //map in 0 values for new visitors and totals
+            allApplicationData.visitorReturns = {};
+            allApplicationData.visitorReturns["New visitors"] = 0;
+            allApplicationData.visitorTotal = 0;
+
+            for (var appName in applicationData) {
+                applicationData[appName].visitorReturns = {};
+                applicationData[appName].visitorReturns["New visitors"] = 0;
+                applicationData[appName].visitorTotal = 0;
+            }
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = userType
+                                            dataRow[2] = value
+                    */
+                    //We only want the new visitors from this data set
+                    if (dataRow[1] === "New Visitor") {
+                        //Add to value for each application    
+                        applicationData[dataRow[0]].visitorReturns["New visitors"] = +dataRow[2];
+                        //Add to total value for each application
+                        applicationData[dataRow[0]].visitorTotal = applicationData[dataRow[0]].visitorTotal + (+dataRow[2]);
+
+                        //Add value to all application total
+                        allApplicationData.visitorReturns["New visitors"] = allApplicationData.visitorReturns["New visitors"] + (+dataRow[2]);
+                        //Add to overall total value
+                        allApplicationData.visitorTotal = allApplicationData.visitorTotal + (+dataRow[2]);
+                    }
+                });
+
+            }
+            return gaRequester.queryGA({
+                "start-date": formatDateString(previousYearStartDate, "query"),
+                "end-date": formatDateString(lastYearEndDate, "query"),
+                "ids": ids,
+                "dimensions": "ga:pageTitle,ga:daysSinceLastSession",
+                "metrics": "ga:pageviews",
+                "filters": topPagesFilter,
+                "sort": "ga:pageTitle,ga:daysSinceLastSession"
+            });
+        }).then(function (results) {
+            //Add return visitor values as 0s
+            allApplicationData.visitorReturns["Returned within a day"] = 0;
+            allApplicationData.visitorReturns["Returned within a week"] = 0;
+            allApplicationData.visitorReturns["Returned within a month"] = 0;
+            allApplicationData.visitorReturns["Returned within a year"] = 0;
+
+            for (var appName in applicationData) {
+                applicationData[appName].visitorReturns["Returned within a day"] = 0;
+                applicationData[appName].visitorReturns["Returned within a week"] = 0;
+                applicationData[appName].visitorReturns["Returned within a month"] = 0;
+                applicationData[appName].visitorReturns["Returned within a year"] = 0;
+            }
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = daysSinceLastSession
+                                            dataRow[2] = value
+                    */
+
+                    //Classify the number and add to the correct category
+                    if ((+dataRow[1]) <= 1) {
+                        //Add to value for each application    
+                        applicationData[dataRow[0]].visitorReturns["Returned within a day"] = applicationData[dataRow[0]].visitorReturns["Returned within a day"] + (+dataRow[2]);
+                        //Add value to all application total
+                        allApplicationData.visitorReturns["Returned within a day"] = allApplicationData.visitorReturns["Returned within a day"] + (+dataRow[2]);
+                    } else if ((+dataRow[1]) > 1 && (+dataRow[1]) <= 7) {
+                        //Add to value for each application    
+                        applicationData[dataRow[0]].visitorReturns["Returned within a week"] = applicationData[dataRow[0]].visitorReturns["Returned within a week"] + (+dataRow[2]);
+                        //Add value to all application total
+                        allApplicationData.visitorReturns["Returned within a week"] = allApplicationData.visitorReturns["Returned within a week"] + (+dataRow[2]);
+                    } else if ((+dataRow[1]) > 7 && (+dataRow[1]) <= 31) {
+                        //Add to value for each application    
+                        applicationData[dataRow[0]].visitorReturns["Returned within a month"] = applicationData[dataRow[0]].visitorReturns["Returned within a month"] + (+dataRow[2]);
+                        //Add value to all application total
+                        allApplicationData.visitorReturns["Returned within a month"] = allApplicationData.visitorReturns["Returned within a month"] + (+dataRow[2]);
+                    } else if ((+dataRow[1]) > 31 && (+dataRow[1]) <= 365) {
+                        //Add to value for each application    
+                        applicationData[dataRow[0]].visitorReturns["Returned within a year"] = applicationData[dataRow[0]].visitorReturns["Returned within a year"] + (+dataRow[2]);
+                        //Add value to all application total
+                        allApplicationData.visitorReturns["Returned within a year"] = allApplicationData.visitorReturns["Returned within a year"] + (+dataRow[2]);
+                    }
+
+
+                    //Add to total value for each application
+                    applicationData[dataRow[0]].visitorTotal = applicationData[dataRow[0]].visitorTotal + (+dataRow[2]);
+                    //Add to overall total value
+                    allApplicationData.visitorTotal = allApplicationData.visitorTotal + (+dataRow[2]);
+
+                });
+
+            }
+
+
+            /*Need to convert values required for horizontal /  stacked chart
+                 data: [
+                        ["Within a month: 38680 (30%)", 38680],
+                            ["Within a day: 38180 (30%)", 38180],
+                            ["Within a week: 33197 (26%)", 33197],
+                            ["Within a year: 17290 (14%)", 17290]
+                        ]
+             */
+            allApplicationData.visitorReturns.data = [];
+            allApplicationData.visitorReturns.data.push([]);
+            allApplicationData.visitorReturns.data[0].push("New visitors");
+            allApplicationData.visitorReturns.data[0].push(allApplicationData.visitorReturns["New visitors"]);
+
+            allApplicationData.visitorReturns.data.push([]);
+            allApplicationData.visitorReturns.data[1].push("Returned within a day");
+            allApplicationData.visitorReturns.data[1].push(allApplicationData.visitorReturns["Returned within a day"]);
+
+
+            allApplicationData.visitorReturns.data.push([]);
+            allApplicationData.visitorReturns.data[2].push("Returned within a week");
+            allApplicationData.visitorReturns.data[2].push(allApplicationData.visitorReturns["Returned within a week"]);
+
+            allApplicationData.visitorReturns.data.push([]);
+            allApplicationData.visitorReturns.data[3].push("Returned within a month");
+            allApplicationData.visitorReturns.data[3].push(allApplicationData.visitorReturns["Returned within a month"]);
+
+
+            allApplicationData.visitorReturns.data.push([]);
+            allApplicationData.visitorReturns.data[4].push("Returned within a year");
+            allApplicationData.visitorReturns.data[4].push(allApplicationData.visitorReturns["Returned within a year"]);
+
+
+            //Sort array into descending order
+            sortNumericalArrayDesc(allApplicationData.visitorReturns.data, 1);
+
+            //Set-up the series labels
+            allApplicationData.visitorReturns.labels = [];
+
+            allApplicationData.visitorReturns.data.forEach(function (dataRow) {
+                allApplicationData.visitorReturns.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                    Math.round(dataRow[1] / allApplicationData.visitorTotal * 100) + ")");
+            });
+
+
+            for (var appTName in applicationData) {
+
+                applicationData[appTName].visitorReturns.data = [];
+                applicationData[appTName].visitorReturns.data.push([]);
+                applicationData[appTName].visitorReturns.data[0].push("New visitors");
+                applicationData[appTName].visitorReturns.data[0].push(applicationData[appTName].visitorReturns["New visitors"]);
+
+                applicationData[appTName].visitorReturns.data.push([]);
+                applicationData[appTName].visitorReturns.data[1].push("Returned within a day");
+                applicationData[appTName].visitorReturns.data[1].push(applicationData[appTName].visitorReturns["Returned within a day"]);
+
+                applicationData[appTName].visitorReturns.data.push([]);
+                applicationData[appTName].visitorReturns.data[2].push("Returned within a week");
+                applicationData[appTName].visitorReturns.data[2].push(applicationData[appTName].visitorReturns["Returned within a week"]);
+
+                applicationData[appTName].visitorReturns.data.push([]);
+                applicationData[appTName].visitorReturns.data[3].push("Returned within a month");
+                applicationData[appTName].visitorReturns.data[3].push(applicationData[appTName].visitorReturns["Returned within a month"]);
+
+                applicationData[appTName].visitorReturns.data.push([]);
+                applicationData[appTName].visitorReturns.data[4].push("Returned within a year");
+                applicationData[appTName].visitorReturns.data[4].push(applicationData[appTName].visitorReturns["Returned within a year"]);
+
+
+                //Sort array into descending order
+                sortNumericalArrayDesc(applicationData[appTName].visitorReturns.data, 1);
+                //Set-up the series labels
+                applicationData[appTName].visitorReturns.labels = [];
+
+                applicationData[appTName].visitorReturns.data.forEach(function (dataRow) {
+                    applicationData[appTName].visitorReturns.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                        Math.round(dataRow[1] / applicationData[appTName].visitorTotal * 100) + ")");
+                });
+
+
+
+            }
+
+            resolve(true);
+
+        }).catch(function (err) {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
 
 /**
  * Takes a number value and trims is to a maximum of 2 decimal places
@@ -950,7 +1167,7 @@ function sortNumericalArrayAsc(numericalArray) {
 
     assert(Array.isArray(numericalArray), 'sortNumericalArrayAsc assert failed - numericalArray: ' + numericalArray);
 
-    numericalArray.sort(function(a, b) {
+    numericalArray.sort(function (a, b) {
         return a - b;
     });
 
@@ -958,17 +1175,25 @@ function sortNumericalArrayAsc(numericalArray) {
 
 /**
  * Sorts a numerical array into descending order.
- * @param {numericalArray} an array of numbers
+ * @param {array} numericalArray - an array of numbers or an array of arrays containing numbers
+ * @param {number} arrayIndex - for an array of arrays, specifies the index within the sub-array to use for the comparison
  * @return {mericalArray} the sorted array
  */
-function sortNumericalArrayDesc(numericalArray) {
+function sortNumericalArrayDesc(numericalArray, arrayIndex) {
     "use strict";
 
     assert(Array.isArray(numericalArray), 'sortNumericalArrayDesc assert failed - numericalArray: ' + numericalArray);
+    assert((typeof arrayIndex === "undefined" || typeof arrayIndex === "number"), 'sortNumericalArrayDesc assert failed - arrayIndex: ' + arrayIndex);
 
-    numericalArray.sort(function(a, b) {
-        return b - a;
-    });
+    if (typeof arrayIndex === "undefined") {
+        numericalArray.sort(function (a, b) {
+            return b - a;
+        });
+    } else {
+        numericalArray.sort(function (a, b) {
+            return b[arrayIndex] - a[arrayIndex];
+        });
+    }
 
 }
 

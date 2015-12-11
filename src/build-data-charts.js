@@ -1,6 +1,6 @@
-/*global window, document, topPagesFilter, topBrowsersFilter, startDate, endDate, ids, lastWeekStartDate, lastWeekEndDate,  lastYearStartDate, lastYearEndDate */
-/*global currentWeekdayLabels, last12MonthsLabels,  YearlyDataLabels, allApplicationData, applicationData, APP_NAMES, APP_LABELS, topBrowsersArray */
-/*global Masonry, formatDateString, C3StatsChart, assert */
+/*global window, document, Promise, console, topPagesFilter, topBrowsersFilter, startDate, endDate, ids, lastWeekStartDate, lastWeekEndDate  */
+/*global lastYearStartDate, lastYearEndDate, currentWeekdayLabels, last12MonthsLabels,  YearlyDataLabels, allApplicationData, applicationData */
+/*global APP_NAMES, APP_LABELS, topBrowsersArray, Masonry, formatDateString, C3StatsChart, assert */
 
 
 //The element suffixes which are used to differentiate elements for the same data type
@@ -18,7 +18,7 @@ var parentElement;
 /* 
     Set-up the buttons for transforming charts, opening new sections and call the masonry set-up for chart cards
 */
-window.onload = function() {
+window.onload = function () {
     "use strict";
 
     parentElement = document.getElementById("masonry-grid");
@@ -43,7 +43,7 @@ function createMasonry() {
     });
 
     //Refresh charts after layout is complete
-    msnry.on('layoutComplete', function(items) {
+    msnry.on('layoutComplete', function (items) {
         refreshCharts();
     });
 }
@@ -54,9 +54,11 @@ function createMasonry() {
 function refreshCharts() {
     "use strict";
 
-    chartRefs.forEach(function(chartRef) {
-        chartRef.chart.flush();
-    });
+    window.setTimeout(function () {
+        chartRefs.forEach(function (chartRef) {
+            chartRef.chart.flush();
+        });
+    }, 0);
 
 }
 
@@ -81,7 +83,6 @@ function createElement(elementId, elementClassString, elementHTML, buttonId, tra
         (typeof buttonId === "undefined" && typeof transformFunctionType === "undefined" && typeof chartRef === "undefined"),
         'createElement assert failed - button parameters: ' + buttonId + ', ' + transformFunctionType + ', ' + chartRef);
 
-
     if (document.getElementById(elementId) === null) {
         var newDiv = document.createElement('div');
 
@@ -98,15 +99,15 @@ function createElement(elementId, elementClassString, elementHTML, buttonId, tra
         if (typeof buttonId !== "undefined") {
             //Use type of transformation to define button click event
             if (transformFunctionType === "transformArea") {
-                document.getElementById(buttonId).addEventListener("click", function() {
+                document.getElementById(buttonId).addEventListener("click", function () {
                     transformArea(chartRef);
                 }, false);
             } else if (transformFunctionType === "transformHorizontalStackedGrouped") {
-                document.getElementById(buttonId).addEventListener("click", function() {
+                document.getElementById(buttonId).addEventListener("click", function () {
                     transformHorizontalStackedGrouped(chartRef);
                 }, false);
             } else if (transformFunctionType === "transformVerticalStackedGrouped") {
-                document.getElementById(buttonId).addEventListener("click", function() {
+                document.getElementById(buttonId).addEventListener("click", function () {
                     transformVerticalStackedGrouped(chartRef);
                 }, false);
 
@@ -145,14 +146,17 @@ function buildYearlyPagesChart() {
 
     //Create the DOM element (if it doesn't exist already)
     createElement('yearly-pages-overall-card',
-        'card full-width overall',
-        '<div id="yearly-pages-overall"></div><button id="yearly-pages-overall-button">Change overall yearly pages chart</button>',
-        'yearly-pages-overall-button',
-        "transformVerticalStackedGrouped", nextChartORef);
+            'card full-width overall',
+            '<div id="yearly-pages-overall"></div><button id="yearly-pages-overall-button">Change overall yearly pages chart</button>',
+            'yearly-pages-overall-button',
+            "transformVerticalStackedGrouped", nextChartORef)
+        .then(function () {
+            chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-pages-overall", last12MonthsLabels, APP_LABELS);
+            chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
+
+        });
 
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-pages-overall", last12MonthsLabels, APP_LABELS);
-    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
 
     msnry.layout();
 
@@ -195,13 +199,15 @@ function buildWeeklyUsersCharts() {
 
     //Create the DOM element (if it doesn't exist already)
     createElement('weekly-users-overall-card',
-        'card full-width home overall',
-        '<div id="weekly-users-overall"></div><button id="weekly-users-overall-button">Change overall weekly users chart</button>',
-        'weekly-users-overall-button',
-        "transformArea", nextChartORef);
+            'card full-width home overall',
+            '<div id="weekly-users-overall"></div><button id="weekly-users-overall-button">Change overall weekly users chart</button>',
+            'weekly-users-overall-button',
+            "transformArea", nextChartORef)
+        .then(function () {
+            chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-users-overall");
+            chartRefs[nextChartORef].createWeekDayAreaChart();
+        });
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-users-overall");
-    chartRefs[nextChartORef].createWeekDayAreaChart();
 
     //Now run through each of the application charts
     for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
@@ -224,14 +230,17 @@ function buildWeeklyUsersCharts() {
 
         //Create the DOM element (if it doesn't exist already)
         createElement('weekly-users-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card home ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-users-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-users-' + ELEMENT_NAMES[appCounter] + '-button">Change ' +
-            ELEMENT_NAMES[appCounter] + ' weekly users chart</button>',
-            'weekly-users-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformArea", nextChartRef);
+                'card home ' + ELEMENT_NAMES[appCounter],
+                '<div id="weekly-users-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-users-' + ELEMENT_NAMES[appCounter] + '-button">Change ' +
+                ELEMENT_NAMES[appCounter] + ' weekly users chart</button>',
+                'weekly-users-' + ELEMENT_NAMES[appCounter] + '-button',
+                "transformArea", nextChartRef)
+            .then(function () {
+                chartRefs[nextChartRef] = new C3StatsChart(columnData, "weekly-users-" + ELEMENT_NAMES[appCounter]);
+                chartRefs[nextChartRef].createWeekDayAreaChart();
 
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, "weekly-users-" + ELEMENT_NAMES[appCounter]);
-        chartRefs[nextChartRef].createWeekDayAreaChart();
+            });
+
     }
 
     msnry.layout();
@@ -268,11 +277,13 @@ function buildYearlyUsersCharts() {
 
     //Create the DOM element (if it doesn't exist already)
     createElement('yearly-users-overall-card',
-        'card full-width overall',
-        '<div id="yearly-users-overall"></div>');
+            'card full-width overall',
+            '<div id="yearly-users-overall"></div>')
+        .then(function () {
+            chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-users-overall", last12MonthsLabels);
+            chartRefs[nextChartORef].createStaticVerticalTwoSeriesBarChart();
+        });
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-users-overall", last12MonthsLabels);
-    chartRefs[nextChartORef].createStaticVerticalTwoSeriesBarChart();
 
 
     //Now run through each of the application charts
@@ -291,12 +302,14 @@ function buildYearlyUsersCharts() {
 
         //Create the DOM element (if it doesn't exist already)
         createElement('yearly-users-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="yearly-users-' + ELEMENT_NAMES[appCounter] + '"></div>');
+                'card ' + ELEMENT_NAMES[appCounter],
+                '<div id="yearly-users-' + ELEMENT_NAMES[appCounter] + '"></div>')
+            .then(function () {
+                chartRefs[nextChartRef] = new C3StatsChart(columnData, "yearly-users-" + ELEMENT_NAMES[appCounter], last12MonthsLabels);
+                chartRefs[nextChartRef].createStaticVerticalTwoSeriesBarChart();
+            });
 
 
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, "yearly-users-" + ELEMENT_NAMES[appCounter], last12MonthsLabels);
-        chartRefs[nextChartRef].createStaticVerticalTwoSeriesBarChart();
     }
 
 
@@ -338,13 +351,15 @@ function buildWeeklySessionCharts() {
 
     //Create the DOM element (if it doesn't exist already)
     createElement('weekly-sessions-overall-card',
-        'card full-width home overall',
-        '<div id="weekly-sessions-overall"></div><button id="weekly-sessions-overall-button">Change overall weekly sessions chart</button>',
-        'weekly-sessions-overall-button',
-        "transformArea", nextChartORef);
+            'card full-width home overall',
+            '<div id="weekly-sessions-overall"></div><button id="weekly-sessions-overall-button">Change overall weekly sessions chart</button>',
+            'weekly-sessions-overall-button',
+            "transformArea", nextChartORef)
+        .then(function () {
+            chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-sessions-overall");
+            chartRefs[nextChartORef].createWeekDayAreaChart();
+        });
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-sessions-overall");
-    chartRefs[nextChartORef].createWeekDayAreaChart();
 
     //Now run through each of the application charts
     for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
@@ -367,14 +382,16 @@ function buildWeeklySessionCharts() {
 
         //Create the DOM element (if it doesn't exist already)
         createElement('weekly-sessions-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card home ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-sessions-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-sessions-' + ELEMENT_NAMES[appCounter] + '-button">Change ' +
-            ELEMENT_NAMES[appCounter] + ' weekly sessions chart</button>',
-            'weekly-sessions-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformArea", nextChartRef);
+                'card home ' + ELEMENT_NAMES[appCounter],
+                '<div id="weekly-sessions-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-sessions-' + ELEMENT_NAMES[appCounter] + '-button">Change ' +
+                ELEMENT_NAMES[appCounter] + ' weekly sessions chart</button>',
+                'weekly-sessions-' + ELEMENT_NAMES[appCounter] + '-button',
+                "transformArea", nextChartRef)
+            .then(function () {
+                chartRefs[nextChartRef] = new C3StatsChart(columnData, "weekly-sessions-" + ELEMENT_NAMES[appCounter]);
+                chartRefs[nextChartRef].createWeekDayAreaChart();
+            });
 
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, "weekly-sessions-" + ELEMENT_NAMES[appCounter]);
-        chartRefs[nextChartRef].createWeekDayAreaChart();
     }
 
     msnry.layout();
@@ -400,7 +417,7 @@ function buildYearlyBrowserCharts() {
     //Set-up overall chart
 
     //Map in values for each browser month combination to the series then add to the columnData
-    topBrowsersArray.forEach(function(browserName) {
+    topBrowsersArray.forEach(function (browserName) {
         allApplicationData.browserData[browserName].unshift(browserName);
         columnData.push(allApplicationData.browserData[browserName]);
     });
@@ -408,14 +425,16 @@ function buildYearlyBrowserCharts() {
 
     //Create the DOM element (if it doesn't exist already)
     createElement('yearly-browsers-overall-card',
-        'card full-width overall',
-        '<div id="yearly-browsers-overall"></div><button id="yearly-browsers-overall-button">Change overall yearly browsers chart</button>',
-        'yearly-browsers-overall-button',
-        "transformVerticalStackedGrouped", nextChartORef);
+            'card full-width overall',
+            '<div id="yearly-browsers-overall"></div><button id="yearly-browsers-overall-button">Change overall yearly browsers chart</button>',
+            'yearly-browsers-overall-button',
+            "transformVerticalStackedGrouped", nextChartORef)
+        .then(function () {
+            chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-browsers-overall", last12MonthsLabels, topBrowsersArray);
+            chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
+        });
 
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-browsers-overall", last12MonthsLabels, topBrowsersArray);
-    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
 
     //Now run through each of the application charts
     for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
@@ -424,7 +443,7 @@ function buildYearlyBrowserCharts() {
         var nextChartRef = chartRefs.length;
 
         //Map in values for each browser month combination to the series then add to the columnData
-        topBrowsersArray.forEach(function(browserName) {
+        topBrowsersArray.forEach(function (browserName) {
             applicationData[APP_NAMES[appCounter]].browserData[browserName].unshift(browserName);
             columnData.push(applicationData[APP_NAMES[appCounter]].browserData[browserName]);
         });
@@ -432,14 +451,15 @@ function buildYearlyBrowserCharts() {
 
         //Create the DOM element (if it doesn't exist already)
         createElement('yearly-browsers-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="yearly-browsers-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-browsers-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' browsers chart</button>',
-            'yearly-browsers-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformVerticalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-browsers-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, topBrowsersArray);
-        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of visits");
+                'card ' + ELEMENT_NAMES[appCounter],
+                '<div id="yearly-browsers-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-browsers-' + ELEMENT_NAMES[appCounter] +
+                '-button">Change ' + ELEMENT_NAMES[appCounter] + ' browsers chart</button>',
+                'yearly-browsers-' + ELEMENT_NAMES[appCounter] + '-button',
+                "transformVerticalStackedGrouped", nextChartRef)
+            .then(function () {
+                chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-browsers-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, topBrowsersArray);
+                chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of visits");
+            });
 
     }
 
@@ -448,6 +468,72 @@ function buildYearlyBrowserCharts() {
 
 }
 
+/* 
+    Build all visitor return charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the daya already being present within:
+        allApplicationData.visitorReturns.data
+        
+        For each app:
+        applicationData[appName].visitorReturns.data
+*/
+function buildVisitorReturnCharts() {
+    "use strict";
+
+    var columnData = allApplicationData.visitorReturns.data;
+    var dataLabels = allApplicationData.visitorReturns.labels;
+    var seriesLabels = [];
+
+    var nextChartORef = chartRefs.length;
+
+    //Set-up overall chart
+
+    //The first entry in the row contains the label used for the data
+    allApplicationData.visitorReturns.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('visitor-return-overall-card',
+        'card full-width overall',
+        '<div id="visitor-return-overall"></div><button id="visitor-return-overall-button">Change overall visitor return chart</button>',
+        'visitor-return-overall-button',
+        "transformHorizontalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "visitor-return-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef].createHorizontalBarChart("Time to return");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].visitorReturns.data;
+        dataLabels = applicationData[APP_NAMES[appCounter]].visitorReturns.labels;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].visitorReturns.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('visitor-return-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="visitor-return-' + ELEMENT_NAMES[appCounter] + '"></div><button id="visitor-return-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' visitor return chart</button>',
+            'visitor-return-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformHorizontalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'visitor-return-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
+        chartRefs[nextChartRef].createHorizontalBarChart("Time to return");
+
+    }
+
+    msnry.layout();
+
+}
 
 
 function transformArea(chartRefNum) {
