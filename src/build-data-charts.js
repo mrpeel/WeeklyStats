@@ -535,6 +535,206 @@ function buildVisitorReturnCharts() {
 
 }
 
+/* 
+    Build weekly horizontal bar graphs with absolute numbers for - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the data already being present within:
+        allApplicationData.weekSearchTypes.data
+        allApplicationData.weekSearchTypes.labels
+        
+        For each app:
+        applicationData[appName].weekSearchTypes.data
+        applicationData[appName].weekSearchTypes.labels
+        
+*/
+function buildWeekSearchTypes() {
+    "use strict";
+
+    var columnData = allApplicationData.weekSearchTypes.data;
+    var dataLabels = allApplicationData.weekSearchTypes.labels;
+    var seriesLabels = [];
+
+    var nextChartORef = chartRefs.length;
+
+    //Set-up overall chart
+
+    //The first entry in the row contains the label used for the data
+    allApplicationData.weekSearchTypes.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('weekly-search-overall-card',
+        'card full-width overall',
+        '<div id="weekly-search-overall"></div><button id="weekly-search-overall-button">Change overall weekly search chart</button>',
+        'weekly-search-overall-button',
+        "transformHorizontalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef].createHorizontalBarChart("Search type");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].weekSearchTypes.data;
+        dataLabels = applicationData[APP_NAMES[appCounter]].weekSearchTypes.labels;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].weekSearchTypes.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('weekly-search-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="weekly-search-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-search-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly search chart</button>',
+            'weekly-search-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformHorizontalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-search-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
+        chartRefs[nextChartRef].createHorizontalBarChart("Search type");
+
+    }
+    msnry.layout();
+}
+
+/* 
+    Build weekly horizontal bar graphs per visit for - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the data already being present within:
+        allApplicationData.weekSearchTypes.dataPerVisit
+        allApplicationData.weekSearchTypes.labelsPerVisit
+        
+        For each app:
+        applicationData[appName].weekSearchTypes.dataPerVisit
+        applicationData[appName].yearSearchTypes.labelsPerVisit
+        
+*/
+function buildWeekPerVisitSearchTypes() {
+    //Now add in the data per visit charts
+    var columnData = allApplicationData.weekSearchTypes.dataPerVisit;
+    var dataLabels = allApplicationData.weekSearchTypes.labelsPerVisit;
+    var seriesLabels = [];
+    var nextChartORef = chartRefs.length;
+
+    //Set-up overall chart
+
+    //The first entry in the row contains the label used for the data
+    allApplicationData.weekSearchTypes.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('weekly-search-per-overall-card',
+        'card full-width overall',
+        '<div id="weekly-search-per-overall"></div><button id="weekly-search-per-overall-button">Change overall weekly search chart</button>',
+        'weekly-search-per-overall-button',
+        "transformHorizontalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-per-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef].createHorizontalBarChart("Search type");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].weekSearchTypes.dataPerVisit;
+        dataLabels = applicationData[APP_NAMES[appCounter]].weekSearchTypes.labelsPerVisit;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].weekSearchTypes.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('weekly-search-per-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="weekly-search-per-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-search-per-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly search chart</button>',
+            'weekly-search-per-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformHorizontalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-search-per-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
+        chartRefs[nextChartRef].createHorizontalBarChart("Search type");
+
+    }
+
+    msnry.layout();
+
+}
+
+/* 
+    Build yearly vertical stacked bar graphs - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the data already being present within:
+        allApplicationData.yearSearchTypes.data
+        
+        For each app:
+        applicationData[appName].yearSearchTypes.data
+        
+        last12MonthsLabels
+        
+*/
+function buildYearSearchTypes() {
+    //Now add in the data per visit charts
+    var columnData = allApplicationData.yearSearchTypes.data;
+    var nextChartORef = chartRefs.length;
+    var seriesLabels = [];
+
+    //Set-up overall chart
+    //The first entry in the row contains the label used for the data
+    allApplicationData.yearSearchTypes.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('yearly-search-overall-card',
+        'card full-width overall',
+        '<div id="yearly-search-overall"></div><button id="yearly-search-overall-button">Change overall yearly search chart</button>',
+        'yearly-search-overall-button',
+        "transformVerticalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-search-overall", last12MonthsLabels, seriesLabels);
+    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of searches");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].yearSearchTypes.data;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].yearSearchTypes.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('yearly-search-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="yearly-search-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-search-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' yearly search chart</button>',
+            'yearly-search-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformVerticalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-search-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, seriesLabels);
+        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of searches");
+
+    }
+
+    msnry.layout();
+
+}
 
 function transformArea(chartRefNum) {
     "use strict";

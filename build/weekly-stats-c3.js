@@ -895,7 +895,7 @@ var chartColors = {
 };
 
 /*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts, buildWeeklySessionCharts, buildYearlyBrowserCharts, buildYearlyPagesChart*/
-/*global buildVisitorReturnCharts*/
+/*global buildVisitorReturnCharts, buildWeekSearchTypes, buildWeekPerVisitSearchTypes, buildYearSearchTypes*/
 
 /** 
  * Retrieves the data required for each of the charts and executes required processing, then returns the data as an object.
@@ -1013,6 +1013,18 @@ function retrieveData(rStartDate, rEndDate, rIds) {
         })
         .then(function () {
             buildVisitorReturnCharts();
+            return true;
+        })
+        .then(function () {
+            return retrieveTotalVisits();
+        })
+        .then(function () {
+            return retrieveSearchTypes();
+        })
+        .then(function () {
+            buildWeekSearchTypes();
+            buildWeekPerVisitSearchTypes();
+            buildYearSearchTypes();
             return true;
         })
         .catch(function (err) {
@@ -1365,6 +1377,7 @@ function retrieveYearlyUsers() {
     assert(isDate(lastYearEndDate), 'retrieveYearlyUsers assert failed - lastYearEndDate: ' + lastYearEndDate);
     assert(isDate(previousYearStartDate), 'retrieveYearlyUsers assert failed - previousYearStartDate: ' + previousYearStartDate);
     assert(isDate(previousYearEndDate), 'retrieveYearlyUsers assert failed - previousYearEndDate: ' + previousYearEndDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveYearlyUsers assert failed - topPagesFilter: ' + topPagesFilter);
 
 
     return new Promise(function (resolve, reject) {
@@ -1452,7 +1465,7 @@ function retrieveWeeklySessions() {
 
     assert(isDate(startDate), 'retrieveWeeklySeesions assert failed - startDate: ' + startDate);
     assert(isDate(endDate), 'retrieveWeeklySeesions assert failed - endDate: ' + endDate);
-
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveWeeklySeesions assert failed - topPagesFilter: ' + topPagesFilter);
 
     return new Promise(function (resolve, reject) {
 
@@ -1621,6 +1634,8 @@ function retrieveYearlyBrowsers() {
 
     assert(isDate(lastYearStartDate), 'retrieveYearlyBrowsers assert failed - lastYearStartDate: ' + lastYearStartDate);
     assert(isDate(lastYearEndDate), 'retrieveYearlyBrowsers assert failed - lastYearEndDate: ' + lastYearEndDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveYearlyBrowsers assert failed - topPagesFilter: ' + topPagesFilter);
+    assert((typeof topBrowsersFilter !== "undefined" && topBrowsersFilter !== ""), 'retrieveYearlyBrowsers assert failed - topBrowsersFilter: ' + topBrowsersFilter);
 
 
     return new Promise(function (resolve, reject) {
@@ -1712,6 +1727,7 @@ function retrieveVisitorReturns() {
 
     assert(isDate(previousYearStartDate), 'retrieveVisitorReturns assert failed - lastYearStartDate: ' + previousYearStartDate);
     assert(isDate(lastYearEndDate), 'retrieveVisitorReturns assert failed - lastYearEndDate: ' + lastYearEndDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveVisitorReturns assert failed - topPagesFilter: ' + topPagesFilter);
 
 
     return new Promise(function (resolve, reject) {
@@ -1861,7 +1877,7 @@ function retrieveVisitorReturns() {
 
             allApplicationData.visitorReturns.data.forEach(function (dataRow) {
                 allApplicationData.visitorReturns.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
-                    Math.round(dataRow[1] / allApplicationData.visitorTotal * 100) + ")");
+                    Math.round(dataRow[1] / allApplicationData.visitorTotal * 100) + "%)");
             });
 
 
@@ -1896,12 +1912,335 @@ function retrieveVisitorReturns() {
 
                 applicationData[appTName].visitorReturns.data.forEach(function (dataRow) {
                     applicationData[appTName].visitorReturns.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
-                        Math.round(dataRow[1] / applicationData[appTName].visitorTotal * 100) + ")");
+                        Math.round(dataRow[1] / applicationData[appTName].visitorTotal * 100) + "%)");
                 });
 
 
 
             }
+
+            resolve(true);
+
+        }).catch(function (err) {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
+
+/**
+ * Retrieve the total visits for the last week and the last year - used for comparison in other data functions
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveTotalVisits() {
+    "use strict";
+
+    assert(isDate(startDate), 'retrieveSearchTypes assert failed - startDate: ' + startDate);
+    assert(isDate(endDate), 'retrieveSearchTypes assert failed - endDate: ' + endDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveSearchTypes assert failed - topPagesFilter: ' + topPagesFilter);
+    assert(isDate(lastYearStartDate), 'retrieveVisitorReturns assert failed - lastYearStartDate: ' + lastYearStartDate);
+    assert(isDate(lastYearEndDate), 'retrieveVisitorReturns assert failed - lastYearEndDate: ' + lastYearEndDate);
+
+
+    return new Promise(function (resolve, reject) {
+        //The first query for the overall number of visits for the week
+        gaRequester.queryGA({
+            "start-date": formatDateString(startDate, "query"),
+            "end-date": formatDateString(endDate, "query"),
+            "ids": ids,
+            "dimensions": "ga:pageTitle",
+            "metrics": "ga:pageviews",
+            "filters": topPagesFilter,
+            "sort": "ga:pageTitle"
+        }).then(function (results) {
+            allApplicationData.totalVisitsForWeek = 0;
+
+            for (var appName in applicationData) {
+                applicationData[appName].totalVisitsForWeek = 0;
+            }
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = Visits
+                    */
+                    //Add to value for each application    
+                    applicationData[dataRow[0]].totalVisitsForWeek = (+dataRow[1]);
+                    allApplicationData.totalVisitsForWeek = allApplicationData.totalVisitsForWeek + (+dataRow[1]);
+                });
+            }
+
+            return gaRequester.queryGA({
+                "start-date": formatDateString(lastYearStartDate, "query"),
+                "end-date": formatDateString(lastYearEndDate, "query"),
+                "ids": ids,
+                "dimensions": "ga:pageTitle,ga:yearMonth,ga:nthMonth",
+                "metrics": "ga:pageviews",
+                "filters": topPagesFilter,
+                "sort": "ga:pageTitle,ga:yearMonth"
+            });
+        }).then(function (results) {
+
+            //map in 0 values for each browser month combination
+            allApplicationData.totalVisitsForYear = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            for (var appName in applicationData) {
+                applicationData[appName].totalVisitsForYear = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            }
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = year and month
+                                            dataRow[2] = month index
+                                            dataRow[3] = Visits
+                    */
+                    //Add to value for each application    
+                    applicationData[dataRow[0]].totalVisitsForYear[+dataRow[2]] = (+dataRow[3]);
+                    allApplicationData.totalVisitsForYear[+dataRow[2]] = allApplicationData.totalVisitsForYear[+dataRow[2]] + (+dataRow[3]);
+                });
+            }
+
+
+            resolve(true);
+
+        }).catch(function (err) {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
+
+
+/**
+ * Retrieve the breakdown of serach types for the past week and monthly breakdowns over the past year
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveSearchTypes() {
+    "use strict";
+
+    assert(isDate(startDate), 'retrieveSearchTypes assert failed - startDate: ' + startDate);
+    assert(isDate(endDate), 'retrieveSearchTypes assert failed - endDate: ' + endDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveSearchTypes assert failed - topPagesFilter: ' + topPagesFilter);
+    assert(isDate(lastYearStartDate), 'retrieveVisitorReturns assert failed - lastYearStartDate: ' + lastYearStartDate);
+    assert(isDate(lastYearEndDate), 'retrieveVisitorReturns assert failed - lastYearEndDate: ' + lastYearEndDate);
+    assert(allApplicationData.totalVisitsForWeek, 'retrieveVisitorReturns assert failed - allApplicationData.totalVisitsForWeek does not exist');
+    assert(allApplicationData.totalVisitsForYear, 'retrieveVisitorReturns assert failed - allApplicationData.totalVisitsForYear does not exist');
+
+
+    return new Promise(function (resolve, reject) {
+        //Retrieve the search type data for the week
+        gaRequester.queryGA({
+            "start-date": formatDateString(startDate, "query"),
+            "end-date": formatDateString(endDate, "query"),
+            "ids": ids,
+            "dimensions": "ga:pageTitle,ga:eventAction,ga:eventLabel",
+            "metrics": "ga:totalEvents",
+            "filters": topPagesFilter + ";ga:eventAction==search",
+            "sort": "ga:pageTitle,-ga:totalEvents"
+        }).then(function (results) {
+            //Set up data structures to hold search types
+            allApplicationData.weekSearchTypes = {};
+            allApplicationData.weekSearchTypes.rawValues = {};
+            allApplicationData.weekSearchTypes.totalSearches = 0;
+            allApplicationData.weekSearchTypes.data = [];
+            allApplicationData.weekSearchTypes.labels = [];
+            allApplicationData.weekSearchTypes.dataPerVisit = [];
+            allApplicationData.weekSearchTypes.labelsPerVisit = [];
+
+            for (var appName in applicationData) {
+                applicationData[appName].weekSearchTypes = {};
+                applicationData[appName].weekSearchTypes.rawValues = {};
+                applicationData[appName].weekSearchTypes.totalSearches = 0;
+                applicationData[appName].weekSearchTypes.data = [];
+                applicationData[appName].weekSearchTypes.labels = [];
+                applicationData[appName].weekSearchTypes.dataPerVisit = [];
+                applicationData[appName].weekSearchTypes.labelsPerVisit = [];
+            }
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = eventAction (search)
+                                            dataRow[2] = eventLabel (search Type)
+                                            dataRow[3] = No of times
+                    */
+                    //Add to value for each application    
+                    applicationData[dataRow[0]].weekSearchTypes.rawValues[dataRow[2]] = (+dataRow[3]);
+
+                    //Add to total value
+                    if (!allApplicationData.weekSearchTypes.rawValues[dataRow[2]]) {
+                        allApplicationData.weekSearchTypes.rawValues[dataRow[2]] = 0;
+                    }
+
+                    allApplicationData.weekSearchTypes.rawValues[dataRow[2]] = allApplicationData.weekSearchTypes.rawValues[dataRow[2]] + (+dataRow[3]);
+
+                    //Add to search totals
+                    applicationData[dataRow[0]].weekSearchTypes.totalSearches = applicationData[dataRow[0]].weekSearchTypes.totalSearches + (+dataRow[3]);
+                    allApplicationData.weekSearchTypes.totalSearches = allApplicationData.weekSearchTypes.totalSearches + (+dataRow[3]);
+
+                });
+
+
+                //Assign the values to data arrays used for chart
+                for (var appTName in applicationData) {
+                    for (var searchType in applicationData[appTName].weekSearchTypes.rawValues) {
+                        //Normal raw values
+                        var dataIndex = applicationData[appTName].weekSearchTypes.data.length;
+                        applicationData[appTName].weekSearchTypes.data.push([]);
+                        applicationData[appTName].weekSearchTypes.data[dataIndex].push(searchType);
+                        applicationData[appTName].weekSearchTypes.data[dataIndex].push(applicationData[appTName].weekSearchTypes.rawValues[searchType]);
+                        //Make calulcations for data per visit
+                        applicationData[appTName].weekSearchTypes.dataPerVisit.push([]);
+                        applicationData[appTName].weekSearchTypes.dataPerVisit[dataIndex].push(searchType);
+                        applicationData[appTName].weekSearchTypes.dataPerVisit[dataIndex].push(roundTo2(applicationData[appTName].weekSearchTypes.rawValues[searchType] /
+                            applicationData[appTName].totalVisitsForWeek));
+                    }
+
+                    //Sort into descending order
+                    sortNumericalArrayDesc(applicationData[appTName].weekSearchTypes.data, 1);
+                    sortNumericalArrayDesc(applicationData[appTName].weekSearchTypes.dataPerVisit, 1);
+
+                    //Now create the label values for normal vals
+                    applicationData[appTName].weekSearchTypes.data.forEach(function (dataRow) {
+                        applicationData[appTName].weekSearchTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                            Math.round(dataRow[1] / (applicationData[appTName].weekSearchTypes.totalSearches || 1) * 100) + "%)");
+                    });
+
+                    //Now create the label values for vals per visit
+                    applicationData[appTName].weekSearchTypes.dataPerVisit.forEach(function (dataRow) {
+                        applicationData[appTName].weekSearchTypes.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
+                    });
+
+                }
+
+
+                //Assign the values to data arrays used for chart
+                for (var searchTypeAll in allApplicationData.weekSearchTypes.rawValues) {
+                    var dataIndexAll = allApplicationData.weekSearchTypes.data.length;
+                    //Normal raw values
+                    allApplicationData.weekSearchTypes.data.push([]);
+                    allApplicationData.weekSearchTypes.data[dataIndexAll].push(searchTypeAll);
+                    allApplicationData.weekSearchTypes.data[dataIndexAll].push(allApplicationData.weekSearchTypes.rawValues[searchTypeAll]);
+                    //Make calulcations for data per visit
+                    allApplicationData.weekSearchTypes.dataPerVisit.push([]);
+                    allApplicationData.weekSearchTypes.dataPerVisit[dataIndexAll].push(searchTypeAll);
+                    allApplicationData.weekSearchTypes.dataPerVisit[dataIndexAll].push(roundTo2(allApplicationData.weekSearchTypes.rawValues[searchTypeAll] /
+                        (allApplicationData.totalVisitsForWeek || 1)));
+                }
+
+                //Sort into descending order
+                sortNumericalArrayDesc(allApplicationData.weekSearchTypes.data, 1);
+                sortNumericalArrayDesc(allApplicationData.weekSearchTypes.dataPerVisit, 1);
+
+                //Now create the label values for normal vals
+                allApplicationData.weekSearchTypes.data.forEach(function (dataRow) {
+                    allApplicationData.weekSearchTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                        Math.round(dataRow[1] / (allApplicationData.weekSearchTypes.totalSearches || 1) * 100) + "%)");
+                });
+
+                //Now create the label values for vals per visit
+                allApplicationData.weekSearchTypes.dataPerVisit.forEach(function (dataRow) {
+                    allApplicationData.weekSearchTypes.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
+                });
+
+            }
+
+            //Now return the previous year's data
+            return gaRequester.queryGA({
+                "start-date": formatDateString(lastYearStartDate, "query"),
+                "end-date": formatDateString(lastYearEndDate, "query"),
+                "ids": ids,
+                "dimensions": "ga:pageTitle,ga:yearMonth,ga:nthMonth,ga:eventAction,ga:eventLabel",
+                "metrics": "ga:totalEvents",
+                "filters": topPagesFilter + ";ga:eventAction==search",
+                "sort": "ga:pageTitle,ga:yearMonth,ga:nthMonth"
+            });
+        }).then(function (results) {
+            //Set up data structures to hold search types
+            allApplicationData.yearSearchTypes = {};
+            allApplicationData.yearSearchTypes.rawValues = {};
+            allApplicationData.yearSearchTypes.monthTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            allApplicationData.yearSearchTypes.data = [];
+
+            for (var appName in applicationData) {
+                applicationData[appName].yearSearchTypes = {};
+                applicationData[appName].yearSearchTypes.rawValues = {};
+                applicationData[appName].yearSearchTypes.monthTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                applicationData[appName].yearSearchTypes.data = [];
+            }
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = year and month
+                                            dataRow[2] = month Index
+                                            dataRow[3] = eventAction (search)
+                                            dataRow[4] = eventLabel (search Type)
+                                            dataRow[5] = No of times
+                    */
+                    //Add if values exist for this search type    
+                    if (!applicationData[dataRow[0]].yearSearchTypes.rawValues[dataRow[4]]) {
+                        //if the search type is new, map in 0s for each month
+                        applicationData[dataRow[0]].yearSearchTypes.rawValues[dataRow[4]] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    }
+
+                    //Map in value to search type / month index combination
+                    applicationData[dataRow[0]].yearSearchTypes.rawValues[dataRow[4]][+dataRow[2]] = (+dataRow[5]);
+                    applicationData[dataRow[0]].yearSearchTypes.monthTotals[+dataRow[2]] = applicationData[dataRow[0]].yearSearchTypes.monthTotals[+dataRow[2]] + (+dataRow[5]);
+
+                    //Add to total value
+                    if (!allApplicationData.yearSearchTypes.rawValues[dataRow[4]]) {
+                        allApplicationData.yearSearchTypes.rawValues[dataRow[4]] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    }
+
+
+                    allApplicationData.yearSearchTypes.rawValues[dataRow[4]][+dataRow[2]] = allApplicationData.yearSearchTypes.rawValues[dataRow[4]][+dataRow[2]] + (+dataRow[5]);
+                    allApplicationData.yearSearchTypes.monthTotals[+dataRow[2]] = allApplicationData.yearSearchTypes.monthTotals[+dataRow[2]] + (+dataRow[5]);
+                });
+                //Assign the values to data arrays used for chart
+                for (var appYName in applicationData) {
+
+                    //Assign the values to data arrays used for chart
+                    for (var searchType in applicationData[appYName].yearSearchTypes.rawValues) {
+                        var dataIndex = applicationData[appYName].yearSearchTypes.data.length;
+
+                        //Need to convert raw values to percentgaes
+                        applicationData[appYName].yearSearchTypes.data.push([]);
+                        applicationData[appYName].yearSearchTypes.data[dataIndexAll].push(searchType);
+
+                        //Loop through each month values and map into data array
+                        for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
+                            //Convert to percentage of total
+                            allApplicationData.applicationData[appYName].data[dataIndex].push(Math.round(applicationData[appYName].rawValues[searchType][monthCounter] /
+                                (allApplicationData.applicationData[appYName].monthTotals[monthCounter] || 1) * 100));
+
+                        }
+
+                    }
+                }
+
+                //Assign the values to data arrays used for chart
+                for (var searchTypeAll in allApplicationData.yearSearchTypes.rawValues) {
+                    var dataIndexAll = allApplicationData.yearSearchTypes.data.length;
+
+                    //Need to convert raw values to percentgaes
+                    allApplicationData.yearSearchTypes.data.push([]);
+                    allApplicationData.yearSearchTypes.data[dataIndexAll].push(searchTypeAll);
+
+                    //Loop through each month values and map into data array
+                    for (var monthCounterAll = 0; monthCounterAll < 12; monthCounterAll++) {
+                        //Convert to percentage of total
+                        allApplicationData.yearSearchTypes.data[dataIndexAll].push(Math.round(allApplicationData.yearSearchTypes.rawValues[searchTypeAll][monthCounterAll] /
+                            (allApplicationData.yearSearchTypes.monthTotals[monthCounterAll] || 1) * 100));
+
+                    }
+
+                }
+            }
+
 
             resolve(true);
 
@@ -2650,6 +2989,206 @@ function buildVisitorReturnCharts() {
 
 }
 
+/* 
+    Build weekly horizontal bar graphs with absolute numbers for - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the data already being present within:
+        allApplicationData.weekSearchTypes.data
+        allApplicationData.weekSearchTypes.labels
+        
+        For each app:
+        applicationData[appName].weekSearchTypes.data
+        applicationData[appName].weekSearchTypes.labels
+        
+*/
+function buildWeekSearchTypes() {
+    "use strict";
+
+    var columnData = allApplicationData.weekSearchTypes.data;
+    var dataLabels = allApplicationData.weekSearchTypes.labels;
+    var seriesLabels = [];
+
+    var nextChartORef = chartRefs.length;
+
+    //Set-up overall chart
+
+    //The first entry in the row contains the label used for the data
+    allApplicationData.weekSearchTypes.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('weekly-search-overall-card',
+        'card full-width overall',
+        '<div id="weekly-search-overall"></div><button id="weekly-search-overall-button">Change overall weekly search chart</button>',
+        'weekly-search-overall-button',
+        "transformHorizontalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef].createHorizontalBarChart("Search type");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].weekSearchTypes.data;
+        dataLabels = applicationData[APP_NAMES[appCounter]].weekSearchTypes.labels;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].weekSearchTypes.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('weekly-search-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="weekly-search-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-search-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly search chart</button>',
+            'weekly-search-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformHorizontalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-search-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
+        chartRefs[nextChartRef].createHorizontalBarChart("Search type");
+
+    }
+    msnry.layout();
+}
+
+/* 
+    Build weekly horizontal bar graphs per visit for - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the data already being present within:
+        allApplicationData.weekSearchTypes.dataPerVisit
+        allApplicationData.weekSearchTypes.labelsPerVisit
+        
+        For each app:
+        applicationData[appName].weekSearchTypes.dataPerVisit
+        applicationData[appName].yearSearchTypes.labelsPerVisit
+        
+*/
+function buildWeekPerVisitSearchTypes() {
+    //Now add in the data per visit charts
+    var columnData = allApplicationData.weekSearchTypes.dataPerVisit;
+    var dataLabels = allApplicationData.weekSearchTypes.labelsPerVisit;
+    var seriesLabels = [];
+    var nextChartORef = chartRefs.length;
+
+    //Set-up overall chart
+
+    //The first entry in the row contains the label used for the data
+    allApplicationData.weekSearchTypes.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('weekly-search-per-overall-card',
+        'card full-width overall',
+        '<div id="weekly-search-per-overall"></div><button id="weekly-search-per-overall-button">Change overall weekly search chart</button>',
+        'weekly-search-per-overall-button',
+        "transformHorizontalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-per-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef].createHorizontalBarChart("Search type");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].weekSearchTypes.dataPerVisit;
+        dataLabels = applicationData[APP_NAMES[appCounter]].weekSearchTypes.labelsPerVisit;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].weekSearchTypes.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('weekly-search-per-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="weekly-search-per-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-search-per-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly search chart</button>',
+            'weekly-search-per-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformHorizontalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-search-per-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
+        chartRefs[nextChartRef].createHorizontalBarChart("Search type");
+
+    }
+
+    msnry.layout();
+
+}
+
+/* 
+    Build yearly vertical stacked bar graphs - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the data already being present within:
+        allApplicationData.yearSearchTypes.data
+        
+        For each app:
+        applicationData[appName].yearSearchTypes.data
+        
+        last12MonthsLabels
+        
+*/
+function buildYearSearchTypes() {
+    //Now add in the data per visit charts
+    var columnData = allApplicationData.yearSearchTypes.data;
+    var nextChartORef = chartRefs.length;
+    var seriesLabels = [];
+
+    //Set-up overall chart
+    //The first entry in the row contains the label used for the data
+    allApplicationData.yearSearchTypes.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('yearly-search-overall-card',
+        'card full-width overall',
+        '<div id="yearly-search-overall"></div><button id="yearly-search-overall-button">Change overall yearly search chart</button>',
+        'yearly-search-overall-button',
+        "transformVerticalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-search-overall", last12MonthsLabels, seriesLabels);
+    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of searches");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].yearSearchTypes.data;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].yearSearchTypes.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('yearly-search-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="yearly-search-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-search-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' yearly search chart</button>',
+            'yearly-search-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformVerticalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-search-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, seriesLabels);
+        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of searches");
+
+    }
+
+    msnry.layout();
+
+}
 
 function transformArea(chartRefNum) {
     "use strict";
