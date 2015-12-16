@@ -536,7 +536,7 @@ function buildVisitorReturnCharts() {
 }
 
 /* 
-    Build weekly horizontal bar graphs with absolute numbers for - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
+    Build weekly horizontal bar graphs of search types with absolute numbers for - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
       Relies on the data already being present within:
         allApplicationData.weekSearchTypes.data
         allApplicationData.weekSearchTypes.labels
@@ -604,7 +604,7 @@ function buildWeekSearchTypes() {
 }
 
 /* 
-    Build weekly horizontal bar graphs per visit for - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+    Build weekly horizontal bar graphs of search types per visit for - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
       Relies on the data already being present within:
         allApplicationData.weekSearchTypes.dataPerVisit
         allApplicationData.weekSearchTypes.labelsPerVisit
@@ -672,7 +672,7 @@ function buildWeekPerVisitSearchTypes() {
 }
 
 /* 
-    Build yearly vertical stacked bar graphs - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+    Build yearly vertical stacked bar graphs of search types - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
       Relies on the data already being present within:
         allApplicationData.yearSearchTypes.data
         
@@ -728,6 +728,140 @@ function buildYearSearchTypes() {
             "transformVerticalStackedGrouped", nextChartRef);
 
         chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-search-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, seriesLabels);
+        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of searches");
+
+    }
+
+    msnry.layout();
+
+}
+
+
+/* 
+    Build weekly horizontal bar graphs for map types - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the data already being present within:
+        allApplicationData.weekMapTypes.data
+        allApplicationData.weekMapTypes.labels
+        
+        For each app:
+        applicationData[appName].weekMapTypes.data
+        applicationData[appName].weekMapTypes.labels
+        
+*/
+function buildWeekMapTypes() {
+    "use strict";
+
+    var columnData = allApplicationData.weekMapTypes.data;
+    var dataLabels = allApplicationData.weekMapTypes.labels;
+    var seriesLabels = [];
+
+    var nextChartORef = chartRefs.length;
+
+    //Set-up overall chart
+
+    //The first entry in the row contains the label used for the data
+    allApplicationData.weekMapTypes.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('weekly-maps-overall-card',
+        'card full-width overall',
+        '<div id="weekly-maps-overall"></div><button id="weekly-maps-overall-button">Change overall weekly map types chart</button>',
+        'weekly-maps-overall-button',
+        "transformHorizontalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-maps-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef].createHorizontalBarChart("Map type");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].weekMapTypes.data;
+        dataLabels = applicationData[APP_NAMES[appCounter]].weekMapTypes.labels;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].weekMapTypes.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('weekly-maps-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="weekly-maps-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-maps-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly map types chart</button>',
+            'weekly-maps-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformHorizontalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-maps-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
+        chartRefs[nextChartRef].createHorizontalBarChart("Map type");
+
+    }
+    msnry.layout();
+}
+
+/* 
+    Build yearly vertical stacked bar graphs of map types - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
+      Relies on the data already being present within:
+        allApplicationData.yearSearchTypes.data
+        
+        For each app:
+        applicationData[appName].yearMapTypes.data
+        
+        last12MonthsLabels
+        
+*/
+function buildYearMapTypes() {
+    //Now add in the data per visit charts
+    var columnData = allApplicationData.yearMapTypes.data;
+    var nextChartORef = chartRefs.length;
+    var seriesLabels = [];
+
+    //Set-up overall chart
+    //The first entry in the row contains the label used for the data
+    allApplicationData.yearMapTypes.data.forEach(function (dataRow) {
+        seriesLabels.push(dataRow[0]);
+    });
+
+
+    //Create the DOM element (if it doesn't exist already)
+    createElement('yearly-maps-overall-card',
+        'card full-width overall',
+        '<div id="yearly-maps-overall"></div><button id="yearly-maps-overall-button">Change overall yearly map types chart</button>',
+        'yearly-maps-overall-button',
+        "transformVerticalStackedGrouped", nextChartORef);
+
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-maps-overall", last12MonthsLabels, seriesLabels);
+    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of map types");
+
+
+    //Now run through each of the application charts
+    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+        //Set-up lassi chart
+        columnData = applicationData[APP_NAMES[appCounter]].yearMapTypes.data;
+        seriesLabels = [];
+
+        var nextChartRef = chartRefs.length;
+
+        //The first entry in the row contains the label used for the data
+        applicationData[APP_NAMES[appCounter]].yearMapTypes.data.forEach(function (dataRow) {
+            seriesLabels.push(dataRow[0]);
+        });
+
+        //Create the DOM element (if it doesn't exist already)
+        createElement('yearly-maps-' + ELEMENT_NAMES[appCounter] + '-card',
+            'card ' + ELEMENT_NAMES[appCounter],
+            '<div id="yearly-maps-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-maps-' + ELEMENT_NAMES[appCounter] +
+            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' yearly map types chart</button>',
+            'yearly-maps-' + ELEMENT_NAMES[appCounter] + '-button',
+            "transformVerticalStackedGrouped", nextChartRef);
+
+        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-maps-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, seriesLabels);
         chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of searches");
 
     }

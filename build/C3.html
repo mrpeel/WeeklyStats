@@ -2,7 +2,6 @@
 
 <head>
     <link href="weekly-stats-c3.css" rel="stylesheet" type="text/css">
-    <!--<link href="salvatorre.css" rel="stylesheet" type="text/css">-->
     <!--<link href="masonry.css" rel="stylesheet" type="text/css">-->
     <link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
@@ -23,76 +22,15 @@
     </aside>
 
 
-
-
     <!--<div id="grid" class="salvattore" data-columns>-->
     <div id="masonry-grid">
         <div class="grid-sizer"></div>
-        <!--<div class="card full-width">
-            <div id="weekly-users-overall"></div>
-            <button id="weekly-users-overall-button">Transform Overall Weekly Users Chart</button>
-        </div>
-        <div class="card">
-            <div id="weekly-users-lassi"></div>
-            <button id="weekly-users-lassi-button">Transform LASSI Weekly Users Chart</button>
-        </div>
-        <div class="card">
-            <div id="weekly-users-spear"></div>
-            <button id="weekly-users-spear-button">Transform LASSI SPEAR Weekly Users Chart</button>
-        </div>
-        <div class="card">
-            <div id="weekly-users-smes"></div>
-            <button id="weekly-users-smes-button">Transform SMES Weekly Users Chart</button>
-        </div>
-        <div class="card">
-            <div id="weekly-users-smes-edit"></div>
-            <button id="weekly-users-smes-edit-button">Transform SMES Edit Weekly Users Chart</button>
-        </div>
-        <div class="card">
-            <div id="weekly-users-vicnames"></div>
-            <button id="weekly-users-vicnames-button">Transform VICNAMES Weekly Users Chart</button>
-        </div>
-        <div class="card">
-            <div id="weekly-users-landata-tpi"></div>
-            <button id="weekly-users-landata-tpi-button">Transform LANDATA TPI Weekly Users Chart</button>
-        </div>
-        <div class="card">
-            <div id="weekly-users-landata-vmt"></div>
-            <button id="weekly-users-landata-vmt-button">Transform LANDATA VMT Weekly Users Chart</button>
-        </div> -->
-
-        <!-- Yearly comparisons  -->
-        <!--<div class="card full-width">
-            <div id="yearly-users-overall"></div>
-        </div>
-        <div class="card">
-            <div id="yearly-users-lassi"></div>
-        </div>
-        <div class="card">
-            <div id="yearly-users-spear"></div>
-        </div>
-        <div class="card">
-            <div id="yearly-users-smes"></div>
-        </div>
-        <div class="card">
-            <div id="yearly-users-smes-edit"></div>
-        </div>
-        <div class="card">
-            <div id="yearly-users-vicnames"></div>
-        </div>
-        <div class="card">
-            <div id="yearly-users-landata-tpi"></div>
-        </div>
-        <div class="card">
-            <div id="yearly-users-landata-vmt"></div>
-        </div> -->
 
     </div>
 
-    <script src="../lib/d3.v3.min.js"></script>
-    <script src="../lib/c3.min.js"></script>
-    <script src="../lib/masonry.pkgd.min.js"></script>
-    <!--<script src="..\lib\salvattore.min.js"></script>-->
+    <script src="d3.v3.min.js"></script>
+    <script src="c3.min.js"></script>
+    <script src="masonry.pkgd.min.js"></script>
     <script src="weekly-stats-c3.js"></script>
     <!--<script src="lassi_data.js"></script>
     <script src="ratelimitpromises.js"></script>
@@ -139,7 +77,7 @@
 
 
             gapi.analytics.auth.on('success', function(response) {
-                retrieveData("2015-11-30", "2015-12-06", "ga:89463991");
+                retrieveData("2015-12-07", "2015-12-13", "ga:89463991");
             });
         });
 

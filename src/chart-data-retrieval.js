@@ -1,5 +1,5 @@
 /*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts, buildWeeklySessionCharts, buildYearlyBrowserCharts, buildYearlyPagesChart*/
-/*global buildVisitorReturnCharts, buildWeekSearchTypes, buildWeekPerVisitSearchTypes, buildYearSearchTypes*/
+/*global buildVisitorReturnCharts, buildWeekSearchTypes, buildWeekPerVisitSearchTypes, buildYearSearchTypes, buildWeekMapTypes, buildYearMapTypes*/
 
 /** 
  * Retrieves the data required for each of the charts and executes required processing, then returns the data as an object.
@@ -111,24 +111,32 @@ function retrieveData(rStartDate, rEndDate, rIds) {
         .then(function () {
             buildYearlyBrowserCharts();
             return true;
-        })*/
+        })
         .then(function () {
             return retrieveVisitorReturns();
         })
         .then(function () {
             buildVisitorReturnCharts();
             return true;
-        })
+        })*/
         .then(function () {
             return retrieveTotalVisits();
         })
-        .then(function () {
+        /*.then(function () {
             return retrieveSearchTypes();
         })
         .then(function () {
             buildWeekSearchTypes();
             buildWeekPerVisitSearchTypes();
             buildYearSearchTypes();
+            return true;
+        })*/
+        .then(function () {
+            return retrieveMapTypes();
+        })
+        .then(function () {
+            buildWeekMapTypes();
+            buildYearMapTypes();
             return true;
         })
         .catch(function (err) {
@@ -1128,10 +1136,10 @@ function retrieveSearchTypes() {
     assert(isDate(startDate), 'retrieveSearchTypes assert failed - startDate: ' + startDate);
     assert(isDate(endDate), 'retrieveSearchTypes assert failed - endDate: ' + endDate);
     assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveSearchTypes assert failed - topPagesFilter: ' + topPagesFilter);
-    assert(isDate(lastYearStartDate), 'retrieveVisitorReturns assert failed - lastYearStartDate: ' + lastYearStartDate);
-    assert(isDate(lastYearEndDate), 'retrieveVisitorReturns assert failed - lastYearEndDate: ' + lastYearEndDate);
-    assert(allApplicationData.totalVisitsForWeek, 'retrieveVisitorReturns assert failed - allApplicationData.totalVisitsForWeek does not exist');
-    assert(allApplicationData.totalVisitsForYear, 'retrieveVisitorReturns assert failed - allApplicationData.totalVisitsForYear does not exist');
+    assert(isDate(lastYearStartDate), 'retrieveSearchTypes assert failed - lastYearStartDate: ' + lastYearStartDate);
+    assert(isDate(lastYearEndDate), 'retrieveSearchTypes assert failed - lastYearEndDate: ' + lastYearEndDate);
+    assert(allApplicationData.totalVisitsForWeek, 'retrieveSearchTypes assert failed - allApplicationData.totalVisitsForWeek does not exist');
+    assert(allApplicationData.totalVisitsForYear, 'retrieveSearchTypes assert failed - allApplicationData.totalVisitsForYear does not exist');
 
 
     return new Promise(function (resolve, reject) {
@@ -1313,13 +1321,13 @@ function retrieveSearchTypes() {
 
                         //Need to convert raw values to percentgaes
                         applicationData[appYName].yearSearchTypes.data.push([]);
-                        applicationData[appYName].yearSearchTypes.data[dataIndexAll].push(searchType);
+                        applicationData[appYName].yearSearchTypes.data[dataIndex].push(searchType);
 
                         //Loop through each month values and map into data array
                         for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                             //Convert to percentage of total
-                            allApplicationData.applicationData[appYName].data[dataIndex].push(Math.round(applicationData[appYName].rawValues[searchType][monthCounter] /
-                                (allApplicationData.applicationData[appYName].monthTotals[monthCounter] || 1) * 100));
+                            applicationData[appYName].yearSearchTypes.data[dataIndex].push(Math.round(applicationData[appYName].yearSearchTypes.rawValues[searchType][monthCounter] /
+                                (applicationData[appYName].yearSearchTypes.monthTotals[monthCounter] || 1) * 100));
 
                         }
 
@@ -1339,6 +1347,239 @@ function retrieveSearchTypes() {
                         //Convert to percentage of total
                         allApplicationData.yearSearchTypes.data[dataIndexAll].push(Math.round(allApplicationData.yearSearchTypes.rawValues[searchTypeAll][monthCounterAll] /
                             (allApplicationData.yearSearchTypes.monthTotals[monthCounterAll] || 1) * 100));
+
+                    }
+
+                }
+            }
+
+
+            resolve(true);
+
+        }).catch(function (err) {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
+
+/**
+ * Retrieve the breakdown of map types displayed for the past week and monthly breakdowns over the past year
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveMapTypes() {
+    "use strict";
+
+    assert(isDate(startDate), 'retrieveMapTypes assert failed - startDate: ' + startDate);
+    assert(isDate(endDate), 'retrieveMapTypes assert failed - endDate: ' + endDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveMapTypes assert failed - topPagesFilter: ' + topPagesFilter);
+    assert(isDate(lastYearStartDate), 'retrieveMapTypes assert failed - lastYearStartDate: ' + lastYearStartDate);
+    assert(isDate(lastYearEndDate), 'retrieveMapTypes assert failed - lastYearEndDate: ' + lastYearEndDate);
+    assert(allApplicationData.totalVisitsForWeek, 'retrieveMapTypes assert failed - allApplicationData.totalVisitsForWeek does not exist');
+    assert(allApplicationData.totalVisitsForYear, 'retrieveMapTypes assert failed - allApplicationData.totalVisitsForYear does not exist');
+
+
+    return new Promise(function (resolve, reject) {
+        //Retrieve the search type data for the week
+        gaRequester.queryGA({
+            "start-date": formatDateString(startDate, "query"),
+            "end-date": formatDateString(endDate, "query"),
+            "ids": ids,
+            "dimensions": "ga:pageTitle,ga:eventAction,ga:eventLabel",
+            "metrics": "ga:totalEvents",
+            "filters": topPagesFilter + ";ga:eventAction==default,ga:eventLabel==Victoria,ga:eventLabel==Map,ga:eventLabel==Imagery",
+            "sort": "ga:pageTitle,-ga:totalEvents"
+        }).then(function (results) {
+            //Set up data structures to hold search types
+            allApplicationData.weekMapTypes = {};
+            allApplicationData.weekMapTypes.rawValues = {};
+            allApplicationData.weekMapTypes.totalMaps = 0;
+            allApplicationData.weekMapTypes.data = [];
+            allApplicationData.weekMapTypes.labels = [];
+
+            for (var appName in applicationData) {
+                applicationData[appName].weekMapTypes = {};
+                applicationData[appName].weekMapTypes.rawValues = {};
+                applicationData[appName].weekMapTypes.totalMaps = 0;
+                applicationData[appName].weekMapTypes.data = [];
+                applicationData[appName].weekMapTypes.labels = [];
+            }
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = eventAction 'default' for default map and 'click' for user selected map
+                                            dataRow[2] = Map type - when user has initiated a 'click'
+                                            dataRow[3] = No of times
+                    */
+                    //Add to value for each application 
+                    var dataName;
+
+                    if (dataRow[1] === "default") {
+                        dataName = "Default map";
+                    } else {
+                        dataName = dataRow[2];
+                    }
+
+                    applicationData[dataRow[0]].weekMapTypes.rawValues[dataName] = (+dataRow[3]);
+
+
+                    //Add to total value
+                    if (!allApplicationData.weekMapTypes.rawValues[dataName]) {
+                        allApplicationData.weekMapTypes.rawValues[dataName] = 0;
+                    }
+
+                    allApplicationData.weekMapTypes.rawValues[dataName] = allApplicationData.weekMapTypes.rawValues[dataName] + (+dataRow[3]);
+
+                    //Add to search totals
+                    applicationData[dataRow[0]].weekMapTypes.totalMaps = applicationData[dataRow[0]].weekMapTypes.totalMaps + (+dataRow[3]);
+                    allApplicationData.weekMapTypes.totalMaps = allApplicationData.weekMapTypes.totalMaps + (+dataRow[3]);
+
+                });
+
+
+                //Assign the values to data arrays used for chart
+                for (var appTName in applicationData) {
+                    for (var mapType in applicationData[appTName].weekMapTypes.rawValues) {
+                        //Normal raw values
+                        var dataIndex = applicationData[appTName].weekMapTypes.data.length;
+                        applicationData[appTName].weekMapTypes.data.push([]);
+                        applicationData[appTName].weekMapTypes.data[dataIndex].push(mapType);
+                        applicationData[appTName].weekMapTypes.data[dataIndex].push(applicationData[appTName].weekMapTypes.rawValues[mapType]);
+                        //Make calulcations for data per visit
+                    }
+
+                    //Sort into descending order
+                    sortNumericalArrayDesc(applicationData[appTName].weekMapTypes.data, 1);
+
+                    //Now create the label values for normal vals
+                    applicationData[appTName].weekMapTypes.data.forEach(function (dataRow) {
+                        applicationData[appTName].weekMapTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                            Math.round(dataRow[1] / (applicationData[appTName].weekMapTypes.totalMaps || 1) * 100) + "%)");
+                    });
+
+
+                }
+
+
+                //Assign the values to data arrays used for chart
+                for (var mapTypeAll in allApplicationData.weekMapTypes.rawValues) {
+                    var dataIndexAll = allApplicationData.weekMapTypes.data.length;
+                    //Normal raw values
+                    allApplicationData.weekMapTypes.data.push([]);
+                    allApplicationData.weekMapTypes.data[dataIndexAll].push(mapTypeAll);
+                    allApplicationData.weekMapTypes.data[dataIndexAll].push(allApplicationData.weekMapTypes.rawValues[mapTypeAll]);
+                    //Make calulcations for data per visit
+                }
+
+                //Sort into descending order
+                sortNumericalArrayDesc(allApplicationData.weekMapTypes.data, 1);
+
+                //Now create the label values for normal vals
+                allApplicationData.weekMapTypes.data.forEach(function (dataRow) {
+                    allApplicationData.weekMapTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                        Math.round(dataRow[1] / (allApplicationData.weekMapTypes.totalMaps || 1) * 100) + "%)");
+                });
+
+
+            }
+
+            //Now return the previous year's data
+            return gaRequester.queryGA({
+                "start-date": formatDateString(lastYearStartDate, "query"),
+                "end-date": formatDateString(lastYearEndDate, "query"),
+                "ids": ids,
+                "dimensions": "ga:pageTitle,ga:yearMonth,ga:nthMonth,ga:eventAction,ga:eventLabel",
+                "metrics": "ga:totalEvents",
+                "filters": topPagesFilter + ";ga:eventAction==default,ga:eventLabel==Victoria,ga:eventLabel==Map,ga:eventLabel==Imagery",
+                "sort": "ga:pageTitle,ga:yearMonth,ga:nthMonth,-ga:totalEvents"
+            });
+        }).then(function (results) {
+            //Set up data structures to hold search types
+            allApplicationData.yearMapTypes = {};
+            allApplicationData.yearMapTypes.rawValues = {};
+            allApplicationData.yearMapTypes.monthTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            allApplicationData.yearMapTypes.data = [];
+
+            for (var appName in applicationData) {
+                applicationData[appName].yearMapTypes = {};
+                applicationData[appName].yearMapTypes.rawValues = {};
+                applicationData[appName].yearMapTypes.monthTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                applicationData[appName].yearMapTypes.data = [];
+            }
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = year and month
+                                            dataRow[2] = month Index
+                                            dataRow[3] = eventAction 'default' for default map and 'click' for user selected map
+                                            dataRow[4] = Map type - when user has initiated a 'click'
+                                            dataRow[5] = No of times
+                    */
+                    var yearDataName;
+
+                    if (dataRow[3] === "default") {
+                        yearDataName = "Default map";
+                    } else {
+                        yearDataName = dataRow[4];
+                    }
+
+                    //Add if values exist for this search type    
+                    if (!applicationData[dataRow[0]].yearMapTypes.rawValues[yearDataName]) {
+                        //if the search type is new, map in 0s for each month
+                        applicationData[dataRow[0]].yearMapTypes.rawValues[yearDataName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    }
+
+                    //Map in value to search type / month index combination
+                    applicationData[dataRow[0]].yearMapTypes.rawValues[yearDataName][+dataRow[2]] = (+dataRow[5]);
+                    applicationData[dataRow[0]].yearMapTypes.monthTotals[+dataRow[2]] = applicationData[dataRow[0]].yearMapTypes.monthTotals[+dataRow[2]] + (+dataRow[5]);
+
+                    //Add to total value
+                    if (!allApplicationData.yearMapTypes.rawValues[yearDataName]) {
+                        allApplicationData.yearMapTypes.rawValues[yearDataName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    }
+
+
+                    allApplicationData.yearMapTypes.rawValues[yearDataName][+dataRow[2]] = allApplicationData.yearMapTypes.rawValues[yearDataName][+dataRow[2]] + (+dataRow[5]);
+                    allApplicationData.yearMapTypes.monthTotals[+dataRow[2]] = allApplicationData.yearMapTypes.monthTotals[+dataRow[2]] + (+dataRow[5]);
+                });
+                //Assign the values to data arrays used for chart
+                for (var appYName in applicationData) {
+
+                    //Assign the values to data arrays used for chart
+                    for (var mapType in applicationData[appYName].yearMapTypes.rawValues) {
+                        var dataIndex = applicationData[appYName].yearMapTypes.data.length;
+
+                        //Need to convert raw values to percentgaes
+                        applicationData[appYName].yearMapTypes.data.push([]);
+                        applicationData[appYName].yearMapTypes.data[dataIndex].push(mapType);
+
+                        //Loop through each month values and map into data array
+                        for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
+                            //Convert to percentage of total
+                            applicationData[appYName].yearMapTypes.data[dataIndex].push(Math.round(applicationData[appYName].yearMapTypes.rawValues[mapType][monthCounter] /
+                                (applicationData[appYName].yearMapTypes.monthTotals[monthCounter] || 1) * 100));
+
+                        }
+
+                    }
+                }
+
+                //Assign the values to data arrays used for chart
+                for (var mapTypeAll in allApplicationData.yearMapTypes.rawValues) {
+                    var dataIndexAll = allApplicationData.yearMapTypes.data.length;
+
+                    //Need to convert raw values to percentgaes
+                    allApplicationData.yearMapTypes.data.push([]);
+                    allApplicationData.yearMapTypes.data[dataIndexAll].push(mapTypeAll);
+
+                    //Loop through each month values and map into data array
+                    for (var monthCounterAll = 0; monthCounterAll < 12; monthCounterAll++) {
+                        //Convert to percentage of total
+                        allApplicationData.yearMapTypes.data[dataIndexAll].push(Math.round(allApplicationData.yearMapTypes.rawValues[mapTypeAll][monthCounterAll] /
+                            (allApplicationData.yearMapTypes.monthTotals[monthCounterAll] || 1) * 100));
 
                     }
 

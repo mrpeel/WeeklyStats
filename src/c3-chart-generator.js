@@ -264,6 +264,10 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
             right: 20,
             top: 20
         },
+        size: {
+            height: document.getElementById(statsChartContext.pageElement).clientHeight,
+            width: document.getElementById(statsChartContext.pageElement).clientWidth
+        },
         data: {
             columns: statsChartContext.columnData,
             type: 'bar',
@@ -321,6 +325,13 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
         },
         color: {
             pattern: chartColors.bigSets[20]
+        },
+        onresize: function () {
+            //When window is resized, re-size the chart appropriately
+            statsChartContext.chart.resize({
+                height: document.getElementById(statsChartContext.pageElement).clientHeight,
+                width: document.getElementById(statsChartContext.pageElement).clientWidth
+            });
         }
 
 

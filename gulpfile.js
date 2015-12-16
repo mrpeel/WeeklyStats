@@ -7,7 +7,7 @@ var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var minifyCss = require('gulp-minify-css');
 var connect = require('gulp-connect');
-var browserSync = require('browser-sync').create();
+//var browserSync = require('browser-sync').create();
 var gutil = require('gulp-util');
 
 
@@ -32,7 +32,7 @@ gulp.task('appcachetimestamp', function () {
         }
       ]
         }))
-        .pipe(gulp.dest('./build/'));
+        .pipe(gulp.dest('build/'));
 });
 
 /* Build the javascript - concatenates and minifies the files required to run.
@@ -40,7 +40,7 @@ gulp.task('appcachetimestamp', function () {
 gulp.task('buildjs', ['appcachetimestamp'], function () {
     gulp.src(['src/simple-assert.js', 'src/rate-limit-promises.js', 'src/ga.js', 'src/c3-chart-generator.js', 'src/chart-data-retrieval.js', 'src/build-data-charts.js'])
         .pipe(concat('weekly-stats-c3.js'))
-        .pipe(gulp.dest('./build/'))
+        .pipe(gulp.dest('build/'))
         .pipe(rename('weekly-stats-c3.min.js'))
         .pipe(uglify()).on('error', gutil.log)
         .pipe(gulp.dest('build/'));
@@ -51,28 +51,41 @@ gulp.task('buildjs', ['appcachetimestamp'], function () {
 gulp.task('minifycss', ['buildjs'], function () {
     gulp.src(['src/*.css'])
         .pipe(concat('weekly-stats-c3.css'))
-        .pipe(gulp.dest('./build/'))
+        .pipe(gulp.dest('build/'))
         .pipe(rename('weekly-stats-c3.min.css'))
         .pipe(minifyCss()).on('error', gutil.log)
-        .pipe(gulp.dest('./build/'));
+        .pipe(gulp.dest('build/'));
 });
 
-/* Copy all the required files for stand alone operation to the dist directory.
+/* Copy all the required files for stand alone operation to the build directory.
  */
-gulp.task('copytodist', ['minifycss'], function () {
-    gulp.src(['src/*.html'])
-        .pipe(gulp.dest('./build/'));
+gulp.task('copytobuild', ['minifycss'], function () {
+    gulp.src(['src/*.html', 'lib/masonry.pkgd.min.js', 'lib/c3.min.js', 'lib/d3.v3.min.js'])
+        .pipe(gulp.dest('build/'));
 });
 
+/* Watch for changes to html and then reload when updated
+ */
+gulp.task('html', ['copytobuild'], function () {
+    gulp.src('./build/*.html')
+        .pipe(connect.reload());
+});
 
 /* Standard server task */
-gulp.task('serve', ['copytodist'], function () {
-    connect.server();
-
-    browserSync.init({
-        server: "./dist"
+gulp.task('serve', ['copytobuild'], function () {
+    connect.server({
+        root: 'build',
+        livereload: true
     });
 
-    gulp.watch('src/*.*', ['copytodist']);
-    gulp.watch("dist/*.*").on('change', browserSync.reload);
+    /*browserSync.init({
+        server: "./dist",
+        options: {
+            proxy: "localhost:8080"
+        }
+    });*/
+
+    //Execute the html task anytime the source files change
+    gulp.watch('src/*.*', ['html']);
+    //gulp.watch("dist/*.*").on('change', browserSync.reload);
 });
