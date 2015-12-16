@@ -931,6 +931,56 @@ var APP_NAMES = ["LASSI - Land and Survey Spatial Information", "LASSI - SPEAR",
 var APP_LABELS = ["LASSI", "LASSI - SPEAR", "SMES", "SMES Edit", "VICNAMES", "LANDATA TPI", "LANDATA VMT"];
 var MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+//Categorise for UI activities
+var clickLookupCategories = [
+    {
+        event_labels: ['Clear Highlight', 'Polygon Search. Enabled when zoom scale is 1:10,000 or below.', 'View Search Results'],
+        caption: "Search"
+},
+    {
+        event_labels: ['Pan: Drag cursor or hold shift key and drag cursor to zoom', 'Zoom In', 'Zoom Out', 'Zoom to Full Extent',
+                                                        'Zoom to Greater Melbourne', 'Zoom to Scale', 'Go back one page', 'Go forward one page'],
+        caption: "Move and zoom"
+},
+    {
+        event_labels: ['Historical Information', 'Identify Aerial Photograph', 'Identify Property', 'Identify Survey Labels',
+                                    'Identify Survey Marks', 'Parcel information: click on map', 'Identify Feature',
+                                   'Identify Road. Enabled when zoom scale is 1:50,000 or below.', 'Polygon Search. Enabled when zoom scale is 1:10,000 or below.',
+                                   'View Search Results'],
+        caption: "Retrieve information"
+},
+    {
+        event_labels: ['Add Mark to selection', 'Clear Selection List', 'Remove Mark from selection', 'Display Mark Selection List Window'],
+        caption: "Select & display marks"
+    },
+    {
+        event_labels: ['Select Parcel', 'Unselect Parcel', 'Complete Selection'],
+        caption: "Map based select"
+    },
+    {
+        event_labels: ['Markup tools', 'Measure Area', 'Measure Distance', 'Clear highlight'],
+        caption: "Map tools"
+    },
+    {
+        event_labels: ['Save Geo-Referenced Image', 'Save Image'],
+        caption: "Save image"
+    },
+    {
+        event_labels: ['Print Map'],
+        caption: "Print map"
+    },
+    {
+        event_labels: ['Activate Document Download Tab', 'Draw Polygon to Export Survey Information to LandXML', 'Downoad GNR Data', 'Export property information',
+                       'Export parcels', 'Open in Google Maps', 'Street View: click on map'],
+        caption: "Download and export information"
+    },
+    {
+        event_labels: ['Add Labels', 'Administration', 'Administrator functions', 'Broadcast Message', 'Delete Labels', 'Edit Labels',
+                                                        'Mark Maintenance', 'Add New GNR Record'],
+        caption: "Administer data"
+    }
+];
+
 var topPagesFilter;
 var topBrowsersArray = [];
 var topBrowsersFilter;
@@ -1029,15 +1079,16 @@ function retrieveData(rStartDate, rEndDate, rIds) {
         .then(function () {
             return retrieveTotalVisits();
         })
-        /*.then(function () {
+        .then(function () {
             return retrieveSearchTypes();
         })
-        .then(function () {
-            buildWeekSearchTypes();
-            buildWeekPerVisitSearchTypes();
-            buildYearSearchTypes();
-            return true;
-        })*/
+        /*
+                .then(function () {
+                    buildWeekSearchTypes();
+                    buildWeekPerVisitSearchTypes();
+                    buildYearSearchTypes();
+                    return true;
+                })*/
         .then(function () {
             return retrieveMapTypes();
         })
@@ -1045,6 +1096,9 @@ function retrieveData(rStartDate, rEndDate, rIds) {
             buildWeekMapTypes();
             buildYearMapTypes();
             return true;
+        })
+        .then(function () {
+            return retrieveActivities();
         })
         .catch(function (err) {
             console.log(err);
@@ -1160,7 +1214,7 @@ function retrieveYearlyPages() {
                     //Record value
                     allApplicationData.pageData[dataRow[0]][+dataRow[2]] = (+dataRow[3]);
                     //Add value to total
-                    allApplicationData.pageTotals[+dataRow[2]] = allApplicationData.pageTotals[+dataRow[2]] + (+dataRow[3]);
+                    allApplicationData.pageTotals[+dataRow[2]] += (+dataRow[3]);
                 });
 
                 //Need to convert raw numbers to percentages - using month totals for overall figures
@@ -1273,7 +1327,7 @@ function retrieveWeeklyUsers() {
                     //Record value for each application
                     applicationData[dataRow[0]].currentWeekUserData[+dataRow[2]] = +dataRow[3];
                     //Add value to all application total
-                    allApplicationData.currentWeekUserData[+dataRow[2]] = allApplicationData.currentWeekUserData[+dataRow[2]] + (+dataRow[3]);
+                    allApplicationData.currentWeekUserData[+dataRow[2]] += (+dataRow[3]);
                 });
             }
 
@@ -1307,7 +1361,7 @@ function retrieveWeeklyUsers() {
                     //Record value for each application
                     applicationData[dataRow[0]].lastWeekUserData[+dataRow[2]] = +dataRow[3];
                     //Add value to all application total
-                    allApplicationData.lastWeekUserData[+dataRow[2]] = allApplicationData.lastWeekUserData[+dataRow[2]] + (+dataRow[3]);
+                    allApplicationData.lastWeekUserData[+dataRow[2]] += (+dataRow[3]);
                 });
             }
 
@@ -1370,7 +1424,7 @@ function retrieveWeeklyUsers() {
                         //Choose middle array value (median)
                         applicationData[appName].lastYearMedianUserData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
                         //Add median value for this application to the overall median value
-                        allApplicationData.lastYearMedianUserData[index] = allApplicationData.lastYearMedianUserData[index] + (dayArray[Math.round(dayArray.length / 2)] || 0);
+                        allApplicationData.lastYearMedianUserData[index] += (dayArray[Math.round(dayArray.length / 2)] || 0);
                     });
                 }
             }
@@ -1427,7 +1481,7 @@ function retrieveYearlyUsers() {
                     //Record value for each application
                     applicationData[dataRow[0]].thisYearUserData[+dataRow[2]] = +dataRow[3];
                     //Add value to all application total
-                    allApplicationData.thisYearUserData[+dataRow[2]] = allApplicationData.thisYearUserData[+dataRow[2]] + (+dataRow[3]);
+                    allApplicationData.thisYearUserData[+dataRow[2]] += (+dataRow[3]);
                 });
             }
 
@@ -1461,7 +1515,7 @@ function retrieveYearlyUsers() {
                     //Record value for each application
                     applicationData[dataRow[0]].previousYearUserData[+dataRow[2]] = +dataRow[3];
                     //Add value to all application total
-                    allApplicationData.previousYearUserData[+dataRow[2]] = allApplicationData.previousYearUserData[+dataRow[2]] + (+dataRow[3]);
+                    allApplicationData.previousYearUserData[+dataRow[2]] += (+dataRow[3]);
                 });
             }
 
@@ -1514,7 +1568,7 @@ function retrieveWeeklySessions() {
                     //Record value for each application
                     applicationData[dataRow[0]].currentWeekSessionData[+dataRow[2]] = roundTo2((+dataRow[3] / 60));
                     //Add value to all application total
-                    allApplicationData.currentWeekSessionData[+dataRow[2]] = allApplicationData.currentWeekSessionData[+dataRow[2]] + roundTo2((+dataRow[3] / 60));
+                    allApplicationData.currentWeekSessionData[+dataRow[2]] += roundTo2((+dataRow[3] / 60));
                 });
 
                 //Make overall average session for each day duration by dividing the overall number by the number of apps
@@ -1554,7 +1608,7 @@ function retrieveWeeklySessions() {
                     //Record value for each application
                     applicationData[dataRow[0]].lastWeekSessionData[+dataRow[2]] = roundTo2((+dataRow[3] / 60));
                     //Add value to all application total
-                    allApplicationData.lastWeekSessionData[+dataRow[2]] = allApplicationData.lastWeekSessionData[+dataRow[2]] + roundTo2((+dataRow[3] / 60));
+                    allApplicationData.lastWeekSessionData[+dataRow[2]] += roundTo2((+dataRow[3] / 60));
                 });
 
                 //Make overall average session for each day duration by dividing the overall number by the number of apps
@@ -1622,7 +1676,7 @@ function retrieveWeeklySessions() {
                         //Choose middle array value (median)
                         applicationData[appName].lastYearMedianSessionData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
                         //Add median value for this application to the overall median value
-                        allApplicationData.lastYearMedianSessionData[index] = allApplicationData.lastYearMedianSessionData[index] + (dayArray[Math.round(dayArray.length / 2)] || 0);
+                        allApplicationData.lastYearMedianSessionData[index] += (dayArray[Math.round(dayArray.length / 2)] || 0);
                     });
                 }
 
@@ -1697,12 +1751,12 @@ function retrieveYearlyBrowsers() {
                     //Record value for each application
                     applicationData[dataRow[0]].browserData[dataRow[1]][+dataRow[3]] = +dataRow[4];
                     //Add to browser monthly total value for each application
-                    applicationData[dataRow[0]].browserTotals[+dataRow[3]] = applicationData[dataRow[0]].browserTotals[+dataRow[3]] + (+dataRow[4]);
+                    applicationData[dataRow[0]].browserTotals[+dataRow[3]] += (+dataRow[4]);
 
                     //Add value to all application total
-                    allApplicationData.browserData[dataRow[1]][+dataRow[3]] = allApplicationData.browserData[dataRow[1]][+dataRow[3]] + (+dataRow[4]);
+                    allApplicationData.browserData[dataRow[1]][+dataRow[3]] += (+dataRow[4]);
                     //Add to browser monthly overall total value
-                    allApplicationData.browserTotals[+dataRow[3]] = allApplicationData.browserTotals[+dataRow[3]] + (+dataRow[4]);
+                    allApplicationData.browserTotals[+dataRow[3]] += (+dataRow[4]);
                 });
 
                 //Need to convert raw numbers to percentages - using month totals for overall figures
@@ -1782,12 +1836,12 @@ function retrieveVisitorReturns() {
                         //Add to value for each application    
                         applicationData[dataRow[0]].visitorReturns["New visitors"] = +dataRow[2];
                         //Add to total value for each application
-                        applicationData[dataRow[0]].visitorTotal = applicationData[dataRow[0]].visitorTotal + (+dataRow[2]);
+                        applicationData[dataRow[0]].visitorTotal += (+dataRow[2]);
 
                         //Add value to all application total
-                        allApplicationData.visitorReturns["New visitors"] = allApplicationData.visitorReturns["New visitors"] + (+dataRow[2]);
+                        allApplicationData.visitorReturns["New visitors"] += (+dataRow[2]);
                         //Add to overall total value
-                        allApplicationData.visitorTotal = allApplicationData.visitorTotal + (+dataRow[2]);
+                        allApplicationData.visitorTotal += (+dataRow[2]);
                     }
                 });
 
@@ -1825,31 +1879,31 @@ function retrieveVisitorReturns() {
                     //Classify the number and add to the correct category
                     if ((+dataRow[1]) <= 1) {
                         //Add to value for each application    
-                        applicationData[dataRow[0]].visitorReturns["Returned within a day"] = applicationData[dataRow[0]].visitorReturns["Returned within a day"] + (+dataRow[2]);
+                        applicationData[dataRow[0]].visitorReturns["Returned within a day"] += (+dataRow[2]);
                         //Add value to all application total
-                        allApplicationData.visitorReturns["Returned within a day"] = allApplicationData.visitorReturns["Returned within a day"] + (+dataRow[2]);
+                        allApplicationData.visitorReturns["Returned within a day"] += (+dataRow[2]);
                     } else if ((+dataRow[1]) > 1 && (+dataRow[1]) <= 7) {
                         //Add to value for each application    
-                        applicationData[dataRow[0]].visitorReturns["Returned within a week"] = applicationData[dataRow[0]].visitorReturns["Returned within a week"] + (+dataRow[2]);
+                        applicationData[dataRow[0]].visitorReturns["Returned within a week"] += (+dataRow[2]);
                         //Add value to all application total
-                        allApplicationData.visitorReturns["Returned within a week"] = allApplicationData.visitorReturns["Returned within a week"] + (+dataRow[2]);
+                        allApplicationData.visitorReturns["Returned within a week"] += (+dataRow[2]);
                     } else if ((+dataRow[1]) > 7 && (+dataRow[1]) <= 31) {
                         //Add to value for each application    
-                        applicationData[dataRow[0]].visitorReturns["Returned within a month"] = applicationData[dataRow[0]].visitorReturns["Returned within a month"] + (+dataRow[2]);
+                        applicationData[dataRow[0]].visitorReturns["Returned within a month"] += (+dataRow[2]);
                         //Add value to all application total
-                        allApplicationData.visitorReturns["Returned within a month"] = allApplicationData.visitorReturns["Returned within a month"] + (+dataRow[2]);
+                        allApplicationData.visitorReturns["Returned within a month"] += (+dataRow[2]);
                     } else if ((+dataRow[1]) > 31 && (+dataRow[1]) <= 365) {
                         //Add to value for each application    
-                        applicationData[dataRow[0]].visitorReturns["Returned within a year"] = applicationData[dataRow[0]].visitorReturns["Returned within a year"] + (+dataRow[2]);
+                        applicationData[dataRow[0]].visitorReturns["Returned within a year"] += (+dataRow[2]);
                         //Add value to all application total
-                        allApplicationData.visitorReturns["Returned within a year"] = allApplicationData.visitorReturns["Returned within a year"] + (+dataRow[2]);
+                        allApplicationData.visitorReturns["Returned within a year"] += (+dataRow[2]);
                     }
 
 
                     //Add to total value for each application
-                    applicationData[dataRow[0]].visitorTotal = applicationData[dataRow[0]].visitorTotal + (+dataRow[2]);
+                    applicationData[dataRow[0]].visitorTotal += (+dataRow[2]);
                     //Add to overall total value
-                    allApplicationData.visitorTotal = allApplicationData.visitorTotal + (+dataRow[2]);
+                    allApplicationData.visitorTotal += (+dataRow[2]);
 
                 });
 
@@ -2017,7 +2071,7 @@ function retrieveTotalVisits() {
                     */
                     //Add to value for each application    
                     applicationData[dataRow[0]].totalVisitsForYear[+dataRow[2]] = (+dataRow[3]);
-                    allApplicationData.totalVisitsForYear[+dataRow[2]] = allApplicationData.totalVisitsForYear[+dataRow[2]] + (+dataRow[3]);
+                    allApplicationData.totalVisitsForYear[+dataRow[2]] += (+dataRow[3]);
                 });
             }
 
@@ -2034,7 +2088,7 @@ function retrieveTotalVisits() {
 
 
 /**
- * Retrieve the breakdown of serach types for the past week and monthly breakdowns over the past year
+ * Retrieve the breakdown of search types for the past week and monthly breakdowns over the past year
  * @return {Promise} a promise which wil resolve with the data
  */
 function retrieveSearchTypes() {
@@ -2045,8 +2099,8 @@ function retrieveSearchTypes() {
     assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveSearchTypes assert failed - topPagesFilter: ' + topPagesFilter);
     assert(isDate(lastYearStartDate), 'retrieveSearchTypes assert failed - lastYearStartDate: ' + lastYearStartDate);
     assert(isDate(lastYearEndDate), 'retrieveSearchTypes assert failed - lastYearEndDate: ' + lastYearEndDate);
-    assert(allApplicationData.totalVisitsForWeek, 'retrieveSearchTypes assert failed - allApplicationData.totalVisitsForWeek does not exist');
-    assert(allApplicationData.totalVisitsForYear, 'retrieveSearchTypes assert failed - allApplicationData.totalVisitsForYear does not exist');
+    assert(typeof allApplicationData.totalVisitsForWeek !== "undefined", 'retrieveSearchTypes assert failed - allApplicationData.totalVisitsForWeek does not exist');
+    assert(typeof allApplicationData.totalVisitsForYear !== "undefined", 'retrieveSearchTypes assert failed - allApplicationData.totalVisitsForYear does not exist');
 
 
     return new Promise(function (resolve, reject) {
@@ -2094,11 +2148,11 @@ function retrieveSearchTypes() {
                         allApplicationData.weekSearchTypes.rawValues[dataRow[2]] = 0;
                     }
 
-                    allApplicationData.weekSearchTypes.rawValues[dataRow[2]] = allApplicationData.weekSearchTypes.rawValues[dataRow[2]] + (+dataRow[3]);
+                    allApplicationData.weekSearchTypes.rawValues[dataRow[2]] += (+dataRow[3]);
 
                     //Add to search totals
-                    applicationData[dataRow[0]].weekSearchTypes.totalSearches = applicationData[dataRow[0]].weekSearchTypes.totalSearches + (+dataRow[3]);
-                    allApplicationData.weekSearchTypes.totalSearches = allApplicationData.weekSearchTypes.totalSearches + (+dataRow[3]);
+                    applicationData[dataRow[0]].weekSearchTypes.totalSearches += (+dataRow[3]);
+                    allApplicationData.weekSearchTypes.totalSearches += (+dataRow[3]);
 
                 });
 
@@ -2208,7 +2262,7 @@ function retrieveSearchTypes() {
 
                     //Map in value to search type / month index combination
                     applicationData[dataRow[0]].yearSearchTypes.rawValues[dataRow[4]][+dataRow[2]] = (+dataRow[5]);
-                    applicationData[dataRow[0]].yearSearchTypes.monthTotals[+dataRow[2]] = applicationData[dataRow[0]].yearSearchTypes.monthTotals[+dataRow[2]] + (+dataRow[5]);
+                    applicationData[dataRow[0]].yearSearchTypes.monthTotals[+dataRow[2]] += (+dataRow[5]);
 
                     //Add to total value
                     if (!allApplicationData.yearSearchTypes.rawValues[dataRow[4]]) {
@@ -2216,8 +2270,8 @@ function retrieveSearchTypes() {
                     }
 
 
-                    allApplicationData.yearSearchTypes.rawValues[dataRow[4]][+dataRow[2]] = allApplicationData.yearSearchTypes.rawValues[dataRow[4]][+dataRow[2]] + (+dataRow[5]);
-                    allApplicationData.yearSearchTypes.monthTotals[+dataRow[2]] = allApplicationData.yearSearchTypes.monthTotals[+dataRow[2]] + (+dataRow[5]);
+                    allApplicationData.yearSearchTypes.rawValues[dataRow[4]][+dataRow[2]] += (+dataRow[5]);
+                    allApplicationData.yearSearchTypes.monthTotals[+dataRow[2]] += (+dataRow[5]);
                 });
                 //Assign the values to data arrays used for chart
                 for (var appYName in applicationData) {
@@ -2283,8 +2337,8 @@ function retrieveMapTypes() {
     assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveMapTypes assert failed - topPagesFilter: ' + topPagesFilter);
     assert(isDate(lastYearStartDate), 'retrieveMapTypes assert failed - lastYearStartDate: ' + lastYearStartDate);
     assert(isDate(lastYearEndDate), 'retrieveMapTypes assert failed - lastYearEndDate: ' + lastYearEndDate);
-    assert(allApplicationData.totalVisitsForWeek, 'retrieveMapTypes assert failed - allApplicationData.totalVisitsForWeek does not exist');
-    assert(allApplicationData.totalVisitsForYear, 'retrieveMapTypes assert failed - allApplicationData.totalVisitsForYear does not exist');
+    assert(typeof allApplicationData.totalVisitsForWeek !== "undefined", 'retrieveMapTypes assert failed - allApplicationData.totalVisitsForWeek does not exist');
+    assert(typeof allApplicationData.totalVisitsForYear !== "undefined", 'retrieveMapTypes assert failed - allApplicationData.totalVisitsForYear does not exist');
 
 
     return new Promise(function (resolve, reject) {
@@ -2337,11 +2391,11 @@ function retrieveMapTypes() {
                         allApplicationData.weekMapTypes.rawValues[dataName] = 0;
                     }
 
-                    allApplicationData.weekMapTypes.rawValues[dataName] = allApplicationData.weekMapTypes.rawValues[dataName] + (+dataRow[3]);
+                    allApplicationData.weekMapTypes.rawValues[dataName] += (+dataRow[3]);
 
                     //Add to search totals
-                    applicationData[dataRow[0]].weekMapTypes.totalMaps = applicationData[dataRow[0]].weekMapTypes.totalMaps + (+dataRow[3]);
-                    allApplicationData.weekMapTypes.totalMaps = allApplicationData.weekMapTypes.totalMaps + (+dataRow[3]);
+                    applicationData[dataRow[0]].weekMapTypes.totalMaps += (+dataRow[3]);
+                    allApplicationData.weekMapTypes.totalMaps += (+dataRow[3]);
 
                 });
 
@@ -2441,7 +2495,7 @@ function retrieveMapTypes() {
 
                     //Map in value to search type / month index combination
                     applicationData[dataRow[0]].yearMapTypes.rawValues[yearDataName][+dataRow[2]] = (+dataRow[5]);
-                    applicationData[dataRow[0]].yearMapTypes.monthTotals[+dataRow[2]] = applicationData[dataRow[0]].yearMapTypes.monthTotals[+dataRow[2]] + (+dataRow[5]);
+                    applicationData[dataRow[0]].yearMapTypes.monthTotals[+dataRow[2]] += (+dataRow[5]);
 
                     //Add to total value
                     if (!allApplicationData.yearMapTypes.rawValues[yearDataName]) {
@@ -2449,8 +2503,8 @@ function retrieveMapTypes() {
                     }
 
 
-                    allApplicationData.yearMapTypes.rawValues[yearDataName][+dataRow[2]] = allApplicationData.yearMapTypes.rawValues[yearDataName][+dataRow[2]] + (+dataRow[5]);
-                    allApplicationData.yearMapTypes.monthTotals[+dataRow[2]] = allApplicationData.yearMapTypes.monthTotals[+dataRow[2]] + (+dataRow[5]);
+                    allApplicationData.yearMapTypes.rawValues[yearDataName][+dataRow[2]] += (+dataRow[5]);
+                    allApplicationData.yearMapTypes.monthTotals[+dataRow[2]] += (+dataRow[5]);
                 });
                 //Assign the values to data arrays used for chart
                 for (var appYName in applicationData) {
@@ -2503,6 +2557,409 @@ function retrieveMapTypes() {
     });
 
 }
+
+
+/**
+ * Retrieve the breakdown of activites types for the past week and monthly breakdowns over the past year
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveActivities() {
+    "use strict";
+
+    assert(isDate(startDate), 'retrieveActivities assert failed - startDate: ' + startDate);
+    assert(isDate(endDate), 'retrieveActivities assert failed - endDate: ' + endDate);
+    assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveActivities assert failed - topPagesFilter: ' + topPagesFilter);
+    assert(isDate(lastYearStartDate), 'retrieveActivities assert failed - lastYearStartDate: ' + lastYearStartDate);
+    assert(isDate(lastYearEndDate), 'retrieveActivities assert failed - lastYearEndDate: ' + lastYearEndDate);
+    assert(typeof allApplicationData.totalVisitsForWeek !== "undefined", 'retrieveActivities assert failed - allApplicationData.totalVisitsForWeek does not exist');
+    assert(typeof allApplicationData.totalVisitsForYear !== "undefined", 'retrieveActivities assert failed - allApplicationData.totalVisitsForYear does not exist');
+    assert(typeof allApplicationData.weekSearchTypes.totalSearches !== "undefined", 'retrieveActivities assert failed - allApplicationData.weekSearchTypes.totalSearches does not exist');
+    assert(typeof allApplicationData.yearSearchTypes.monthTotals !== "undefined", 'retrieveActivities assert failed - allApplicationData.monthTotals does not exist');
+
+
+    return new Promise(function (resolve, reject) {
+        //Create base values and Map in the values previously retrieved for search
+        allApplicationData.weekActivities = {};
+        allApplicationData.weekActivities.rawValues = {};
+        allApplicationData.weekActivities.rawValues.Search = allApplicationData.weekSearchTypes.totalSearches;
+        allApplicationData.weekActivities.totalActivities = allApplicationData.weekSearchTypes.totalSearches;
+        allApplicationData.weekActivities.data = [];
+        allApplicationData.weekActivities.labels = [];
+        allApplicationData.weekActivities.dataPerVisit = [];
+        allApplicationData.weekActivities.labelsPerVisit = [];
+
+        allApplicationData.weekActivityTypes = {};
+        allApplicationData.weekActivityTypes.rawValues = {};
+        allApplicationData.weekActivityTypes.rawValues.Search = allApplicationData.weekSearchTypes.totalSearches;
+        allApplicationData.weekActivityTypes.totalActivities = allApplicationData.weekSearchTypes.totalSearches;
+        allApplicationData.weekActivityTypes.data = [];
+        allApplicationData.weekActivityTypes.labels = [];
+        allApplicationData.weekActivityTypes.dataPerVisit = [];
+        allApplicationData.weekActivityTypes.labelsPerVisit = [];
+
+        allApplicationData.yearActivities = {};
+        allApplicationData.yearActivities.rawValues = {};
+        allApplicationData.yearActivities.rawValues.Search = allApplicationData.yearSearchTypes.monthTotals;
+        allApplicationData.yearActivities.monthTotals = allApplicationData.yearSearchTypes.monthTotals;
+        allApplicationData.yearActivities.data = [];
+
+        allApplicationData.yearActivityTypes = {};
+        allApplicationData.yearActivityTypes.rawValues = {};
+        allApplicationData.yearActivityTypes.rawValues.Search = allApplicationData.yearSearchTypes.monthTotals;
+        allApplicationData.yearActivityTypes.monthTotals = allApplicationData.yearSearchTypes.monthTotals;
+        allApplicationData.yearActivityTypes.data = [];
+
+
+        for (var appName in applicationData) {
+            applicationData[appName].weekActivities = {};
+            applicationData[appName].weekActivities.rawValues = {};
+            applicationData[appName].weekActivities.rawValues.Search = applicationData[appName].weekActivities.totalSearches;
+            applicationData[appName].weekActivities.totalActivities = applicationData[appName].weekActivities.totalSearches;
+            applicationData[appName].weekActivities.data = [];
+            applicationData[appName].weekActivities.labels = [];
+            applicationData[appName].weekActivities.dataPerVisit = [];
+            applicationData[appName].weekActivities.labelsPerVisit = [];
+
+            applicationData[appName].weekActivityTypes = {};
+            applicationData[appName].weekActivityTypes.rawValues = {};
+            applicationData[appName].weekActivityTypes.rawValues.Search = applicationData[appName].weekActivities.totalSearches;
+            applicationData[appName].weekActivityTypes.totalActivities = applicationData[appName].weekActivities.totalSearches;
+            applicationData[appName].weekActivityTypes.data = [];
+            applicationData[appName].weekActivityTypes.labels = [];
+            applicationData[appName].weekActivityTypes.dataPerVisit = [];
+            applicationData[appName].weekActivityTypes.labelsPerVisit = [];
+
+            applicationData[appName].yearActivities = {};
+            applicationData[appName].yearActivities.rawValues = {};
+            applicationData[appName].yearActivities.rawValues.Search = applicationData[appName].yearSearchTypes.monthTotals;
+            applicationData[appName].yearActivities.monthTotals = applicationData[appName].yearSearchTypes.monthTotals;
+            applicationData[appName].yearActivities.data = [];
+
+            applicationData[appName].yearActivityTypes = {};
+            applicationData[appName].yearActivityTypes.rawValues = {};
+            applicationData[appName].yearActivityTypes.rawValues.Search = applicationData[appName].yearSearchTypes.monthTotals;
+            applicationData[appName].yearActivityTypes.monthTotals = applicationData[appName].yearSearchTypes.monthTotals;
+            applicationData[appName].yearActivityTypes.data = [];
+        }
+
+
+
+        //Retrieve the activity type data for the week
+        gaRequester.queryGA({
+            "start-date": formatDateString(startDate, "query"),
+            "end-date": formatDateString(endDate, "query"),
+            "ids": ids,
+            "dimensions": "ga:pageTitle,ga:eventLabel",
+            "metrics": "ga:totalEvents",
+            "filters": topPagesFilter + ";ga:eventLabel!=Victoria;ga:eventLabel!=Map;ga:eventLabel!=Imagery;ga:eventAction==click",
+            "sort": "ga:pageTitle,-ga:totalEvents",
+            "max-results": 10000
+        }).then(function (results) {
+
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = eventLabel (activity type)
+                                            dataRow[2] = No of times
+                    */
+                    //Add to value for each application    
+                    var activityType = retrieveActivityType(dataRow[1]);
+
+                    applicationData[dataRow[0]].weekActivities.rawValues[dataRow[1]] = (+dataRow[2]);
+
+                    //May already have search values in the activity types data, so we must check if it exists and set it to 0 if it doesn't
+                    if (!allApplicationData.weekActivityTypes.rawValues[activityType]) {
+                        allApplicationData.weekActivityTypes.rawValues[activityType] = 0;
+                    }
+                    //May already have search values in the activity types data, so we must add this value to the existing value
+                    applicationData[dataRow[0]].weekActivityTypes.rawValues[activityType] += (+dataRow[2]);
+
+                    //Add to total value
+                    if (!allApplicationData.weekActivities.rawValues[dataRow[1]]) {
+                        allApplicationData.weekActivities.rawValues[dataRow[1]] = 0;
+                    }
+
+                    allApplicationData.weekActivities.rawValues[dataRow[1]] += (+dataRow[2]);
+
+                    //Add to total value for types
+                    if (!allApplicationData.weekActivityTypes.rawValues[activityType]) {
+                        allApplicationData.weekActivityTypes.rawValues[activityType] = 0;
+                    }
+
+                    allApplicationData.weekActivityTypes.rawValues[activityType] += (+dataRow[2]);
+
+
+                    //Add to activityt totals
+                    applicationData[dataRow[0]].weekActivities.totalActivities += (+dataRow[2]);
+                    allApplicationData.weekActivities.totalActivities += (+dataRow[2]);
+
+                    applicationData[dataRow[0]].weekActivityTypes.totalActivities += (+dataRow[2]);
+                    allApplicationData.weekActivityTypes.totalActivities += (+dataRow[2]);
+
+                });
+
+
+                //Assign the values to data arrays used for chart
+                for (var appTName in applicationData) {
+                    //Activity data
+                    for (var activity in applicationData[appTName].weekActivities.rawValues) {
+                        //Normal raw values
+                        var dataIndex = applicationData[appTName].weekActivities.data.length;
+                        applicationData[appTName].weekActivities.data.push([]);
+                        applicationData[appTName].weekActivities.data[dataIndex].push(activity);
+                        applicationData[appTName].weekActivities.data[dataIndex].push(applicationData[appTName].weekActivities.rawValues[activity]);
+                        //Make calulcations for data per visit
+                        applicationData[appTName].weekActivities.dataPerVisit.push([]);
+                        applicationData[appTName].weekActivities.dataPerVisit[dataIndex].push(activity);
+                        applicationData[appTName].weekActivities.dataPerVisit[dataIndex].push(roundTo2(applicationData[appTName].weekActivities.rawValues[activity] /
+                            applicationData[appTName].totalVisitsForWeek));
+                    }
+
+                    //Sort into descending order
+                    sortNumericalArrayDesc(applicationData[appTName].weekActivities.data, 1);
+                    sortNumericalArrayDesc(applicationData[appTName].weekActivities.dataPerVisit, 1);
+
+                    //Now create the label values for normal vals
+                    applicationData[appTName].weekActivities.data.forEach(function (dataRow) {
+                        applicationData[appTName].weekActivities.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                            Math.round(dataRow[1] / (applicationData[appTName].weekActivities.totalSearches || 1) * 100) + "%)");
+                    });
+
+                    //Now create the label values for vals per visit
+                    applicationData[appTName].weekActivities.dataPerVisit.forEach(function (dataRow) {
+                        applicationData[appTName].weekActivities.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
+                    });
+
+                    //Run same process for activity type data
+                    for (var activityType in applicationData[appTName].weekActivityTypes.rawValues) {
+                        //Normal raw values
+                        var dataIndexType = applicationData[appTName].weekActivityTypes.data.length;
+                        applicationData[appTName].weekActivityTypes.data.push([]);
+                        applicationData[appTName].weekActivityTypes.data[dataIndexType].push(activityType);
+                        applicationData[appTName].weekActivityTypes.data[dataIndexType].push(applicationData[appTName].weekActivityTypes.rawValues[activityType]);
+                        //Make calulcations for data per visit
+                        applicationData[appTName].weekActivityTypes.dataPerVisit.push([]);
+                        applicationData[appTName].weekActivityTypes.dataPerVisit[dataIndexType].push(activityType);
+                        applicationData[appTName].weekActivityTypes.dataPerVisit[dataIndexType].push(roundTo2(applicationData[appTName].weekActivityTypes.rawValues[activityType] /
+                            applicationData[appTName].totalVisitsForWeek));
+                    }
+
+                    //Sort into descending order
+                    sortNumericalArrayDesc(applicationData[appTName].weekActivityTypes.data, 1);
+                    sortNumericalArrayDesc(applicationData[appTName].weekActivityTypes.dataPerVisit, 1);
+
+                    //Now create the label values for normal vals
+                    applicationData[appTName].weekActivityTypes.data.forEach(function (dataRow) {
+                        applicationData[appTName].weekActivityTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                            Math.round(dataRow[1] / (applicationData[appTName].weekActivityTypes.totalSearches || 1) * 100) + "%)");
+                    });
+
+                    //Now create the label values for vals per visit
+                    applicationData[appTName].weekActivityTypes.dataPerVisit.forEach(function (dataRow) {
+                        applicationData[appTName].weekActivityTypes.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
+                    });
+                }
+
+
+                //Assign overall activity values to data arrays used for chart
+                for (var activityAll in allApplicationData.weekActivities.rawValues) {
+                    var dataIndexAll = allApplicationData.weekActivities.data.length;
+                    //Normal raw values
+                    allApplicationData.weekActivities.data.push([]);
+                    allApplicationData.weekActivities.data[dataIndexAll].push(activityAll);
+                    allApplicationData.weekActivities.data[dataIndexAll].push(allApplicationData.weekActivities.rawValues[activityAll]);
+                    //Make calulcations for data per visit
+                    allApplicationData.weekActivities.dataPerVisit.push([]);
+                    allApplicationData.weekActivities.dataPerVisit[dataIndexAll].push(activityAll);
+                    allApplicationData.weekActivities.dataPerVisit[dataIndexAll].push(roundTo2(allApplicationData.weekActivities.rawValues[activityAll] /
+                        (allApplicationData.totalVisitsForWeek || 1)));
+                }
+
+                //Sort into descending order
+                sortNumericalArrayDesc(allApplicationData.weekActivities.data, 1);
+                sortNumericalArrayDesc(allApplicationData.weekActivities.dataPerVisit, 1);
+
+                //Now create the label values for normal vals
+                allApplicationData.weekActivities.data.forEach(function (dataRow) {
+                    allApplicationData.weekActivities.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                        Math.round(dataRow[1] / (allApplicationData.weekActivities.totalSearches || 1) * 100) + "%)");
+                });
+
+                //Now create the label values for vals per visit
+                allApplicationData.weekActivities.dataPerVisit.forEach(function (dataRow) {
+                    allApplicationData.weekActivities.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
+                });
+
+                //Assign overall activity type values to data arrays used for chart
+                for (var activityAllType in allApplicationData.weekActivityTypes.rawValues) {
+                    var dataIndexAllType = allApplicationData.weekActivityTypes.data.length;
+                    //Normal raw values
+                    allApplicationData.weekActivityTypes.data.push([]);
+                    allApplicationData.weekActivityTypes.data[dataIndexAllType].push(activityAllType);
+                    allApplicationData.weekActivityTypes.data[dataIndexAllType].push(allApplicationData.weekActivityTypes.rawValues[activityAllType]);
+                    //Make calulcations for data per visit
+                    allApplicationData.weekActivityTypes.dataPerVisit.push([]);
+                    allApplicationData.weekActivityTypes.dataPerVisit[dataIndexAllType].push(activityAllType);
+                    allApplicationData.weekActivityTypes.dataPerVisit[dataIndexAllType].push(roundTo2(allApplicationData.weekActivityTypes.rawValues[activityAllType] /
+                        (allApplicationData.totalVisitsForWeek || 1)));
+                }
+
+                //Sort into descending order
+                sortNumericalArrayDesc(allApplicationData.weekActivityTypes.data, 1);
+                sortNumericalArrayDesc(allApplicationData.weekActivityTypes.dataPerVisit, 1);
+
+                //Now create the label values for normal vals
+                allApplicationData.weekActivityTypes.data.forEach(function (dataRow) {
+                    allApplicationData.weekActivityTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
+                        Math.round(dataRow[1] / (allApplicationData.weekActivityTypes.totalSearches || 1) * 100) + "%)");
+                });
+
+                //Now create the label values for vals per visit
+                allApplicationData.weekActivityTypes.dataPerVisit.forEach(function (dataRow) {
+                    allApplicationData.weekActivityTypes.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
+                });
+            }
+
+            //Now return the previous year's data
+            return gaRequester.queryGA({
+                "start-date": formatDateString(lastYearStartDate, "query"),
+                "end-date": formatDateString(lastYearEndDate, "query"),
+                "ids": ids,
+                "dimensions": "ga:pageTitle,ga:yearMonth,ga:nthMonth,ga:eventLabel",
+                "metrics": "ga:totalEvents",
+                "filters": topPagesFilter + ";ga:eventLabel!=Victoria;ga:eventLabel!=Map;ga:eventLabel!=Imagery;ga:eventAction==click",
+                "sort": "ga:pageTitle,ga:yearMonth,ga:nthMonth",
+                "max-results": 10000
+            });
+        }).then(function (results) {
+            if (results) {
+                results.rows.forEach(function (dataRow) {
+                    /*Results structure -   dataRow[0] = appName
+                                            dataRow[1] = year and month
+                                            dataRow[2] = month Index
+                                            dataRow[3] = eventLabel (Activity)
+                                            dataRow[4] = No of times
+                    */
+                    //Add if values exist for this search type   
+                    var yearlyActivityType = retrieveActivityType(dataRow[3]);
+
+                    //Populate activity and activity type data
+                    if (!applicationData[dataRow[0]].yearActivities.rawValues[dataRow[3]]) {
+                        //if the search type is new, map in 0s for each month
+                        applicationData[dataRow[0]].yearActivities.rawValues[dataRow[3]] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    }
+
+                    if (!applicationData[dataRow[0]].yearActivityTypes.rawValues[yearlyActivityType]) {
+                        //if the search type is new, map in 0s for each month
+                        applicationData[dataRow[0]].yearActivityTypes.rawValues[yearlyActivityType] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    }
+
+                    //Map in value to search type / month index combination
+                    applicationData[dataRow[0]].yearActivities.rawValues[dataRow[3]][+dataRow[2]] = (+dataRow[4]);
+                    applicationData[dataRow[0]].yearActivities.monthTotals[+dataRow[2]] += (+dataRow[4]);
+
+
+                    applicationData[dataRow[0]].yearActivityTypes.rawValues[yearlyActivityType][+dataRow[2]] += (+dataRow[4]);
+                    applicationData[dataRow[0]].yearActivityTypes.monthTotals[+dataRow[2]] += (+dataRow[4]);
+
+                    if (!allApplicationData.yearActivities.rawValues[dataRow[3]]) {
+                        allApplicationData.yearActivities.rawValues[dataRow[3]] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    }
+
+
+                    allApplicationData.yearActivities.rawValues[dataRow[3]][+dataRow[2]] += (+dataRow[4]);
+                    allApplicationData.yearActivities.monthTotals[+dataRow[2]] += (+dataRow[4]);
+
+
+                    //Add to total value
+                    if (!allApplicationData.yearActivityTypes.rawValues[yearlyActivityType]) {
+                        allApplicationData.yearActivityTypes.rawValues[yearlyActivityType] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    }
+
+
+                    allApplicationData.yearActivityTypes.rawValues[yearlyActivityType][+dataRow[2]] += (+dataRow[4]);
+                    allApplicationData.yearActivityTypes.monthTotals[+dataRow[2]] += (+dataRow[4]);
+
+
+                });
+
+                //Assign the values to data arrays used for chart
+                for (var appYName in applicationData) {
+
+                    //Assign the values to data arrays used for chart
+                    for (var activityType in applicationData[appYName].yearActivities.rawValues) {
+                        var dataIndex = applicationData[appYName].yearActivities.data.length;
+
+                        //Need to convert raw values to percentgaes
+                        applicationData[appYName].yearActivities.data.push([]);
+                        applicationData[appYName].yearActivities.data[dataIndex].push(activityType);
+
+                        //Loop through each month values and map into data array
+                        for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
+                            //Convert to percentage of total
+                            applicationData[appYName].yearActivities.data[dataIndex].push(Math.round(applicationData[appYName].yearActivities.rawValues[activityType][monthCounter] /
+                                (applicationData[appYName].yearActivities.monthTotals[monthCounter] || 1) * 100));
+
+                        }
+
+                    }
+                }
+
+                //Assign the values to data arrays used for chart
+                for (var activityTypeAll in allApplicationData.yearActivities.rawValues) {
+                    var dataIndexAll = allApplicationData.yearActivities.data.length;
+
+                    //Need to convert raw values to percentgaes
+                    allApplicationData.yearActivities.data.push([]);
+                    allApplicationData.yearActivities.data[dataIndexAll].push(activityTypeAll);
+
+                    //Loop through each month values and map into data array
+                    for (var monthCounterAll = 0; monthCounterAll < 12; monthCounterAll++) {
+                        //Convert to percentage of total
+                        allApplicationData.yearActivities.data[dataIndexAll].push(Math.round(allApplicationData.yearActivities.rawValues[activityTypeAll][monthCounterAll] /
+                            (allApplicationData.yearSearchTypes.monthTotals[monthCounterAll] || 1) * 100));
+
+                    }
+
+                }
+            }
+
+
+            resolve(true);
+
+        }).catch(function (err) {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
+
+/**
+ * Takes an activity label and returns its corresponding type
+ * @params {string} activity -  the activity label
+ * @return {string} the activity type
+ */
+function retrieveActivityType(activity) {
+    "use strict";
+
+    //Check that this is a string
+    assert((typeof activity === "string" && activity !== ""), 'retrieveActivityType assert failed - activity: ' + activity);
+    //Check that the lookup array is present
+    assert(Array.isArray(clickLookupCategories), 'retrieveActivityType assert failed - clickLookupCategories array is not present');
+
+    for (var categoryCounter = 0; categoryCounter < clickLookupCategories.length; categoryCounter++) {
+        //loop through event_labels array and check for a match
+        for (var labelCounter = 0; labelCounter < clickLookupCategories[categoryCounter].event_labels.length; labelCounter++) {
+            if (clickLookupCategories[categoryCounter].event_labels[labelCounter] === activity) {
+                return clickLookupCategories[categoryCounter].caption;
+            }
+        }
+    }
+
+    return "";
+}
+
 
 /**
  * Takes a number value and trims is to a maximum of 2 decimal places
