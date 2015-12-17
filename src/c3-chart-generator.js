@@ -253,6 +253,11 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
     statsChartContext.chartFormat = "StackedVerticalBarChart";
     statsChartContext.chartType = "grouped";
 
+    var chartHeight = statsChartContext.columnData.length * 15;
+    if (chartHeight < 350) {
+        chartHeight = 350;
+    }
+
     statsChartContext.chart = c3.generate({
         bindto: document.getElementById(statsChartContext.pageElement),
         transition: {
@@ -265,7 +270,7 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
             top: 20
         },
         size: {
-            height: document.getElementById(statsChartContext.pageElement).clientHeight,
+            height: chartHeight,
             width: document.getElementById(statsChartContext.pageElement).clientWidth
         },
         data: {
@@ -329,7 +334,7 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
         onresize: function () {
             //When window is resized, re-size the chart appropriately
             statsChartContext.chart.resize({
-                height: document.getElementById(statsChartContext.pageElement).clientHeight,
+                height: chartHeight,
                 width: document.getElementById(statsChartContext.pageElement).clientWidth
             });
         }
@@ -372,7 +377,7 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
     statsChartContext.chartMaxTotalValue = 0;
 
     var chartClasses = {};
-    var chartHeight = statsChartContext.columnData.length * 45;
+    var chartHeight = statsChartContext.columnData.length * 50;
     if (chartHeight < 350) {
         chartHeight = 350;
     }

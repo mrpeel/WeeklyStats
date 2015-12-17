@@ -1,5 +1,7 @@
 /*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts, buildWeeklySessionCharts, buildYearlyBrowserCharts, buildYearlyPagesChart*/
-/*global buildVisitorReturnCharts, buildWeekSearchTypes, buildWeekPerVisitSearchTypes, buildYearSearchTypes, buildWeekMapTypes, buildYearMapTypes*/
+/*global buildVisitorReturnCharts, buildWeekSearchTypes, buildWeekPerVisitSearchTypes, buildYearSearchTypes, buildWeekMapTypes, buildYearMapTypes */
+/*global buildWeekActivities, buildWeekPerVisitActivities, buildWeekActivityTypes, buildWeekPerVisitActivityTypes, buildYearActivities, buildYearActivityTypes*/
+/*global showHomeScreen */
 
 /** 
  * Retrieves the data required for each of the charts and executes required processing, then returns the data as an object.
@@ -18,10 +20,9 @@ var ASSERT_ENABLED = true;
 var ASSERT_ERROR = true;
 var PAGE_TITLE_EXCLUSION_FILTER = 'ga:PageTitle!=Redirect;ga:PageTitle!=(not set);ga:PageTitle!=Home page;ga:PageTitle!=www.Event-Tracking.com;ga:PageTitle!=News';
 //The application names which will be reported back from Google Analytics
-var APP_NAMES = ["LASSI - Land and Survey Spatial Information", "LASSI - SPEAR", "SMES - Survey Marks Enquiry Service", "SMES Edit - Survey Marks Enquiry Service",
-    "VICNAMES - The Register of Geographic Names", "LASSI - TPC", "LASSI - VMT"
-];
-var APP_LABELS = ["LASSI", "LASSI - SPEAR", "SMES", "SMES Edit", "VICNAMES", "LANDATA TPI", "LANDATA VMT"];
+var APP_NAMES = ["LASSI - Land and Survey Spatial Information", "LASSI - SPEAR", "SMES - Survey Marks Enquiry Service", "VICNAMES - The Register of Geographic Names",
+                 "LASSI - TPC", "LASSI - VMT"];
+var APP_LABELS = ["LASSI", "LASSI - SPEAR", "SMES", "VICNAMES", "LANDATA TPI", "LANDATA VMT"];
 var MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 //Categorise for UI activities
@@ -64,12 +65,12 @@ var clickLookupCategories = [
     },
     {
         event_labels: ['Activate Document Download Tab', 'Draw Polygon to Export Survey Information to LandXML', 'Downoad GNR Data', 'Export property information',
-                       'Export parcels', 'Open in Google Maps', 'Street View: click on map'],
+                       'Export Parcels', 'Open in Google Maps', 'Street View: click on map'],
         caption: "Download and export information"
     },
     {
         event_labels: ['Add Labels', 'Administration', 'Administrator functions', 'Broadcast Message', 'Delete Labels', 'Edit Labels',
-                                                        'Mark Maintenance', 'Add New GNR Record'],
+                                                        'Check update', 'Mark Maintenance', 'Add New GNR Record'],
         caption: "Administer data"
     }
 ];
@@ -116,6 +117,7 @@ function retrieveData(rStartDate, rEndDate, rIds) {
     endDate = rEndDate;
     ids = rIds;
 
+    console.time("dataLoad");
 
     //Make sure the queue has been emptied
     gaRequester.clearQueryQueue();
@@ -126,46 +128,41 @@ function retrieveData(rStartDate, rEndDate, rIds) {
 
     //Start retrieval process
     retrieveTopBrowsers(5)
-        /*.then(function () {
+        .then(function () {
             return retrieveYearlyPages();
         })
         .then(function () {
-            buildYearlyPagesChart();
-            return true;
-        })
-        .then(function () {
             return retrieveWeeklyUsers();
-
         })
         .then(function () {
-            buildWeeklyUsersCharts();
+            showHomeScreen();
             return true;
         })
         .then(function () {
             return retrieveYearlyUsers();
         })
-        .then(function () {
+        /*.then(function () {
             buildYearlyUsersCharts();
             return true;
-        })
+        })*/
         .then(function () {
             return retrieveWeeklySessions();
         })
-        .then(function () {
+        /*.then(function () {
             buildWeeklySessionCharts();
             return true;
-        })
+        })*/
         .then(function () {
             return retrieveYearlyBrowsers();
         })
-        .then(function () {
+        /*.then(function () {
             buildYearlyBrowserCharts();
             return true;
-        })
+        })*/
         .then(function () {
             return retrieveVisitorReturns();
         })
-        .then(function () {
+        /*.then(function () {
             buildVisitorReturnCharts();
             return true;
         })*/
@@ -185,13 +182,25 @@ function retrieveData(rStartDate, rEndDate, rIds) {
         .then(function () {
             return retrieveMapTypes();
         })
-        .then(function () {
+        /*.then(function () {
             buildWeekMapTypes();
             buildYearMapTypes();
             return true;
-        })
+        })*/
         .then(function () {
             return retrieveActivities();
+        })
+        /*.then(function () {
+            buildWeekActivities();
+            buildWeekPerVisitActivities();
+            buildWeekActivityTypes();
+            buildWeekPerVisitActivityTypes();
+            buildYearActivities();
+            buildYearActivityTypes();
+            return true;
+        })*/
+        .then(function () {
+            console.timeEnd("dataLoad");
         })
         .catch(function (err) {
             console.log(err);
@@ -1684,7 +1693,6 @@ function retrieveActivities() {
         allApplicationData.weekActivityTypes = {};
         allApplicationData.weekActivityTypes.rawValues = {};
         allApplicationData.weekActivityTypes.rawValues.Search = allApplicationData.weekSearchTypes.totalSearches;
-        allApplicationData.weekActivityTypes.totalActivities = allApplicationData.weekSearchTypes.totalSearches;
         allApplicationData.weekActivityTypes.data = [];
         allApplicationData.weekActivityTypes.labels = [];
         allApplicationData.weekActivityTypes.dataPerVisit = [];
@@ -1692,22 +1700,21 @@ function retrieveActivities() {
 
         allApplicationData.yearActivities = {};
         allApplicationData.yearActivities.rawValues = {};
-        allApplicationData.yearActivities.rawValues.Search = allApplicationData.yearSearchTypes.monthTotals;
-        allApplicationData.yearActivities.monthTotals = allApplicationData.yearSearchTypes.monthTotals;
+        allApplicationData.yearActivities.rawValues.Search = allApplicationData.yearSearchTypes.monthTotals.slice();
+        allApplicationData.yearActivities.monthTotals = allApplicationData.yearSearchTypes.monthTotals.slice();
         allApplicationData.yearActivities.data = [];
 
         allApplicationData.yearActivityTypes = {};
         allApplicationData.yearActivityTypes.rawValues = {};
-        allApplicationData.yearActivityTypes.rawValues.Search = allApplicationData.yearSearchTypes.monthTotals;
-        allApplicationData.yearActivityTypes.monthTotals = allApplicationData.yearSearchTypes.monthTotals;
+        allApplicationData.yearActivityTypes.rawValues.Search = allApplicationData.yearSearchTypes.monthTotals.slice();
         allApplicationData.yearActivityTypes.data = [];
 
 
         for (var appName in applicationData) {
             applicationData[appName].weekActivities = {};
             applicationData[appName].weekActivities.rawValues = {};
-            applicationData[appName].weekActivities.rawValues.Search = applicationData[appName].weekActivities.totalSearches;
-            applicationData[appName].weekActivities.totalActivities = applicationData[appName].weekActivities.totalSearches;
+            applicationData[appName].weekActivities.rawValues.Search = applicationData[appName].weekSearchTypes.totalSearches;
+            applicationData[appName].weekActivities.totalActivities = applicationData[appName].weekSearchTypes.totalSearches;
             applicationData[appName].weekActivities.data = [];
             applicationData[appName].weekActivities.labels = [];
             applicationData[appName].weekActivities.dataPerVisit = [];
@@ -1715,8 +1722,7 @@ function retrieveActivities() {
 
             applicationData[appName].weekActivityTypes = {};
             applicationData[appName].weekActivityTypes.rawValues = {};
-            applicationData[appName].weekActivityTypes.rawValues.Search = applicationData[appName].weekActivities.totalSearches;
-            applicationData[appName].weekActivityTypes.totalActivities = applicationData[appName].weekActivities.totalSearches;
+            applicationData[appName].weekActivityTypes.rawValues.Search = applicationData[appName].weekSearchTypes.totalSearches;
             applicationData[appName].weekActivityTypes.data = [];
             applicationData[appName].weekActivityTypes.labels = [];
             applicationData[appName].weekActivityTypes.dataPerVisit = [];
@@ -1724,14 +1730,13 @@ function retrieveActivities() {
 
             applicationData[appName].yearActivities = {};
             applicationData[appName].yearActivities.rawValues = {};
-            applicationData[appName].yearActivities.rawValues.Search = applicationData[appName].yearSearchTypes.monthTotals;
-            applicationData[appName].yearActivities.monthTotals = applicationData[appName].yearSearchTypes.monthTotals;
+            applicationData[appName].yearActivities.rawValues.Search = applicationData[appName].yearSearchTypes.monthTotals.slice();
+            applicationData[appName].yearActivities.monthTotals = applicationData[appName].yearSearchTypes.monthTotals.slice();
             applicationData[appName].yearActivities.data = [];
 
             applicationData[appName].yearActivityTypes = {};
             applicationData[appName].yearActivityTypes.rawValues = {};
-            applicationData[appName].yearActivityTypes.rawValues.Search = applicationData[appName].yearSearchTypes.monthTotals;
-            applicationData[appName].yearActivityTypes.monthTotals = applicationData[appName].yearSearchTypes.monthTotals;
+            applicationData[appName].yearActivityTypes.rawValues.Search = applicationData[appName].yearSearchTypes.monthTotals.slice();
             applicationData[appName].yearActivityTypes.data = [];
         }
 
@@ -1761,8 +1766,8 @@ function retrieveActivities() {
                     applicationData[dataRow[0]].weekActivities.rawValues[dataRow[1]] = (+dataRow[2]);
 
                     //May already have search values in the activity types data, so we must check if it exists and set it to 0 if it doesn't
-                    if (!allApplicationData.weekActivityTypes.rawValues[activityType]) {
-                        allApplicationData.weekActivityTypes.rawValues[activityType] = 0;
+                    if (!applicationData[dataRow[0]].weekActivityTypes.rawValues[activityType]) {
+                        applicationData[dataRow[0]].weekActivityTypes.rawValues[activityType] = 0;
                     }
                     //May already have search values in the activity types data, so we must add this value to the existing value
                     applicationData[dataRow[0]].weekActivityTypes.rawValues[activityType] += (+dataRow[2]);
@@ -1782,12 +1787,10 @@ function retrieveActivities() {
                     allApplicationData.weekActivityTypes.rawValues[activityType] += (+dataRow[2]);
 
 
-                    //Add to activityt totals
+                    //Add to activity totals
                     applicationData[dataRow[0]].weekActivities.totalActivities += (+dataRow[2]);
                     allApplicationData.weekActivities.totalActivities += (+dataRow[2]);
 
-                    applicationData[dataRow[0]].weekActivityTypes.totalActivities += (+dataRow[2]);
-                    allApplicationData.weekActivityTypes.totalActivities += (+dataRow[2]);
 
                 });
 
@@ -1815,7 +1818,7 @@ function retrieveActivities() {
                     //Now create the label values for normal vals
                     applicationData[appTName].weekActivities.data.forEach(function (dataRow) {
                         applicationData[appTName].weekActivities.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
-                            Math.round(dataRow[1] / (applicationData[appTName].weekActivities.totalSearches || 1) * 100) + "%)");
+                            Math.round(dataRow[1] / (applicationData[appTName].weekActivities.totalActivities || 1) * 100) + "%)");
                     });
 
                     //Now create the label values for vals per visit
@@ -1844,7 +1847,7 @@ function retrieveActivities() {
                     //Now create the label values for normal vals
                     applicationData[appTName].weekActivityTypes.data.forEach(function (dataRow) {
                         applicationData[appTName].weekActivityTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
-                            Math.round(dataRow[1] / (applicationData[appTName].weekActivityTypes.totalSearches || 1) * 100) + "%)");
+                            Math.round(dataRow[1] / (applicationData[appTName].weekActivities.totalActivities || 1) * 100) + "%)");
                     });
 
                     //Now create the label values for vals per visit
@@ -1875,7 +1878,7 @@ function retrieveActivities() {
                 //Now create the label values for normal vals
                 allApplicationData.weekActivities.data.forEach(function (dataRow) {
                     allApplicationData.weekActivities.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
-                        Math.round(dataRow[1] / (allApplicationData.weekActivities.totalSearches || 1) * 100) + "%)");
+                        Math.round(dataRow[1] / (allApplicationData.weekActivities.totalActivities || 1) * 100) + "%)");
                 });
 
                 //Now create the label values for vals per visit
@@ -1904,7 +1907,7 @@ function retrieveActivities() {
                 //Now create the label values for normal vals
                 allApplicationData.weekActivityTypes.data.forEach(function (dataRow) {
                     allApplicationData.weekActivityTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
-                        Math.round(dataRow[1] / (allApplicationData.weekActivityTypes.totalSearches || 1) * 100) + "%)");
+                        Math.round(dataRow[1] / (allApplicationData.weekActivities.totalActivities || 1) * 100) + "%)");
                 });
 
                 //Now create the label values for vals per visit
@@ -1949,11 +1952,11 @@ function retrieveActivities() {
 
                     //Map in value to search type / month index combination
                     applicationData[dataRow[0]].yearActivities.rawValues[dataRow[3]][+dataRow[2]] = (+dataRow[4]);
+                    applicationData[dataRow[0]].yearActivityTypes.rawValues[yearlyActivityType][+dataRow[2]] += (+dataRow[4]);
+
+                    //Add to monthly totals
                     applicationData[dataRow[0]].yearActivities.monthTotals[+dataRow[2]] += (+dataRow[4]);
 
-
-                    applicationData[dataRow[0]].yearActivityTypes.rawValues[yearlyActivityType][+dataRow[2]] += (+dataRow[4]);
-                    applicationData[dataRow[0]].yearActivityTypes.monthTotals[+dataRow[2]] += (+dataRow[4]);
 
                     if (!allApplicationData.yearActivities.rawValues[dataRow[3]]) {
                         allApplicationData.yearActivities.rawValues[dataRow[3]] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -1961,8 +1964,6 @@ function retrieveActivities() {
 
 
                     allApplicationData.yearActivities.rawValues[dataRow[3]][+dataRow[2]] += (+dataRow[4]);
-                    allApplicationData.yearActivities.monthTotals[+dataRow[2]] += (+dataRow[4]);
-
 
                     //Add to total value
                     if (!allApplicationData.yearActivityTypes.rawValues[yearlyActivityType]) {
@@ -1971,7 +1972,9 @@ function retrieveActivities() {
 
 
                     allApplicationData.yearActivityTypes.rawValues[yearlyActivityType][+dataRow[2]] += (+dataRow[4]);
-                    allApplicationData.yearActivityTypes.monthTotals[+dataRow[2]] += (+dataRow[4]);
+
+                    //Add to monthly totals
+                    allApplicationData.yearActivities.monthTotals[+dataRow[2]] += (+dataRow[4]);
 
 
                 });
@@ -1980,40 +1983,72 @@ function retrieveActivities() {
                 for (var appYName in applicationData) {
 
                     //Assign the values to data arrays used for chart
-                    for (var activityType in applicationData[appYName].yearActivities.rawValues) {
+                    for (var activity in applicationData[appYName].yearActivities.rawValues) {
                         var dataIndex = applicationData[appYName].yearActivities.data.length;
 
                         //Need to convert raw values to percentgaes
                         applicationData[appYName].yearActivities.data.push([]);
-                        applicationData[appYName].yearActivities.data[dataIndex].push(activityType);
+                        applicationData[appYName].yearActivities.data[dataIndex].push(activity);
 
                         //Loop through each month values and map into data array
                         for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                             //Convert to percentage of total
-                            applicationData[appYName].yearActivities.data[dataIndex].push(Math.round(applicationData[appYName].yearActivities.rawValues[activityType][monthCounter] /
+                            applicationData[appYName].yearActivities.data[dataIndex].push(Math.round(applicationData[appYName].yearActivities.rawValues[activity][monthCounter] /
                                 (applicationData[appYName].yearActivities.monthTotals[monthCounter] || 1) * 100));
 
                         }
+                    }
+
+                    //Assign the values to data arrays used for chart
+                    for (var activityType in applicationData[appYName].yearActivityTypes.rawValues) {
+                        var dataIndexType = applicationData[appYName].yearActivityTypes.data.length;
+
+                        //Need to convert raw values to percentgaes
+                        applicationData[appYName].yearActivityTypes.data.push([]);
+                        applicationData[appYName].yearActivityTypes.data[dataIndexType].push(activityType);
+
+                        //Loop through each month values and map into data array
+                        for (var monthCounterType = 0; monthCounterType < 12; monthCounterType++) {
+                            //Convert to percentage of total
+                            applicationData[appYName].yearActivityTypes.data[dataIndexType].push(Math.round(applicationData[appYName].yearActivityTypes.rawValues[activityType][monthCounterType] /
+                                (applicationData[appYName].yearActivities.monthTotals[monthCounterType] || 1) * 100));
+
+                        }
+                    }
+                }
+
+                //Assign the values to data arrays used for chart
+                for (var activityAll in allApplicationData.yearActivities.rawValues) {
+                    var dataIndexAll = allApplicationData.yearActivities.data.length;
+
+                    //Need to convert raw values to percentgaes
+                    allApplicationData.yearActivities.data.push([]);
+                    allApplicationData.yearActivities.data[dataIndexAll].push(activityAll);
+
+                    //Loop through each month values and map into data array
+                    for (var monthCounterAll = 0; monthCounterAll < 12; monthCounterAll++) {
+                        //Convert to percentage of total
+                        allApplicationData.yearActivities.data[dataIndexAll].push(Math.round(allApplicationData.yearActivities.rawValues[activityAll][monthCounterAll] /
+                            (allApplicationData.yearActivities.monthTotals[monthCounterAll] || 1) * 100));
 
                     }
                 }
 
                 //Assign the values to data arrays used for chart
-                for (var activityTypeAll in allApplicationData.yearActivities.rawValues) {
-                    var dataIndexAll = allApplicationData.yearActivities.data.length;
+                for (var activityTypeAll in allApplicationData.yearActivityTypes.rawValues) {
+                    var dataIndexTypeAll = allApplicationData.yearActivityTypes.data.length;
 
                     //Need to convert raw values to percentgaes
-                    allApplicationData.yearActivities.data.push([]);
-                    allApplicationData.yearActivities.data[dataIndexAll].push(activityTypeAll);
+                    allApplicationData.yearActivityTypes.data.push([]);
+                    allApplicationData.yearActivityTypes.data[dataIndexTypeAll].push(activityTypeAll);
 
                     //Loop through each month values and map into data array
-                    for (var monthCounterAll = 0; monthCounterAll < 12; monthCounterAll++) {
+                    for (var monthCounterTypeAll = 0; monthCounterTypeAll < 12; monthCounterTypeAll++) {
                         //Convert to percentage of total
-                        allApplicationData.yearActivities.data[dataIndexAll].push(Math.round(allApplicationData.yearActivities.rawValues[activityTypeAll][monthCounterAll] /
-                            (allApplicationData.yearSearchTypes.monthTotals[monthCounterAll] || 1) * 100));
+                        allApplicationData.yearActivityTypes.data[dataIndexTypeAll].push(Math.round(allApplicationData.yearActivityTypes.rawValues[activityTypeAll][monthCounterTypeAll] /
+                            (allApplicationData.yearActivities.monthTotals[monthCounterTypeAll] || 1) * 100));
 
                     }
-
                 }
             }
 

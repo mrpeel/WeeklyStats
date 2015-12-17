@@ -233,7 +233,7 @@
     fill: #000;
     /*  font-size: 28px !important;*/
 }
-@media screen and (max-width: 940px) {
+@media screen and (max-width: 1080px) {
     .card {
         width: calc(100% - 20px);
     }
@@ -241,9 +241,10 @@
         width: 100%;
     }
 }
-
-@media screen and (min-width: 941px) and (max-width: 1280px) {
-    .card {
+@media screen and (min-width: 1081px) {
+    /*and (max-width: 1280px) {*/
+    .card,
+    .card.half-width {
         width: calc(50% - 20px);
     }
     .grid-sizer {
@@ -254,32 +255,33 @@
     }
 }
 
-@media screen and (min-width: 1281px) {
+/*@media screen and (min-width: 1281px) {
     .card {
         width: calc(33.3% - 20px);
     }
     .grid-sizer {
-        width: 33.3%;
+        width: 3%;
+    }
+    .card.half-width {
+        width: calc(50% - 30px);
     }
     .card.full-width {
         width: calc(100% - 20px);
-        ;
     }
-}
+}*/
 
 body {
     background-color: rgb(238, 238, 238);
 }
-
 .card {
     background-color: white;
     padding: 5px;
     margin-bottom: 10px;
 }
-
 .hidden {
     display: none;
 }
+
 .Header-auth .gapi-analytics-auth-styles-signinbutton {
     background: hsl(34, 93%, 54%);
     border-radius: 0;
