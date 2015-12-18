@@ -520,14 +520,19 @@ function retrieveWeeklyUsers() {
 
                 //Loop through each day array within each application and determine median
                 for (appName in applicationData) {
-                    applicationData[appName].lastYearUserData.forEach(function (dayArray, index) {
+                    for (var dataCounter = 0; dataCounter < applicationData[appName].lastYearUserData.length; dataCounter++) {
+                        var arrLength = applicationData[appName].lastYearUserData[dataCounter].length;
+                        var dataRow = applicationData[appName].lastYearUserData[dataCounter];
+
                         //Re-sort array into numeric order
-                        sortNumericalArrayAsc(dayArray);
+                        sortNumericalArrayAsc(dataRow);
+
                         //Choose middle array value (median)
-                        applicationData[appName].lastYearMedianUserData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
+                        applicationData[appName].lastYearMedianUserData[dataCounter] = dataRow[Math.round(arrLength / 2)] || 0;
                         //Add median value for this application to the overall median value
-                        allApplicationData.lastYearMedianUserData[index] += (dayArray[Math.round(dayArray.length / 2)] || 0);
-                    });
+                        allApplicationData.lastYearMedianUserData[dataCounter] += (dataRow[Math.round(arrLength / 2)] || 0);
+                    }
+
                 }
             }
 
@@ -772,20 +777,24 @@ function retrieveWeeklySessions() {
 
                 //Loop through each day array within each application and determine median
                 for (appName in applicationData) {
-                    applicationData[appName].lastYearSessionData.forEach(function (dayArray, index) {
+                    for (var dataCounter = 0; dataCounter < applicationData[appName].lastYearSessionData.length; dataCounter++) {
+                        var arrLength = applicationData[appName].lastYearSessionData[dataCounter].length;
+                        var dataRow = applicationData[appName].lastYearSessionData[dataCounter];
+
                         //Re-sort array into numeric order
-                        sortNumericalArrayAsc(dayArray);
+                        sortNumericalArrayAsc(dataRow);
+
+
                         //Choose middle array value (median)
-                        applicationData[appName].lastYearMedianSessionData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
+                        applicationData[appName].lastYearMedianSessionData[dataCounter] = dataRow[Math.round(arrLength / 2)] || 0;
                         //Add median value for this application to the overall median value
-                        allApplicationData.lastYearMedianSessionData[index] += (dayArray[Math.round(dayArray.length / 2)] || 0);
-                    });
+                        allApplicationData.lastYearMedianSessionData[dataCounter] += (dataRow[Math.round(arrLength / 2)] || 0);
+                    }
                 }
 
                 //Make overall average session for each day duration by dividing the overall number by the number of apps
                 for (var dayCounter = 0; dayCounter < allApplicationData.lastYearMedianSessionData.length; dayCounter++) {
                     allApplicationData.lastYearMedianSessionData[dayCounter] = roundTo2(allApplicationData.lastYearMedianSessionData[dayCounter] / APP_NAMES.length);
-
                 }
 
             }
@@ -836,9 +845,9 @@ function retrieveYearlyBrowsers() {
             for (var appName in applicationData) {
                 applicationData[appName].browserData = {};
                 applicationData[appName].browserTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                topBrowsersArray.forEach(function (browserName) {
-                    applicationData[appName].browserData[browserName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                });
+                for (var browserCounter = 0; browserCounter < topBrowsersArray.length; browserCounter++) {
+                    applicationData[appName].browserData[topBrowsersArray[browserCounter]] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                }
 
             }
 
@@ -871,12 +880,17 @@ function retrieveYearlyBrowsers() {
 
                 //Need to convert raw numbers to percentages - using month totals for each application
                 for (var appTName in applicationData) {
-                    topBrowsersArray.forEach(function (browserName) {
+                    for (var bCounter = 0; bCounter < topBrowsersArray.length; bCounter++) {
+                        var browserName = topBrowsersArray[bCounter];
+
                         for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                             applicationData[appTName].browserData[browserName][monthCounter] = roundTo2(applicationData[appTName].browserData[browserName][monthCounter] /
                                 applicationData[appTName].browserTotals[monthCounter] * 100);
                         }
-                    });
+
+
+                    }
+
 
                 }
 
@@ -1085,10 +1099,12 @@ function retrieveVisitorReturns() {
                 //Set-up the series labels
                 applicationData[appTName].visitorReturns.labels = [];
 
-                applicationData[appTName].visitorReturns.data.forEach(function (dataRow) {
+                for (var aCounter = 0; aCounter < applicationData[appTName].visitorReturns.data.length; aCounter++) {
+                    var dataRow = applicationData[appTName].visitorReturns.data[aCounter];
+
                     applicationData[appTName].visitorReturns.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
                         Math.round(dataRow[1] / applicationData[appTName].visitorTotal * 100) + "%)");
-                });
+                }
 
 
 
@@ -1279,15 +1295,20 @@ function retrieveSearchTypes() {
                     sortNumericalArrayDesc(applicationData[appTName].weekSearchTypes.dataPerVisit, 1);
 
                     //Now create the label values for normal vals
-                    applicationData[appTName].weekSearchTypes.data.forEach(function (dataRow) {
+                    for (var aCounter = 0; aCounter < applicationData[appTName].weekSearchTypes.data.length; aCounter++) {
+                        var dataRow = applicationData[appTName].weekSearchTypes.data[aCounter];
+
                         applicationData[appTName].weekSearchTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
                             Math.round(dataRow[1] / (applicationData[appTName].weekSearchTypes.totalSearches || 1) * 100) + "%)");
-                    });
+
+                    }
 
                     //Now create the label values for vals per visit
-                    applicationData[appTName].weekSearchTypes.dataPerVisit.forEach(function (dataRow) {
-                        applicationData[appTName].weekSearchTypes.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
-                    });
+                    for (var aCounterP = 0; aCounterP < applicationData[appTName].weekSearchTypes.dataPerVisit.length; aCounterP++) {
+                        var dataRowP = applicationData[appTName].weekSearchTypes.dataPerVisit[aCounterP];
+
+                        applicationData[appTName].weekSearchTypes.labelsPerVisit.push(dataRowP[0] + ": " + dataRowP[1] + " times per visit");
+                    }
 
                 }
 
@@ -1517,10 +1538,12 @@ function retrieveMapTypes() {
                     sortNumericalArrayDesc(applicationData[appTName].weekMapTypes.data, 1);
 
                     //Now create the label values for normal vals
-                    applicationData[appTName].weekMapTypes.data.forEach(function (dataRow) {
+                    for (var aCounter = 0; aCounter < applicationData[appTName].weekMapTypes.data.length; aCounter++) {
+                        var dataRow = applicationData[appTName].weekMapTypes.data[aCounter];
+
                         applicationData[appTName].weekMapTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
                             Math.round(dataRow[1] / (applicationData[appTName].weekMapTypes.totalMaps || 1) * 100) + "%)");
-                    });
+                    }
 
 
                 }
@@ -1816,15 +1839,19 @@ function retrieveActivities() {
                     sortNumericalArrayDesc(applicationData[appTName].weekActivities.dataPerVisit, 1);
 
                     //Now create the label values for normal vals
-                    applicationData[appTName].weekActivities.data.forEach(function (dataRow) {
+                    for (var aCounter = 0; aCounter < applicationData[appTName].weekActivities.data.length; aCounter++) {
+                        var dataRow = applicationData[appTName].weekActivities.data[aCounter];
+
                         applicationData[appTName].weekActivities.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
                             Math.round(dataRow[1] / (applicationData[appTName].weekActivities.totalActivities || 1) * 100) + "%)");
-                    });
+                    }
 
                     //Now create the label values for vals per visit
-                    applicationData[appTName].weekActivities.dataPerVisit.forEach(function (dataRow) {
-                        applicationData[appTName].weekActivities.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
-                    });
+                    for (var aCounterP = 0; aCounterP < applicationData[appTName].weekActivities.dataPerVisit.length; aCounterP++) {
+                        var dataRowP = applicationData[appTName].weekActivities.dataPerVisit[aCounterP];
+
+                        applicationData[appTName].weekActivities.labelsPerVisit.push(dataRowP[0] + ": " + dataRowP[1] + " times per visit");
+                    }
 
                     //Run same process for activity type data
                     for (var activityType in applicationData[appTName].weekActivityTypes.rawValues) {
@@ -1845,15 +1872,19 @@ function retrieveActivities() {
                     sortNumericalArrayDesc(applicationData[appTName].weekActivityTypes.dataPerVisit, 1);
 
                     //Now create the label values for normal vals
-                    applicationData[appTName].weekActivityTypes.data.forEach(function (dataRow) {
-                        applicationData[appTName].weekActivityTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
-                            Math.round(dataRow[1] / (applicationData[appTName].weekActivities.totalActivities || 1) * 100) + "%)");
-                    });
+                    for (var aCounterType = 0; aCounterType < applicationData[appTName].weekActivityTypes.data.length; aCounterType++) {
+                        var dataRowType = applicationData[appTName].weekActivityTypes.data[aCounterType];
+
+                        applicationData[appTName].weekActivityTypes.labels.push(dataRowType[0] + ": " + dataRowType[1] + " (" +
+                            Math.round(dataRowType[1] / (applicationData[appTName].weekActivities.totalActivities || 1) * 100) + "%)");
+                    }
 
                     //Now create the label values for vals per visit
-                    applicationData[appTName].weekActivityTypes.dataPerVisit.forEach(function (dataRow) {
-                        applicationData[appTName].weekActivityTypes.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
-                    });
+                    for (var aCounterTypeP = 0; aCounterTypeP < applicationData[appTName].weekActivityTypes.dataPerVisit.length; aCounterTypeP++) {
+                        var dataRowTypeP = applicationData[appTName].weekActivityTypes.dataPerVisit[aCounterTypeP];
+
+                        applicationData[appTName].weekActivityTypes.labelsPerVisit.push(dataRowTypeP[0] + ": " + dataRowTypeP[1] + " times per visit");
+                    }
                 }
 
 

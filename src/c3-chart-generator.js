@@ -34,8 +34,9 @@ var C3StatsChart = function (columnData, pageElement, labels, seriesLabels) {
     this.barOrArea = "";
     this.pageElement = pageElement;
     this.horizontalLabelClassName = "";
-    this.transitionDuration = 1500;
+    this.transitionDuration = 1000;
 };
+
 
 /**
  * Create a new a area chart for week days.  This expects data in the following format:
@@ -124,7 +125,7 @@ C3StatsChart.prototype.createWeekDayAreaChart = function () {
             width: {
                 ratio: 0.85 // this makes bar width 85% of length between ticks
             }
-        },
+        }
 
     });
 };
@@ -339,8 +340,6 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
             });
         }
 
-
-
     });
 };
 
@@ -493,7 +492,6 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
                 width: document.getElementById(statsChartContext.pageElement).clientWidth
             });
         }
-
 
 
     });

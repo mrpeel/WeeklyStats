@@ -254,8 +254,9 @@ var C3StatsChart = function (columnData, pageElement, labels, seriesLabels) {
     this.barOrArea = "";
     this.pageElement = pageElement;
     this.horizontalLabelClassName = "";
-    this.transitionDuration = 1500;
+    this.transitionDuration = 1000;
 };
+
 
 /**
  * Create a new a area chart for week days.  This expects data in the following format:
@@ -344,7 +345,7 @@ C3StatsChart.prototype.createWeekDayAreaChart = function () {
             width: {
                 ratio: 0.85 // this makes bar width 85% of length between ticks
             }
-        },
+        }
 
     });
 };
@@ -559,8 +560,6 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
             });
         }
 
-
-
     });
 };
 
@@ -713,7 +712,6 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
                 width: document.getElementById(statsChartContext.pageElement).clientWidth
             });
         }
-
 
 
     });
@@ -1432,14 +1430,19 @@ function retrieveWeeklyUsers() {
 
                 //Loop through each day array within each application and determine median
                 for (appName in applicationData) {
-                    applicationData[appName].lastYearUserData.forEach(function (dayArray, index) {
+                    for (var dataCounter = 0; dataCounter < applicationData[appName].lastYearUserData.length; dataCounter++) {
+                        var arrLength = applicationData[appName].lastYearUserData[dataCounter].length;
+                        var dataRow = applicationData[appName].lastYearUserData[dataCounter];
+
                         //Re-sort array into numeric order
-                        sortNumericalArrayAsc(dayArray);
+                        sortNumericalArrayAsc(dataRow);
+
                         //Choose middle array value (median)
-                        applicationData[appName].lastYearMedianUserData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
+                        applicationData[appName].lastYearMedianUserData[dataCounter] = dataRow[Math.round(arrLength / 2)] || 0;
                         //Add median value for this application to the overall median value
-                        allApplicationData.lastYearMedianUserData[index] += (dayArray[Math.round(dayArray.length / 2)] || 0);
-                    });
+                        allApplicationData.lastYearMedianUserData[dataCounter] += (dataRow[Math.round(arrLength / 2)] || 0);
+                    }
+
                 }
             }
 
@@ -1684,20 +1687,24 @@ function retrieveWeeklySessions() {
 
                 //Loop through each day array within each application and determine median
                 for (appName in applicationData) {
-                    applicationData[appName].lastYearSessionData.forEach(function (dayArray, index) {
+                    for (var dataCounter = 0; dataCounter < applicationData[appName].lastYearSessionData.length; dataCounter++) {
+                        var arrLength = applicationData[appName].lastYearSessionData[dataCounter].length;
+                        var dataRow = applicationData[appName].lastYearSessionData[dataCounter];
+
                         //Re-sort array into numeric order
-                        sortNumericalArrayAsc(dayArray);
+                        sortNumericalArrayAsc(dataRow);
+
+
                         //Choose middle array value (median)
-                        applicationData[appName].lastYearMedianSessionData[index] = dayArray[Math.round(dayArray.length / 2)] || 0;
+                        applicationData[appName].lastYearMedianSessionData[dataCounter] = dataRow[Math.round(arrLength / 2)] || 0;
                         //Add median value for this application to the overall median value
-                        allApplicationData.lastYearMedianSessionData[index] += (dayArray[Math.round(dayArray.length / 2)] || 0);
-                    });
+                        allApplicationData.lastYearMedianSessionData[dataCounter] += (dataRow[Math.round(arrLength / 2)] || 0);
+                    }
                 }
 
                 //Make overall average session for each day duration by dividing the overall number by the number of apps
                 for (var dayCounter = 0; dayCounter < allApplicationData.lastYearMedianSessionData.length; dayCounter++) {
                     allApplicationData.lastYearMedianSessionData[dayCounter] = roundTo2(allApplicationData.lastYearMedianSessionData[dayCounter] / APP_NAMES.length);
-
                 }
 
             }
@@ -1748,9 +1755,9 @@ function retrieveYearlyBrowsers() {
             for (var appName in applicationData) {
                 applicationData[appName].browserData = {};
                 applicationData[appName].browserTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                topBrowsersArray.forEach(function (browserName) {
-                    applicationData[appName].browserData[browserName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                });
+                for (var browserCounter = 0; browserCounter < topBrowsersArray.length; browserCounter++) {
+                    applicationData[appName].browserData[topBrowsersArray[browserCounter]] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                }
 
             }
 
@@ -1783,12 +1790,17 @@ function retrieveYearlyBrowsers() {
 
                 //Need to convert raw numbers to percentages - using month totals for each application
                 for (var appTName in applicationData) {
-                    topBrowsersArray.forEach(function (browserName) {
+                    for (var bCounter = 0; bCounter < topBrowsersArray.length; bCounter++) {
+                        var browserName = topBrowsersArray[bCounter];
+
                         for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                             applicationData[appTName].browserData[browserName][monthCounter] = roundTo2(applicationData[appTName].browserData[browserName][monthCounter] /
                                 applicationData[appTName].browserTotals[monthCounter] * 100);
                         }
-                    });
+
+
+                    }
+
 
                 }
 
@@ -1997,10 +2009,12 @@ function retrieveVisitorReturns() {
                 //Set-up the series labels
                 applicationData[appTName].visitorReturns.labels = [];
 
-                applicationData[appTName].visitorReturns.data.forEach(function (dataRow) {
+                for (var aCounter = 0; aCounter < applicationData[appTName].visitorReturns.data.length; aCounter++) {
+                    var dataRow = applicationData[appTName].visitorReturns.data[aCounter];
+
                     applicationData[appTName].visitorReturns.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
                         Math.round(dataRow[1] / applicationData[appTName].visitorTotal * 100) + "%)");
-                });
+                }
 
 
 
@@ -2191,15 +2205,20 @@ function retrieveSearchTypes() {
                     sortNumericalArrayDesc(applicationData[appTName].weekSearchTypes.dataPerVisit, 1);
 
                     //Now create the label values for normal vals
-                    applicationData[appTName].weekSearchTypes.data.forEach(function (dataRow) {
+                    for (var aCounter = 0; aCounter < applicationData[appTName].weekSearchTypes.data.length; aCounter++) {
+                        var dataRow = applicationData[appTName].weekSearchTypes.data[aCounter];
+
                         applicationData[appTName].weekSearchTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
                             Math.round(dataRow[1] / (applicationData[appTName].weekSearchTypes.totalSearches || 1) * 100) + "%)");
-                    });
+
+                    }
 
                     //Now create the label values for vals per visit
-                    applicationData[appTName].weekSearchTypes.dataPerVisit.forEach(function (dataRow) {
-                        applicationData[appTName].weekSearchTypes.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
-                    });
+                    for (var aCounterP = 0; aCounterP < applicationData[appTName].weekSearchTypes.dataPerVisit.length; aCounterP++) {
+                        var dataRowP = applicationData[appTName].weekSearchTypes.dataPerVisit[aCounterP];
+
+                        applicationData[appTName].weekSearchTypes.labelsPerVisit.push(dataRowP[0] + ": " + dataRowP[1] + " times per visit");
+                    }
 
                 }
 
@@ -2429,10 +2448,12 @@ function retrieveMapTypes() {
                     sortNumericalArrayDesc(applicationData[appTName].weekMapTypes.data, 1);
 
                     //Now create the label values for normal vals
-                    applicationData[appTName].weekMapTypes.data.forEach(function (dataRow) {
+                    for (var aCounter = 0; aCounter < applicationData[appTName].weekMapTypes.data.length; aCounter++) {
+                        var dataRow = applicationData[appTName].weekMapTypes.data[aCounter];
+
                         applicationData[appTName].weekMapTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
                             Math.round(dataRow[1] / (applicationData[appTName].weekMapTypes.totalMaps || 1) * 100) + "%)");
-                    });
+                    }
 
 
                 }
@@ -2728,15 +2749,19 @@ function retrieveActivities() {
                     sortNumericalArrayDesc(applicationData[appTName].weekActivities.dataPerVisit, 1);
 
                     //Now create the label values for normal vals
-                    applicationData[appTName].weekActivities.data.forEach(function (dataRow) {
+                    for (var aCounter = 0; aCounter < applicationData[appTName].weekActivities.data.length; aCounter++) {
+                        var dataRow = applicationData[appTName].weekActivities.data[aCounter];
+
                         applicationData[appTName].weekActivities.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
                             Math.round(dataRow[1] / (applicationData[appTName].weekActivities.totalActivities || 1) * 100) + "%)");
-                    });
+                    }
 
                     //Now create the label values for vals per visit
-                    applicationData[appTName].weekActivities.dataPerVisit.forEach(function (dataRow) {
-                        applicationData[appTName].weekActivities.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
-                    });
+                    for (var aCounterP = 0; aCounterP < applicationData[appTName].weekActivities.dataPerVisit.length; aCounterP++) {
+                        var dataRowP = applicationData[appTName].weekActivities.dataPerVisit[aCounterP];
+
+                        applicationData[appTName].weekActivities.labelsPerVisit.push(dataRowP[0] + ": " + dataRowP[1] + " times per visit");
+                    }
 
                     //Run same process for activity type data
                     for (var activityType in applicationData[appTName].weekActivityTypes.rawValues) {
@@ -2757,15 +2782,19 @@ function retrieveActivities() {
                     sortNumericalArrayDesc(applicationData[appTName].weekActivityTypes.dataPerVisit, 1);
 
                     //Now create the label values for normal vals
-                    applicationData[appTName].weekActivityTypes.data.forEach(function (dataRow) {
-                        applicationData[appTName].weekActivityTypes.labels.push(dataRow[0] + ": " + dataRow[1] + " (" +
-                            Math.round(dataRow[1] / (applicationData[appTName].weekActivities.totalActivities || 1) * 100) + "%)");
-                    });
+                    for (var aCounterType = 0; aCounterType < applicationData[appTName].weekActivityTypes.data.length; aCounterType++) {
+                        var dataRowType = applicationData[appTName].weekActivityTypes.data[aCounterType];
+
+                        applicationData[appTName].weekActivityTypes.labels.push(dataRowType[0] + ": " + dataRowType[1] + " (" +
+                            Math.round(dataRowType[1] / (applicationData[appTName].weekActivities.totalActivities || 1) * 100) + "%)");
+                    }
 
                     //Now create the label values for vals per visit
-                    applicationData[appTName].weekActivityTypes.dataPerVisit.forEach(function (dataRow) {
-                        applicationData[appTName].weekActivityTypes.labelsPerVisit.push(dataRow[0] + ": " + dataRow[1] + " times per visit");
-                    });
+                    for (var aCounterTypeP = 0; aCounterTypeP < applicationData[appTName].weekActivityTypes.dataPerVisit.length; aCounterTypeP++) {
+                        var dataRowTypeP = applicationData[appTName].weekActivityTypes.dataPerVisit[aCounterTypeP];
+
+                        applicationData[appTName].weekActivityTypes.labelsPerVisit.push(dataRowTypeP[0] + ": " + dataRowTypeP[1] + " times per visit");
+                    }
                 }
 
 
@@ -3212,6 +3241,8 @@ var ELEMENT_NAMES = ["lassi", "lassi-spear", "smes", "vicnames", "landata-tpi", 
 
 //Holds the indidivudal chart references
 var chartRefs = [];
+var refreshQueue = [];
+
 //Variable for masonry layout
 var msnry;
 //Variable to hold the parent element for all chart cards
@@ -3229,13 +3260,28 @@ window.onload = function () {
 
     //Add button listeners
     document.getElementById("show-home").addEventListener("click", showHomeScreen, false);
-    document.getElementById("show-overall").addEventListener("click", showOverallScreen, false);
-    document.getElementById("show-lassi").addEventListener("click", showLASSIScreen, false);
-    document.getElementById("show-lassi-spear").addEventListener("click", showLASSISPEARScreen, false);
-    document.getElementById("show-smes").addEventListener("click", showSMESScreen, false);
-    document.getElementById("show-vicnames").addEventListener("click", showVICNAMESScreen, false);
-    document.getElementById("show-landata-tpi").addEventListener("click", showLANDATATPIScreen, false);
-    document.getElementById("show-landata-vmt").addEventListener("click", showLANDATAVMTScreen, false);
+
+    document.getElementById("show-overall").addEventListener("click", function () {
+        showScreen("overall");
+    }, false);
+    document.getElementById("show-lassi").addEventListener("click", function () {
+        showScreen("lassi");
+    }, false);
+    document.getElementById("show-lassi-spear").addEventListener("click", function () {
+        showScreen("lassi-spear");
+    }, false);
+    document.getElementById("show-smes").addEventListener("click", function () {
+        showScreen("smes");
+    }, false);
+    document.getElementById("show-vicnames").addEventListener("click", function () {
+        showScreen("vicnames");
+    }, false);
+    document.getElementById("show-landata-tpi").addEventListener("click", function () {
+        showScreen("landata-tpi");
+    }, false);
+    document.getElementById("show-landata-vmt").addEventListener("click", function () {
+        showScreen("landata-vmt");
+    }, false);
 
 };
 
@@ -3249,15 +3295,16 @@ function createMasonry() {
     msnry = new Masonry(parentElement, {
         // options
         "itemSelector": ".card",
-        "columnWidth": ".grid-sizer" //,
+        "columnWidth": ".grid-sizer",
+        transitionDuration: "0.4s"
             //"gutter": 5 //,
             //"percentPosition": true
     });
 
     //Refresh charts after layout is complete
-    msnry.on('layoutComplete', function (items) {
+    /*msnry.on('layoutComplete', function (items) {
         refreshCharts();
-    });
+    });*/
 }
 
 /* 
@@ -3266,11 +3313,46 @@ function createMasonry() {
 function refreshCharts() {
     "use strict";
 
+    //console.log('Start refresh charts');
+    refreshQueue.length = 0;
+
+    for (var cCounter = 0; cCounter < chartRefs.length; cCounter++) {
+        refreshQueue.push(cCounter);
+    }
+
+    //console.log(refreshQueue);
+
     window.setTimeout(function () {
-        chartRefs.forEach(function (chartRef) {
-            chartRef.chart.flush();
-        });
-    }, 0);
+        executeRefresh();
+    }, 1000);
+
+}
+
+/* 
+    Refresh a chart after an interval
+*/
+function executeRefresh() {
+    "use strict";
+
+    if (refreshQueue.length > 0) {
+        var chartNum = refreshQueue.shift();
+
+        //console.log('Execute refresh chart ' + chartNum);
+
+        if (typeof chartRefs[chartNum].chart !== "undefined") {
+            //console.log('Flushing now');
+            chartRefs[chartNum].chart.flush();
+        }
+
+
+        window.setTimeout(function () {
+            executeRefresh();
+        }, 200);
+
+    } else {
+        //Ensure layout is correct after refresh
+        msnry.layout();
+    }
 
 }
 
@@ -3364,88 +3446,120 @@ function showHomeScreen() {
 
     clearChartsFromScreen();
     buildWeeklyUsersCharts();
+
 }
 
 /*
  * Builds the charts for the overall screen - the page breakdown and page visits for each app
  */
-function showOverallScreen() {
+function showScreen(appElementName) {
 
     clearChartsFromScreen();
-    buildOverallCharts();
+
+    var appGAName = "";
+
+    for (var elementCounter = 0; elementCounter < ELEMENT_NAMES.length; elementCounter++) {
+        if (ELEMENT_NAMES[elementCounter] === appElementName) {
+            appGAName = APP_NAMES[elementCounter];
+            break;
+        }
+    }
+
+    buildChartsForType(appElementName, appGAName);
+
+    //Set-up button listening events
+    document.getElementById("weekly-search-" + appElementName + "-switch-to-per-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-search-per-" + appElementName + "-card", ["weekly-search-" + appElementName + "-card"]);
+    }, false);
+
+    document.getElementById("weekly-search-" + appElementName + "-switch-to-raw-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-search-" + appElementName + "-card", ["weekly-search-per-" + appElementName + "-card"]);
+    }, false);
+
+    //Buttons on the activity type absolute number chart
+    document.getElementById("weekly-activity-types-" + appElementName + "-switch-to-per-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-activity-types-per-" + appElementName + "-card", ["weekly-activity-types-" + appElementName + "-card", "weekly-activities-" + appElementName + "-card",
+                            "weekly-activities-per-" + appElementName + "-card"]);
+    }, false);
+    document.getElementById("weekly-activity-types-" + appElementName + "-switch-to-raw-activities-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-activities-" + appElementName + "-card", ["weekly-activity-types-per-" + appElementName + "-card", "weekly-activity-types-" + appElementName + "-card",
+                            "weekly-activities-per-" + appElementName + "-card"]);
+    }, false);
+
+    //Buttons on the activity type per-visit chart
+    document.getElementById("weekly-activity-types-" + appElementName + "-switch-to-raw-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-activity-types-" + appElementName + "-card", ["weekly-activity-types-per-" + appElementName + "-card", "weekly-activities-" + appElementName + "-card",
+                            "weekly-activities-per-" + appElementName + "-card"]);
+    }, false);
+    document.getElementById("weekly-activity-types-" + appElementName + "-switch-to-per-activities-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-activities-per-" + appElementName + "-card", ["weekly-activity-types-" + appElementName + "-card", "weekly-activity-types-per-" + appElementName + "-card",
+                            "weekly-activities-" + appElementName + "-card"]);
+    }, false);
+
+    //Buttons on the detailed activities absolute number chart
+    document.getElementById("weekly-activities-" + appElementName + "-switch-to-per-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-activities-per-" + appElementName + "-card", ["weekly-activity-types-" + appElementName + "-card", "weekly-activity-types-per-" + appElementName + "-card",
+                            "weekly-activities-" + appElementName + "-card"]);
+    }, false);
+    document.getElementById("weekly-activities-" + appElementName + "-switch-to-raw-activity-types-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-activity-types-" + appElementName + "-card", ["weekly-activities-" + appElementName + "-card", "weekly-activity-types-per-" + appElementName + "-card",
+                            "weekly-activities-per-" + appElementName + "-card"]);
+    }, false);
+
+    //Buttons on the detailed activities per-visit chart
+    document.getElementById("weekly-activities-" + appElementName + "-switch-to-raw-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-activities-" + appElementName + "-card", ["weekly-activity-types-" + appElementName + "-card", "weekly-activity-types-per-" + appElementName + "-card",
+                            "weekly-activities-per-" + appElementName + "-card"]);
+    }, false);
+    document.getElementById("weekly-activities-" + appElementName + "-switch-to-per-activity-types-button").addEventListener("click", function () {
+        switchVisibleChart("weekly-activity-types-per-" + appElementName + "-card", ["weekly-activity-types-" + appElementName + "-card", "weekly-activities-" + appElementName + "-card",
+                            "weekly-activities-per-" + appElementName + "-card"]);
+    }, false);
+
+
+
+
 }
 
 /*
  * Builds the charts for the LASSI screen - the page breakdown and page visits for each app
  */
-function showLASSIScreen() {
+function switchVisibleChart(visibleElementName, hiddenElementNames) {
 
-    clearChartsFromScreen();
-    buildWeeklyUsersCharts();
-}
-
-/*
- * Builds the charts for the LASSI-SPEAR screen - the page breakdown and page visits for each app
- */
-function showLASSISPEARScreen() {
-
-    clearChartsFromScreen();
-    buildWeeklyUsersCharts();
-}
-
-/*
- * Builds the charts for the SMES screen - the page breakdown and page visits for each app
- */
-function showSMESScreen() {
-
-    clearChartsFromScreen();
-    buildWeeklyUsersCharts();
-}
+    var visibleElement = document.getElementById(visibleElementName);
+    var hiddenElement;
 
 
-/*
- * Builds the charts for the VICNAMES screen - the page breakdown and page visits for each app
- */
-function showVICNAMESScreen() {
+    //Remove hidden class from visible element 
+    if (typeof visibleElement !== "undefined") {
+        visibleElement.classList.remove("hidden");
 
-    clearChartsFromScreen();
-    buildWeeklyUsersCharts();
-}
+        //Loop through the chart references to see which one isbeing made visibleCheck if this is the chart being made visible
+        for (var chartCounter = 0; chartCounter < chartRefs.length; chartCounter++) {
+            //Check if this is the chart being made visible
+            if (document.getElementById(chartRefs[chartCounter].pageElement).parentNode.id === visibleElementName) {
+                //Immediately re-draw the chart
+                chartRefs[chartCounter].chart.flush();
+                break;
+            }
 
+        }
+    }
 
-/*
- * Builds the charts for the LANDATA - TPI screen - the page breakdown and page visits for each app
- */
-function showLANDATATPIScreen() {
+    //Loop through supplied hidden elements and add hidden class 
+    for (var elCounter = 0; elCounter < hiddenElementNames.length; elCounter++) {
+        hiddenElement = document.getElementById(hiddenElementNames[elCounter]);
 
-    clearChartsFromScreen();
-    buildWeeklyUsersCharts();
-}
+        if (typeof hiddenElement !== "undefined") {
+            hiddenElement.classList.add("hidden");
+        }
+    }
 
-
-/*
- * Builds the charts for the LANDATA - VMT screen - the page breakdown and page visits for each app
- */
-function showLANDATAVMTScreen() {
-
-    clearChartsFromScreen();
-    buildWeeklyUsersCharts();
-}
-
-
-
-function buildYearlyPagesChart() {
-    "use strict";
-
-    var seriesArray = [];
-    var columnData = [];
-
-
+    //Re-run the layout functions
+    //refreshCharts();
     msnry.layout();
 
-
 }
-
 
 /* 
     Build all weekly user charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
@@ -3526,57 +3640,71 @@ function buildWeeklyUsersCharts() {
 
     }
 
-    msnry.layout();
 
+    refreshCharts();
+    msnry.layout();
 
 }
 
 
 /* 
-    Build all overall charts.  Generates all the overall charts.
+    Build all charts for each type.  Generates all the charts for the specified type.
   
 */
-function buildOverallCharts() {
+function buildChartsForType(elementName, appName) {
     "use strict";
 
-    var yearPageData, currentWeekArray, lastWeekArray, lastYearArray, previousYearArray, currentYearArray, dataLabels, seriesLabels;
+    var currentWeekArray, lastWeekArray, lastYearArray, previousYearArray, currentYearArray, dataLabels, seriesLabels;
     var columnData, nextChartORef;
-    var cardClasses = "card half-width overall";
+    var cardClasses = "card half-width " + elementName;
+    var chartDataArray;
+
+    if (elementName === "overall") {
+        chartDataArray = allApplicationData;
+    } else {
+        chartDataArray = applicationData[appName];
+    }
 
     /* 
-    Build the yearly page breakdown chart.  Relies on the daya already being present within:
+    Build the yearly page breakdown chart.  This is ONLY present for the overall chart. Relies on the data already being present within:
         allApplicationData.pageData
         
     */
-    columnData = [];
-    nextChartORef = chartRefs.length;
-    yearPageData = {};
-    Object.assign(yearPageData, allApplicationData.pageData);
+    if (elementName === "overall") {
+        columnData = [];
+        nextChartORef = chartRefs.length;
 
-    //Map in values for each page month combination to the series then add to the columnData
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Add in the application label as the data set name
-        yearPageData[APP_NAMES[appCounter]].unshift(APP_LABELS[appCounter]);
-        //add data set to chart column data
-        columnData.push(yearPageData[APP_NAMES[appCounter]]);
+        //Map in values for each page month combination to the series then add to the columnData
+        for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
+            //Create data set
+            columnData.push([]);
+            //Add name for data set
+            columnData[columnData.length - 1].push(APP_LABELS[appCounter]);
+            //add data set to chart column data
+            Array.prototype.push.apply(columnData[columnData.length - 1], chartDataArray.pageData[APP_NAMES[appCounter]]);
+        }
+
+
+        //Create the DOM element 
+        createElement('yearly-pages-overall-card',
+            cardClasses,
+            '<div id="yearly-pages-overall"></div><button id="yearly-pages-overall-button">Change overall yearly pages chart</button>',
+            'yearly-pages-overall-button',
+            "transformVerticalStackedGrouped", nextChartORef);
+
+        chartRefs[nextChartORef] = new C3StatsChart(columnData, 'yearly-pages-overall', last12MonthsLabels, APP_LABELS);
+        chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
+
     }
-
-
-    //Create the DOM element 
-    createElement('yearly-pages-overall-card',
-        cardClasses,
-        '<div id="yearly-pages-overall"></div><button id="yearly-pages-overall-button">Change overall yearly pages chart</button>',
-        'yearly-pages-overall-button',
-        "transformVerticalStackedGrouped", nextChartORef);
-
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, 'yearly-pages-overall', last12MonthsLabels, APP_LABELS);
-    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
-
 
     /* Build weekly user charts.  Relies on the daya already being present within:
         allApplicationData.currentWeekUserData
         allApplicationData.lastWeekUserData
         allApplicationData.lastYearMedianUserData
+            OR
+        applicationData[appName].currentWeekUserData
+        applicationData[appName].lastWeekUserData
+        applicationData[appName].lastYearMedianUserData
     */
 
     //Set-up overall chart
@@ -3586,9 +3714,9 @@ function buildOverallCharts() {
     lastYearArray = ["Median for the last year"];
     nextChartORef = chartRefs.length;
 
-    Array.prototype.push.apply(currentWeekArray, allApplicationData.currentWeekUserData);
-    Array.prototype.push.apply(lastWeekArray, allApplicationData.lastWeekUserData);
-    Array.prototype.push.apply(lastYearArray, allApplicationData.lastYearMedianUserData);
+    Array.prototype.push.apply(currentWeekArray, chartDataArray.currentWeekUserData);
+    Array.prototype.push.apply(lastWeekArray, chartDataArray.lastWeekUserData);
+    Array.prototype.push.apply(lastYearArray, chartDataArray.lastYearMedianUserData);
 
     columnData.push(currentWeekdayLabels);
     columnData.push(lastYearArray);
@@ -3596,37 +3724,40 @@ function buildOverallCharts() {
     columnData.push(currentWeekArray);
 
     //Create the DOM element 
-    createElement('weekly-users-overall-card',
+    createElement('weekly-users-' + elementName + '-card',
         cardClasses,
-        '<div id="weekly-users-overall"></div><button id="weekly-users-overall-button">Change overall weekly users chart</button>',
-        'weekly-users-overall-button',
+        '<div id="weekly-users-' + elementName + '"></div><button id="weekly-users-' + elementName + '-button">Change ' + elementName + ' weekly users chart</button>',
+        'weekly-users-' + elementName + '-button',
         "transformArea", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-users-overall");
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-users-" + elementName);
     chartRefs[nextChartORef].createWeekDayAreaChart();
 
 
     /* Build current / previous year charts.  Relies on the daya already being present within:
         allApplicationData.thisYearUserData
         allApplicationData.previousYearUserData
+            OR
+        applicationData[appName].thisYearUserData
+        applicationData[appName].previousYearUserData
     */
     columnData = [];
     previousYearArray = ["Previous year"];
     currentYearArray = ["Current year"];
     nextChartORef = chartRefs.length;
 
-    Array.prototype.push.apply(previousYearArray, allApplicationData.previousYearUserData);
-    Array.prototype.push.apply(currentYearArray, allApplicationData.thisYearUserData);
+    Array.prototype.push.apply(previousYearArray, chartDataArray.previousYearUserData);
+    Array.prototype.push.apply(currentYearArray, chartDataArray.thisYearUserData);
 
     columnData.push(previousYearArray);
     columnData.push(currentYearArray);
 
     //Create the DOM element 
-    createElement('yearly-users-overall-card',
+    createElement('yearly-users-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-users-overall"></div>');
+        '<div id="yearly-users-' + elementName + '"></div>');
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-users-overall", last12MonthsLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-users-" + elementName, last12MonthsLabels);
     chartRefs[nextChartORef].createStaticVerticalTwoSeriesBarChart();
 
 
@@ -3636,6 +3767,10 @@ function buildOverallCharts() {
         allApplicationData.currentWeekSessionData
         allApplicationData.lastWeekSessionData
         allApplicationData.lastYearMedianSessionData
+            OR
+        applicationData[appName].currentWeekSessionData
+        applicationData[appName].lastWeekSessionData
+        applicationData[appName].lastYearMedianSessionData
     */
     columnData = [];
     nextChartORef = chartRefs.length;
@@ -3645,9 +3780,9 @@ function buildOverallCharts() {
     lastWeekArray = ["Week starting " + formatDateString(lastWeekStartDate, "display")];
     lastYearArray = ["Median for the last year"];
 
-    Array.prototype.push.apply(currentWeekArray, allApplicationData.currentWeekSessionData);
-    Array.prototype.push.apply(lastWeekArray, allApplicationData.lastWeekSessionData);
-    Array.prototype.push.apply(lastYearArray, allApplicationData.lastYearMedianSessionData);
+    Array.prototype.push.apply(currentWeekArray, chartDataArray.currentWeekSessionData);
+    Array.prototype.push.apply(lastWeekArray, chartDataArray.lastWeekSessionData);
+    Array.prototype.push.apply(lastYearArray, chartDataArray.lastYearMedianSessionData);
 
     columnData.push(currentWeekdayLabels);
     columnData.push(lastYearArray);
@@ -3655,119 +3790,131 @@ function buildOverallCharts() {
     columnData.push(currentWeekArray);
 
     //Create the DOM element 
-    createElement('weekly-sessions-overall-card',
+    createElement('weekly-sessions-' + elementName + '-card',
         cardClasses,
-        '<div id="weekly-sessions-overall"></div><button id="weekly-sessions-overall-button">Change overall weekly sessions chart</button>',
-        'weekly-sessions-overall-button',
+        '<div id="weekly-sessions-' + elementName + '"></div><button id="weekly-sessions-' + elementName + '-button">Change ' + elementName + ' weekly sessions chart</button>',
+        'weekly-sessions-' + elementName + '-button',
         "transformArea", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-sessions-overall");
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-sessions-" + elementName);
     chartRefs[nextChartORef].createWeekDayAreaChart();
 
     /* 
       Build visitor return chart.  Relies on the daya already being present within:
           allApplicationData.visitorReturns.data
-      */
-    columnData = allApplicationData.visitorReturns.data.slice();
-    dataLabels = allApplicationData.visitorReturns.labels.slice();
+            OR
+        applicationData[appName].visitorReturns.data
+    */
+    columnData = chartDataArray.visitorReturns.data.slice();
+    dataLabels = chartDataArray.visitorReturns.labels.slice();
     seriesLabels = [];
     nextChartORef = chartRefs.length;
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.visitorReturns.data.forEach(function (dataRow) {
+    chartDataArray.visitorReturns.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('visitor-return-overall-card',
+    createElement('visitor-return-' + elementName + '-card',
         cardClasses,
-        '<div id="visitor-return-overall"></div><button id="visitor-return-overall-button">Change overall visitor return chart</button>',
-        'visitor-return-overall-button',
+        '<div id="visitor-return-' + elementName + '"></div><button id="visitor-return-' + elementName + '-button">Change ' + elementName + ' visitor return chart</button>',
+        'visitor-return-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "visitor-return-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "visitor-return-" + elementName, dataLabels, seriesLabels);
     chartRefs[nextChartORef].createHorizontalBarChart("Time to return");
 
     /* 
     Build  yearly browser usage charts.  Relies on the daya already being present within:
         allApplicationData.browserData[browserName]
+            OR
+        applicationData[appName].browserData[browserName]
         
     */
     columnData = [];
     nextChartORef = chartRefs.length;
 
     //Map in values for each browser month combination to the series then add to the columnData
-    topBrowsersArray.forEach(function (browserName) {
-        allApplicationData.browserData[browserName].unshift(browserName);
-        columnData.push(allApplicationData.browserData[browserName]);
-    });
+    for (var bCounter = 0; bCounter < topBrowsersArray.length; bCounter++) {
+        //Create data set
+        columnData.push([]);
+        //Add name for data set
+        columnData[columnData.length - 1].push(topBrowsersArray[bCounter]);
+        //add data set to chart column data
+        Array.prototype.push.apply(columnData[columnData.length - 1], chartDataArray.browserData[topBrowsersArray[bCounter]]);
+    }
 
 
     //Create the DOM element 
-    createElement('yearly-browsers-overall-card',
+    createElement('yearly-browsers-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-browsers-overall"></div><button id="yearly-browsers-overall-button">Change overall yearly browsers chart</button>',
-        'yearly-browsers-overall-button',
+        '<div id="yearly-browsers-' + elementName + '"></div><button id="yearly-browsers-' + elementName + '-button">Change ' + elementName + ' yearly browsers chart</button>',
+        'yearly-browsers-' + elementName + '-button',
         "transformVerticalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-browsers-overall", last12MonthsLabels, topBrowsersArray);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-browsers-" + elementName, last12MonthsLabels, topBrowsersArray);
     chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
 
     /* 
-           Build weekly horizontal bar graphs for map types.  Relies on the data already being present within:
-               allApplicationData.weekMapTypes.data
-               allApplicationData.weekMapTypes.labels
-               
+    Build weekly horizontal bar graphs for map types.  Relies on the data already being present within:
+        allApplicationData.weekMapTypes.data
+        allApplicationData.weekMapTypes.labels
+            OR
+        applicationData[appName].weekMapTypes.data
+        applicationData[appName].weekMapTypes.labels
        */
 
-    columnData = allApplicationData.weekMapTypes.data.slice();
-    dataLabels = allApplicationData.weekMapTypes.labels.slice();
+    columnData = chartDataArray.weekMapTypes.data.slice();
+    dataLabels = chartDataArray.weekMapTypes.labels.slice();
     seriesLabels = [];
     nextChartORef = chartRefs.length;
 
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.weekMapTypes.data.forEach(function (dataRow) {
+    chartDataArray.weekMapTypes.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('weekly-maps-overall-card',
+    createElement('weekly-maps-' + elementName + '-card',
         cardClasses,
-        '<div id="weekly-maps-overall"></div><button id="weekly-maps-overall-button">Change overall weekly map types chart</button>',
-        'weekly-maps-overall-button',
+        '<div id="weekly-maps-' + elementName + '"></div><button id="weekly-maps-' + elementName + '-button">Change ' + elementName + ' weekly map types chart</button>',
+        'weekly-maps-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-maps-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-maps-" + elementName, dataLabels, seriesLabels);
     chartRefs[nextChartORef].createHorizontalBarChart("Map type");
 
 
     /* 
     Build yearly vertical stacked bar graphs of map types.  Relies on the data already being present within:
         allApplicationData.yearSearchTypes.data        
+            OR
+        applicationData[appName].yearSearchTypes.data
         
         last12MonthsLabels
 */
-    columnData = allApplicationData.yearMapTypes.data.slice();
+    columnData = chartDataArray.yearMapTypes.data.slice();
     seriesLabels = [];
     nextChartORef = chartRefs.length;
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.yearMapTypes.data.forEach(function (dataRow) {
+    chartDataArray.yearMapTypes.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('yearly-maps-overall-card',
+    createElement('yearly-maps-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-maps-overall"></div><button id="yearly-maps-overall-button">Change overall yearly map types chart</button>',
-        'yearly-maps-overall-button',
+        '<div id="yearly-maps-' + elementName + '"></div><button id="yearly-maps-' + elementName + '-button">Change ' + elementName + ' yearly map types chart</button>',
+        'yearly-maps-' + elementName + '-button',
         "transformVerticalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-maps-overall", last12MonthsLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-maps-" + elementName, last12MonthsLabels, seriesLabels);
     chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of map types");
 
 
@@ -3776,29 +3923,33 @@ function buildOverallCharts() {
     Build weekly horizontal bar graphs of search types with absolute numbers.  Relies on the data already being present within:
         allApplicationData.weekSearchTypes.data
         allApplicationData.weekSearchTypes.labels
+            OR
+        applicationData[appName].weekSearchTypes.data
+        applicationData[appName].weekSearchTypes.labels
         
 */
-    columnData = allApplicationData.weekSearchTypes.data.slice();
-    dataLabels = allApplicationData.weekSearchTypes.labels.slice();
+    columnData = chartDataArray.weekSearchTypes.data.slice();
+    dataLabels = chartDataArray.weekSearchTypes.labels.slice();
     seriesLabels = [];
     nextChartORef = chartRefs.length;
 
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.weekSearchTypes.data.forEach(function (dataRow) {
+    chartDataArray.weekSearchTypes.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('weekly-search-overall-card',
+    createElement('weekly-search-' + elementName + '-card',
         cardClasses + " raw",
-        '<div id="weekly-search-overall"></div><button id="weekly-search-overall-button">Change overall weekly search chart</button>',
-        'weekly-search-overall-button',
+        '<div id="weekly-search-' + elementName + '"></div><button id="weekly-search-' + elementName + '-button">Change ' + elementName + ' weekly search chart</button>' +
+        '<button id = "weekly-search-' + elementName + '-switch-to-per-button">Switch to per visit values</button>',
+        'weekly-search-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-" + elementName, dataLabels, seriesLabels);
     chartRefs[nextChartORef].createHorizontalBarChart("Search type");
 
 
@@ -3806,56 +3957,62 @@ function buildOverallCharts() {
     Build weekly horizontal bar graphs of search types per visit.  Relies on the data already being present within:
         allApplicationData.weekSearchTypes.dataPerVisit
         allApplicationData.weekSearchTypes.labelsPerVisit
+            OR
+        applicationData[appName].weekSearchTypes.dataPerVisit
+        applicationData[appName].weekSearchTypes.labelsPerVisit
         
 */
-    columnData = allApplicationData.weekSearchTypes.dataPerVisit.slice();
-    dataLabels = allApplicationData.weekSearchTypes.labelsPerVisit.slice();
+    columnData = chartDataArray.weekSearchTypes.dataPerVisit.slice();
+    dataLabels = chartDataArray.weekSearchTypes.labelsPerVisit.slice();
     seriesLabels = [];
     nextChartORef = chartRefs.length;
 
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.weekSearchTypes.data.forEach(function (dataRow) {
+    chartDataArray.weekSearchTypes.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('weekly-search-per-overall-card',
+    createElement('weekly-search-per-' + elementName + '-card',
         cardClasses + " per-visit hidden",
-        '<div id="weekly-search-per-overall"></div><button id="weekly-search-per-overall-button">Change overall weekly search chart</button>',
-        'weekly-search-per-overall-button',
+        '<div id="weekly-search-per-' + elementName + '"></div><button id="weekly-search-per-' + elementName + '-button">Change ' + elementName + ' weekly search chart</button>' +
+        '<button id = "weekly-search-' + elementName + '-switch-to-raw-button">Switch to absolute values</button>',
+        'weekly-search-per-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-per-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-per-" + elementName, dataLabels, seriesLabels);
     chartRefs[nextChartORef].createHorizontalBarChart("Search type");
 
 
     /* 
     Build yearly vertical stacked bar graphs of search types.  Relies on the data already being present within:
         allApplicationData.yearSearchTypes.data
+            OR
+        applicationData[appName].yearSearchTypes.data
                 
         last12MonthsLabels
         
         */
-    columnData = allApplicationData.yearSearchTypes.data.slice();
+    columnData = chartDataArray.yearSearchTypes.data.slice();
     nextChartORef = chartRefs.length;
     seriesLabels = [];
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.yearSearchTypes.data.forEach(function (dataRow) {
+    chartDataArray.yearSearchTypes.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('yearly-search-overall-card',
+    createElement('yearly-search-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-search-overall"></div><button id="yearly-search-overall-button">Change overall yearly search chart</button>',
-        'yearly-search-overall-button',
+        '<div id="yearly-search-' + elementName + '"></div><button id="yearly-search-' + elementName + '-button">Change ' + elementName + ' yearly search chart</button>',
+        'yearly-search-' + elementName + '-button',
         "transformVerticalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-search-overall", last12MonthsLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-search-" + elementName, last12MonthsLabels, seriesLabels);
     chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of searches");
 
 
@@ -3863,56 +4020,67 @@ function buildOverallCharts() {
     Build weekly horizontal bar graphs of activity types with absolute numbers.  Relies on the data already being present within:
         allApplicationData.weekActivityTypes.data
         allApplicationData.weekActivityTypes.labels
+            OR
+        applicationData[appName].weekActivityTypes.data
+        applicationData[appName].weekActivityTypes.labels
 */
-    columnData = allApplicationData.weekActivityTypes.data.slice();
-    dataLabels = allApplicationData.weekActivityTypes.labels.slice();
+    columnData = chartDataArray.weekActivityTypes.data.slice();
+    dataLabels = chartDataArray.weekActivityTypes.labels.slice();
     seriesLabels = [];
 
     nextChartORef = chartRefs.length;
 
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.weekActivityTypes.data.forEach(function (dataRow) {
+    chartDataArray.weekActivityTypes.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('weekly-activity-types-overall-card',
+    createElement('weekly-activity-types-' + elementName + '-card',
         cardClasses + " raw",
-        '<div id="weekly-activity-types-overall"></div><button id="weekly-activity-types-overall-button">Change overall weekly activity types chart</button>',
-        'weekly-activity-types-overall-button',
+        '<div id="weekly-activity-types-' + elementName + '"></div><button id="weekly-activity-types-' + elementName + '-button">Change ' +
+        elementName + ' weekly activity types chart</button>' +
+        '<button id = "weekly-activity-types-' + elementName + '-switch-to-per-button">Switch to per visit values</button>' +
+        '<button id = "weekly-activity-types-' + elementName + '-switch-to-raw-activities-button">Switch to detailed activity breakdown</button>',
+        'weekly-activity-types-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activity-types-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activity-types-" + elementName, dataLabels, seriesLabels);
     chartRefs[nextChartORef].createHorizontalBarChart("Activity type");
 
 
     /* 
-        Build weekly horizontal bar graphs of activities per visit.  Relies on the data already being present within:
-            allApplicationData.weekActivityTypes.dataPerVisit
-            allApplicationData.weekActivityTypes.labelsPerVisit
-            
+    Build weekly horizontal bar graphs of activities per visit.  Relies on the data already being present within:
+        allApplicationData.weekActivityTypes.dataPerVisit
+        allApplicationData.weekActivityTypes.labelsPerVisit
+            OR
+            applicationData[appName].weekActivityTypes.dataPerVisit
+            applicationData[appName].weekActivityTypes.labelsPerVisit            
     */
-    columnData = allApplicationData.weekActivityTypes.dataPerVisit.slice();
-    dataLabels = allApplicationData.weekActivityTypes.labelsPerVisit.slice();
+    columnData = chartDataArray.weekActivityTypes.dataPerVisit.slice();
+    dataLabels = chartDataArray.weekActivityTypes.labelsPerVisit.slice();
     seriesLabels = [];
     nextChartORef = chartRefs.length;
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.weekActivityTypes.data.forEach(function (dataRow) {
+    chartDataArray.weekActivityTypes.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('weekly-activity-types-per-overall-card',
+    createElement('weekly-activity-types-per-' + elementName + '-card',
         cardClasses + " per-visit hidden",
-        '<div id="weekly-activity-types-per-overall"></div><button id="weekly-activity-types-per-overall-button">Change overall weekly activity types chart</button>',
-        'weekly-activity-types-per-overall-button',
+        '<div id="weekly-activity-types-per-' + elementName + '"></div><button id="weekly-activity-types-per-' + elementName +
+        '-button">Change ' + elementName + ' weekly activity types chart</button>' +
+        '<button id = "weekly-activity-types-' + elementName + '-switch-to-raw-button">Switch to per visit values</button>' +
+        '<button id = "weekly-activity-types-' + elementName + '-switch-to-per-activities-button">Switch to detailed activity breakdown</button>',
+        'weekly-activity-types-per-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activity-types-per-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activity-types-per-" + elementName, dataLabels, seriesLabels);
     chartRefs[nextChartORef].createHorizontalBarChart("Activity type");
 
 
@@ -3922,28 +4090,34 @@ function buildOverallCharts() {
     Build weekly horizontal bar graphs of activities with absolute numbers.  Relies on the data already being present within:
         allApplicationData.weekActivities.data
         allApplicationData.weekActivities.labels
+            OR
+        applicationData[appName].weekActivities.data
+        applicationData[appName].weekActivities.labels
         
 */
-    columnData = allApplicationData.weekActivities.data.slice();
-    dataLabels = allApplicationData.weekActivities.labels.slice();
+    columnData = chartDataArray.weekActivities.data.slice();
+    dataLabels = chartDataArray.weekActivities.labels.slice();
     seriesLabels = [];
     nextChartORef = chartRefs.length;
 
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.weekActivities.data.forEach(function (dataRow) {
+    chartDataArray.weekActivities.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('weekly-activities-overall-card',
+    createElement('weekly-activities-' + elementName + '-card',
         cardClasses + " details hidden",
-        '<div id="weekly-activities-overall"></div><button id="weekly-activities-overall-button">Change overall weekly activities chart</button>',
-        'weekly-activities-overall-button',
+        '<div id="weekly-activities-' + elementName + '"></div><button id="weekly-activities-' + elementName +
+        '-button">Change ' + elementName + ' weekly activities chart</button>' +
+        '<button id = "weekly-activities-' + elementName + '-switch-to-per-button">Switch to per visit values</button>' +
+        '<button id = "weekly-activities-' + elementName + '-switch-to-raw-activity-types-button">Switch to activity type breakdown</button>',
+        'weekly-activities-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activities-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activities-" + elementName, dataLabels, seriesLabels);
     chartRefs[nextChartORef].createHorizontalBarChart("Activity");
 
 
@@ -3951,27 +4125,33 @@ function buildOverallCharts() {
     Build weekly horizontal bar graphs of activities per visit.  Relies on the data already being present within:
         allApplicationData.weekActivities.dataPerVisit
         allApplicationData.weekActivities.labelsPerVisit
+            OR
+        applicationData[appName].weekActivities.dataPerVisit
+        applicationData[appName].weekActivities.labelsPerVisit
         
 */
-    columnData = allApplicationData.weekActivities.dataPerVisit.slice();
-    dataLabels = allApplicationData.weekActivities.labelsPerVisit.slice();
+    columnData = chartDataArray.weekActivities.dataPerVisit.slice();
+    dataLabels = chartDataArray.weekActivities.labelsPerVisit.slice();
     seriesLabels = [];
     nextChartORef = chartRefs.length;
 
     //The first entry in the row contains the label used for the data
-    allApplicationData.weekActivities.data.forEach(function (dataRow) {
+    chartDataArray.weekActivities.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('weekly-activities-per-overall-card',
+    createElement('weekly-activities-per-' + elementName + '-card',
         cardClasses + " details-per-visit hidden",
-        '<div id="weekly-activities-per-overall"></div><button id="weekly-activities-per-overall-button">Change overall weekly activities per visit chart</button>',
-        'weekly-activities-per-overall-button',
+        '<div id="weekly-activities-per-' + elementName + '"></div><button id="weekly-activities-per-' + elementName +
+        '-button">Change ' + elementName + ' weekly activities per visit chart</button>' +
+        '<button id = "weekly-activities-' + elementName + '-switch-to-raw-button">Switch to absolute values</button>' +
+        '<button id = "weekly-activities-' + elementName + '-switch-to-per-activity-types-button">Switch to activity type breakdown</button>',
+        'weekly-activities-per-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activities-per-overall", dataLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activities-per-" + elementName, dataLabels, seriesLabels);
     chartRefs[nextChartORef].createHorizontalBarChart("Activity");
 
 
@@ -3983,7 +4163,7 @@ function buildOverallCharts() {
         last12MonthsLabels
         
 */
-    /*columnData = allApplicationData.yearActivities.data.slice();
+    /*columnData = chartDataArray.yearActivities.data.slice();
     nextChartORef = chartRefs.length;
     seriesLabels = [];
 
@@ -4007,794 +4187,44 @@ function buildOverallCharts() {
     /* 
     Build yearly vertical stacked bar graphs of activity types.  Relies on the data already being present within:
         allApplicationData.yearActivityTypes.data
+            OR
+        applicationData[appName].yearActivityTypes.data
+
         last12MonthsLabels
         
 */
-    columnData = allApplicationData.yearActivityTypes.data.slice();
+    columnData = chartDataArray.yearActivityTypes.data.slice();
     nextChartORef = chartRefs.length;
     seriesLabels = [];
 
     //Set-up overall chart
     //The first entry in the row contains the label used for the data
-    allApplicationData.yearActivityTypes.data.forEach(function (dataRow) {
+    chartDataArray.yearActivityTypes.data.forEach(function (dataRow) {
         seriesLabels.push(dataRow[0]);
     });
 
 
     //Create the DOM element 
-    createElement('yearly-activity-types-overall-card',
+    createElement('yearly-activity-types-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-activity-types-overall"></div><button id="yearly-activity-types-overall-button">Change overall yearly activity types chart</button>',
-        'yearly-activity-types-overall-button',
+        '<div id="yearly-activity-types-' + elementName + '"></div><button id="yearly-activity-types-' + elementName + '-button">Change overall yearly activity types chart</button>',
+        'yearly-activity-types-' + elementName + '-button',
         "transformVerticalStackedGrouped", nextChartORef);
 
-    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-activity-types-overall", last12MonthsLabels, seriesLabels);
+    chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-activity-types-" + elementName, last12MonthsLabels, seriesLabels);
     chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of activities");
 
 
+
+
     //Layout the screen with charts
+    refreshCharts();
     msnry.layout();
 
 
 }
 
 
-
-
-/* 
-    Build all yearly charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the daya already being present within:
-        allApplicationData.thisYearUserData
-        allApplicationData.previousYearUserData
-        
-        For each app:
-        applicationData[appName].thisYearUserData
-        applicationData[appName].previousYearUserData
-*/
-function buildYearlyUsersCharts() {
-    "use strict";
-
-    var currentYearArray, previousYearArray;
-    var columnData = [];
-    var nextChartORef = chartRefs.length;
-
-
-
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        previousYearArray = ["Previous year"];
-        currentYearArray = ["Current year"];
-        columnData = [];
-        var nextChartRef = chartRefs.length;
-
-        Array.prototype.push.apply(previousYearArray, applicationData[APP_NAMES[appCounter]].previousYearUserData);
-        Array.prototype.push.apply(currentYearArray, applicationData[APP_NAMES[appCounter]].thisYearUserData);
-
-        columnData.push(previousYearArray);
-        columnData.push(currentYearArray);
-
-        //Create the DOM element 
-        createElement('yearly-users-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="yearly-users-' + ELEMENT_NAMES[appCounter] + '"></div>');
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, "yearly-users-" + ELEMENT_NAMES[appCounter], last12MonthsLabels);
-        chartRefs[nextChartRef].createStaticVerticalTwoSeriesBarChart();
-
-
-
-    }
-
-
-    msnry.layout();
-}
-
-/* 
-    Build all weekly session dration charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the daya already being present within:
-        allApplicationData.currentWeekSessionData
-        allApplicationData.lastWeekSessionData
-        allApplicationData.lastYearMedianSessionData
-        
-        For each app:
-        applicationData[appName].currentWeekSessionData
-        applicationData[appName].lastWeekSessionData
-        applicationData[appName].lastYearMedianSessionData
-*/
-function buildWeeklySessionCharts() {
-    "use strict";
-
-    var currentWeekArray, lastWeekArray, lastYearArray;
-    var columnData = [];
-
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        currentWeekArray = ["Week starting " + formatDateString(startDate, "display")];
-        lastWeekArray = ["Week starting" + formatDateString(lastWeekStartDate, "display")];
-        lastYearArray = ["Median for the last year"];
-        columnData = [];
-        var nextChartRef = chartRefs.length;
-
-        Array.prototype.push.apply(currentWeekArray, applicationData[APP_NAMES[appCounter]].currentWeekSessionData);
-        Array.prototype.push.apply(lastWeekArray, applicationData[APP_NAMES[appCounter]].lastWeekSessionData);
-        Array.prototype.push.apply(lastYearArray, applicationData[APP_NAMES[appCounter]].lastYearMedianSessionData);
-
-
-        columnData.push(currentWeekdayLabels);
-        columnData.push(lastYearArray);
-        columnData.push(lastWeekArray);
-        columnData.push(currentWeekArray);
-
-        //Create the DOM element 
-        createElement('weekly-sessions-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card home ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-sessions-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-sessions-' + ELEMENT_NAMES[appCounter] + '-button">Change ' +
-            ELEMENT_NAMES[appCounter] + ' weekly sessions chart</button>',
-            'weekly-sessions-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformArea", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, "weekly-sessions-" + ELEMENT_NAMES[appCounter]);
-        chartRefs[nextChartRef].createWeekDayAreaChart();
-
-
-    }
-
-    msnry.layout();
-
-
-}
-
-/* 
-    Build all yearly browser usage charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the daya already being present within:
-        allApplicationData.browserData[browserName]
-        
-        For each app:
-        applicationData[appName].browserData[browserName]
-*/
-function buildYearlyBrowserCharts() {
-    "use strict";
-
-    var seriesArray = [];
-    var columnData = [];
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = [];
-        var nextChartRef = chartRefs.length;
-
-        //Map in values for each browser month combination to the series then add to the columnData
-        topBrowsersArray.forEach(function (browserName) {
-            applicationData[APP_NAMES[appCounter]].browserData[browserName].unshift(browserName);
-            columnData.push(applicationData[APP_NAMES[appCounter]].browserData[browserName]);
-        });
-
-
-        //Create the DOM element 
-        createElement('yearly-browsers-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="yearly-browsers-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-browsers-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' browsers chart</button>',
-            'yearly-browsers-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformVerticalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-browsers-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, topBrowsersArray);
-        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of visits");
-
-
-    }
-
-    msnry.layout();
-
-
-}
-
-/* 
-    Build all visitor return charts - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the daya already being present within:
-        allApplicationData.visitorReturns.data
-        
-        For each app:
-        applicationData[appName].visitorReturns.data
-*/
-function buildVisitorReturnCharts() {
-    "use strict";
-
-    var columnData = allApplicationData.visitorReturns.data;
-    var dataLabels, seriesLabels;
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].visitorReturns.data;
-        dataLabels = applicationData[APP_NAMES[appCounter]].visitorReturns.labels;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].visitorReturns.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('visitor-return-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="visitor-return-' + ELEMENT_NAMES[appCounter] + '"></div><button id="visitor-return-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' visitor return chart</button>',
-            'visitor-return-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformHorizontalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'visitor-return-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
-        chartRefs[nextChartRef].createHorizontalBarChart("Time to return");
-
-    }
-
-    msnry.layout();
-
-}
-
-/* 
-    Build weekly horizontal bar graphs of search types with absolute numbers for - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.weekSearchTypes.data
-        allApplicationData.weekSearchTypes.labels
-        
-        For each app:
-        applicationData[appName].weekSearchTypes.data
-        applicationData[appName].weekSearchTypes.labels
-        
-*/
-function buildWeekSearchTypes() {
-    "use strict";
-
-    var columnData = allApplicationData.weekSearchTypes.data;
-    var dataLabels = allApplicationData.weekSearchTypes.labels;
-    var seriesLabels = [];
-
-    var nextChartORef = chartRefs.length;
-
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].weekSearchTypes.data;
-        dataLabels = applicationData[APP_NAMES[appCounter]].weekSearchTypes.labels;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].weekSearchTypes.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('weekly-search-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-search-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-search-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly search chart</button>',
-            'weekly-search-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformHorizontalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-search-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
-        chartRefs[nextChartRef].createHorizontalBarChart("Search type");
-
-    }
-    msnry.layout();
-}
-
-/* 
-    Build weekly horizontal bar graphs of search types per visit for - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.weekSearchTypes.dataPerVisit
-        allApplicationData.weekSearchTypes.labelsPerVisit
-        
-        For each app:
-        applicationData[appName].weekSearchTypes.dataPerVisit
-        applicationData[appName].yearSearchTypes.labelsPerVisit
-        
-*/
-function buildWeekPerVisitSearchTypes() {
-    //Now add in the data per visit charts
-    var columnData = allApplicationData.weekSearchTypes.dataPerVisit;
-    var dataLabels = allApplicationData.weekSearchTypes.labelsPerVisit;
-    var seriesLabels = [];
-    var nextChartORef = chartRefs.length;
-
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].weekSearchTypes.dataPerVisit;
-        dataLabels = applicationData[APP_NAMES[appCounter]].weekSearchTypes.labelsPerVisit;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].weekSearchTypes.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('weekly-search-per-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-search-per-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-search-per-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly search chart</button>',
-            'weekly-search-per-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformHorizontalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-search-per-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
-        chartRefs[nextChartRef].createHorizontalBarChart("Search type");
-
-    }
-
-    msnry.layout();
-
-}
-
-/* 
-    Build yearly vertical stacked bar graphs of search types - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.yearSearchTypes.data
-        
-        For each app:
-        applicationData[appName].yearSearchTypes.data
-        
-        last12MonthsLabels
-        
-*/
-function buildYearSearchTypes() {
-    //Now add in the data per visit charts
-    var columnData = allApplicationData.yearSearchTypes.data;
-    var nextChartORef = chartRefs.length;
-    var seriesLabels = [];
-
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].yearSearchTypes.data;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].yearSearchTypes.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('yearly-search-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="yearly-search-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-search-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' yearly search chart</button>',
-            'yearly-search-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformVerticalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-search-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, seriesLabels);
-        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of searches");
-
-    }
-
-    msnry.layout();
-
-}
-
-
-/* 
-    Build weekly horizontal bar graphs for map types - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.weekMapTypes.data
-        allApplicationData.weekMapTypes.labels
-        
-        For each app:
-        applicationData[appName].weekMapTypes.data
-        applicationData[appName].weekMapTypes.labels
-        
-*/
-function buildWeekMapTypes() {
-    "use strict";
-
-    var columnData = allApplicationData.weekMapTypes.data;
-    var dataLabels = allApplicationData.weekMapTypes.labels;
-    var seriesLabels = [];
-
-    var nextChartORef = chartRefs.length;
-
-
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].weekMapTypes.data;
-        dataLabels = applicationData[APP_NAMES[appCounter]].weekMapTypes.labels;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].weekMapTypes.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('weekly-maps-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-maps-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-maps-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly map types chart</button>',
-            'weekly-maps-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformHorizontalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-maps-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
-        chartRefs[nextChartRef].createHorizontalBarChart("Map type");
-
-    }
-    msnry.layout();
-}
-
-/* 
-    Build yearly vertical stacked bar graphs of map types - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.yearSearchTypes.data
-        
-        For each app:
-        applicationData[appName].yearMapTypes.data
-        
-        last12MonthsLabels
-        
-*/
-function buildYearMapTypes() {
-    //Now add in the data per visit charts
-    var columnData = allApplicationData.yearMapTypes.data;
-    var nextChartORef = chartRefs.length;
-    var seriesLabels = [];
-
-
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].yearMapTypes.data;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].yearMapTypes.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('yearly-maps-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="yearly-maps-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-maps-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' yearly map types chart</button>',
-            'yearly-maps-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformVerticalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-maps-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, seriesLabels);
-        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of searches");
-
-    }
-
-    msnry.layout();
-
-}
-
-/* 
-    Build weekly horizontal bar graphs of activities with absolute numbers for - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.weekActivities.data
-        allApplicationData.weekActivities.labels
-        
-        For each app:
-        applicationData[appName].weekActivities.data
-        applicationData[appName].weekActivities.labels
-        
-*/
-function buildWeekActivities() {
-    "use strict";
-
-    var columnData = allApplicationData.weekActivities.data;
-    var dataLabels = allApplicationData.weekActivities.labels;
-    var seriesLabels = [];
-
-    var nextChartORef = chartRefs.length;
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].weekActivities.data;
-        dataLabels = applicationData[APP_NAMES[appCounter]].weekActivities.labels;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].weekActivities.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('weekly-activities-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-activities-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-activities-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly activities chart</button>',
-            'weekly-activities-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformHorizontalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-activities-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
-        chartRefs[nextChartRef].createHorizontalBarChart("Activity");
-
-    }
-    msnry.layout();
-}
-
-/* 
-    Build weekly horizontal bar graphs of activities per visit for - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.weekActivities.dataPerVisit
-        allApplicationData.weekActivities.labelsPerVisit
-        
-        For each app:
-        applicationData[appName].weekActivities.dataPerVisit
-        applicationData[appName].weekActivities.labelsPerVisit
-        
-*/
-function buildWeekPerVisitActivities() {
-    //Now add in the data per visit charts
-    var columnData = allApplicationData.weekActivities.dataPerVisit;
-    var dataLabels = allApplicationData.weekActivities.labelsPerVisit;
-    var seriesLabels = [];
-    var nextChartORef = chartRefs.length;
-
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].weekActivities.dataPerVisit;
-        dataLabels = applicationData[APP_NAMES[appCounter]].weekActivities.labelsPerVisit;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].weekActivities.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('weekly-activities-per-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-activities-per-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-activities-per-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly activities per visit chart</button>',
-            'weekly-activities-per-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformHorizontalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-activities-per-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
-        chartRefs[nextChartRef].createHorizontalBarChart("Activity");
-
-    }
-
-    msnry.layout();
-
-}
-
-/* 
-    Build weekly horizontal bar graphs of activity types with absolute numbers for - overall, lassi, lassi spear,  smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.weekActivityTypes.data
-        allApplicationData.weekActivityTypes.labels
-        
-        For each app:
-        applicationData[appName].weekActivityTypes.data
-        applicationData[appName].weekActivityTypes.labels
-        
-*/
-function buildWeekActivityTypes() {
-    "use strict";
-
-    var columnData = allApplicationData.weekActivityTypes.data;
-    var dataLabels = allApplicationData.weekActivityTypes.labels;
-    var seriesLabels = [];
-
-    var nextChartORef = chartRefs.length;
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].weekActivityTypes.data;
-        dataLabels = applicationData[APP_NAMES[appCounter]].weekActivityTypes.labels;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].weekActivityTypes.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('weekly-activity-types-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-activity-types-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-activity-types-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly activity types chart</button>',
-            'weekly-activity-types-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformHorizontalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-activity-types-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
-        chartRefs[nextChartRef].createHorizontalBarChart("Activity type");
-
-    }
-    msnry.layout();
-}
-
-/* 
-    Build weekly horizontal bar graphs of activities per visit for - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.weekActivityTypes.dataPerVisit
-        allApplicationData.weekActivityTypes.labelsPerVisit
-        
-        For each app:
-        applicationData[appName].weekActivityTypes.dataPerVisit
-        applicationData[appName].weekActivityTypes.labelsPerVisit
-        
-*/
-function buildWeekPerVisitActivityTypes() {
-    //Now add in the data per visit charts
-    var columnData = allApplicationData.weekActivityTypes.dataPerVisit;
-    var dataLabels = allApplicationData.weekActivityTypes.labelsPerVisit;
-    var seriesLabels = [];
-    var nextChartORef = chartRefs.length;
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].weekActivityTypes.dataPerVisit;
-        dataLabels = applicationData[APP_NAMES[appCounter]].weekActivityTypes.labelsPerVisit;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].weekActivityTypes.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('weekly-activity-types-per-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-activity-types-per-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-activity-types-per-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' weekly activity types chart</button>',
-            'weekly-activity-types-per-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformHorizontalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'weekly-activity-types-per-' + ELEMENT_NAMES[appCounter], dataLabels, seriesLabels);
-        chartRefs[nextChartRef].createHorizontalBarChart("Activity type");
-
-    }
-
-    msnry.layout();
-
-}
-
-
-/* 
-    Build yearly vertical stacked bar graphs of activities - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.yearActivities.data
-        
-        For each app:
-        applicationData[appName].yearActivities.data
-        
-        last12MonthsLabels
-        
-*/
-function buildYearActivities() {
-    //Now add in the data per visit charts
-    var columnData = allApplicationData.yearActivities.data;
-    var nextChartORef = chartRefs.length;
-    var seriesLabels = [];
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].yearActivities.data;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].yearActivities.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('yearly-activities-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="yearly-activities-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-activities-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' yearly activities chart</button>',
-            'yearly-activities-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformVerticalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-activities-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, seriesLabels);
-        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of activities");
-
-    }
-
-    msnry.layout();
-
-}
-
-
-/* 
-    Build yearly vertical stacked bar graphs of activity types - overall, lassi, lassi spear, smes, smes edit, vicnames, landata tpi, landata vmt
-      Relies on the data already being present within:
-        allApplicationData.yearActivityTypes.data
-        
-        For each app:
-        applicationData[appName].yearActivityTypes.data
-        
-        last12MonthsLabels
-        
-*/
-function buildYearActivityTypes() {
-    //Now add in the data per visit charts
-    var columnData = allApplicationData.yearActivityTypes.data;
-    var nextChartORef = chartRefs.length;
-    var seriesLabels = [];
-
-
-    //Now run through each of the application charts
-    for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
-        //Set-up lassi chart
-        columnData = applicationData[APP_NAMES[appCounter]].yearActivityTypes.data;
-        seriesLabels = [];
-
-        var nextChartRef = chartRefs.length;
-
-        //The first entry in the row contains the label used for the data
-        applicationData[APP_NAMES[appCounter]].yearActivityTypes.data.forEach(function (dataRow) {
-            seriesLabels.push(dataRow[0]);
-        });
-
-        //Create the DOM element 
-        createElement('yearly-activity-types-' + ELEMENT_NAMES[appCounter] + '-card',
-            'card ' + ELEMENT_NAMES[appCounter],
-            '<div id="yearly-activity-types-' + ELEMENT_NAMES[appCounter] + '"></div><button id="yearly-activity-types-' + ELEMENT_NAMES[appCounter] +
-            '-button">Change ' + ELEMENT_NAMES[appCounter] + ' yearly activity types chart</button>',
-            'yearly-activity-types-' + ELEMENT_NAMES[appCounter] + '-button',
-            "transformVerticalStackedGrouped", nextChartRef);
-
-        chartRefs[nextChartRef] = new C3StatsChart(columnData, 'yearly-activity-types-' + ELEMENT_NAMES[appCounter], last12MonthsLabels, seriesLabels);
-        chartRefs[nextChartRef].createStackedVerticalBarChart("Percentage of activities");
-
-    }
-
-    msnry.layout();
-
-}
 
 function transformArea(chartRefNum) {
     "use strict";
@@ -4815,40 +4245,4 @@ function transformVerticalStackedGrouped(chartRefNum) {
 
     chartRefs[chartRefNum].transformVerticalStackedGrouped();
 
-}
-
-/*
-    Polyfill for Object.assign to copy one object to another
-*/
-if (!Object.assign) {
-    Object.defineProperty(Object, 'assign', {
-        enumerable: false,
-        configurable: true,
-        writable: true,
-        value: function (target) {
-            'use strict';
-            if (target === undefined || target === null) {
-                throw new TypeError('Cannot convert first argument to object');
-            }
-
-            var to = Object(target);
-            for (var i = 1; i < arguments.length; i++) {
-                var nextSource = arguments[i];
-                if (nextSource === undefined || nextSource === null) {
-                    continue;
-                }
-                nextSource = Object(nextSource);
-
-                var keysArray = Object.keys(nextSource);
-                for (var nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex++) {
-                    var nextKey = keysArray[nextIndex];
-                    var desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
-                    if (desc !== undefined && desc.enumerable) {
-                        to[nextKey] = nextSource[nextKey];
-                    }
-                }
-            }
-            return to;
-        }
-    });
 }
