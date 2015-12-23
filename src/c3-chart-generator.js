@@ -259,6 +259,15 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
         chartHeight = 350;
     }
 
+
+    var chartWidth;
+    if (document.getElementById(statsChartContext.pageElement)) {
+        chartWidth = document.getElementById(statsChartContext.pageElement).clientWidth;
+    } else {
+        chartWidth = 500;
+    }
+
+
     statsChartContext.chart = c3.generate({
         bindto: document.getElementById(statsChartContext.pageElement),
         transition: {
@@ -272,7 +281,7 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
         },
         size: {
             height: chartHeight,
-            width: document.getElementById(statsChartContext.pageElement).clientWidth
+            width: chartWidth
         },
         data: {
             columns: statsChartContext.columnData,
@@ -332,11 +341,17 @@ C3StatsChart.prototype.createStackedVerticalBarChart = function (verticalAxisLab
         color: {
             pattern: chartColors.bigSets[20]
         },
-        onresize: function () {
+        onresized: function () {
             //When window is resized, re-size the chart appropriately
+            var resizeWidth;
+            if (document.getElementById(statsChartContext.pageElement)) {
+                resizeWidth = document.getElementById(statsChartContext.pageElement).clientWidth;
+            } else {
+                resizeWidth = 500;
+            }
             statsChartContext.chart.resize({
                 height: chartHeight,
-                width: document.getElementById(statsChartContext.pageElement).clientWidth
+                width: resizeWidth
             });
         }
 
@@ -381,6 +396,13 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
         chartHeight = 350;
     }
 
+    var chartWidth;
+    if (document.getElementById(statsChartContext.pageElement)) {
+        chartWidth = document.getElementById(statsChartContext.pageElement).clientWidth;
+    } else {
+        chartWidth = 500;
+    }
+
     //Calculate the maximum individual and total values - required for re-scaling the chart
     statsChartContext.columnData.forEach(function (valArray) {
         valArray.forEach(function (val) {
@@ -410,7 +432,7 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
         },
         size: {
             height: chartHeight,
-            width: document.getElementById(statsChartContext.pageElement).clientWidth
+            width: chartWidth
         },
         padding: {
             bottom: 20,
@@ -485,11 +507,17 @@ C3StatsChart.prototype.createHorizontalBarChart = function (verticalAxisLabel) {
             //Move the labels into position
             statsChartContext.moveLabelsXPos();
         },
-        onresize: function () {
+        onresized: function () {
             //When window is resized, re-size the chart appropriately
+            var resizeWidth;
+            if (document.getElementById(statsChartContext.pageElement)) {
+                resizeWidth = document.getElementById(statsChartContext.pageElement).clientWidth;
+            } else {
+                resizeWidth = 500;
+            }
             statsChartContext.chart.resize({
                 height: chartHeight,
-                width: document.getElementById(statsChartContext.pageElement).clientWidth
+                width: resizeWidth
             });
         }
 

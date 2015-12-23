@@ -1,6 +1,7 @@
 /*global window, document, Promise, console, topPagesFilter, topBrowsersFilter, startDate, endDate, ids, lastWeekStartDate, lastWeekEndDate  */
 /*global lastYearStartDate, lastYearEndDate, currentWeekdayLabels, last12MonthsLabels,  YearlyDataLabels, allApplicationData, applicationData */
-/*global APP_NAMES, APP_LABELS, topBrowsersArray, Masonry, formatDateString, C3StatsChart, assert */
+/*global APP_NAMES, APP_LABELS, topBrowsersArray, Masonry, formatDateString, C3StatsChart, assert, changeRetrievalDate, returnLastFullWeekDate, gapi */
+/*global setupRetrieval */
 
 
 //The element suffixes which are used to differentiate elements for the same data type
@@ -10,12 +11,12 @@ var ELEMENT_NAMES = ["lassi", "lassi-spear", "smes", "vicnames", "landata-tpi", 
 //Holds the indidivudal chart references
 var chartRefs = [];
 var refreshQueue = [];
+var loadBar;
 
 //Variable for masonry layout
 var msnry;
 //Variable to hold the parent element for all chart cards
 var parentElement;
-
 
 /* 
     Set-up the buttons for transforming charts, opening new sections and call the masonry set-up for chart cards
@@ -26,33 +27,157 @@ window.onload = function () {
     parentElement = document.getElementById("masonry-grid");
     createMasonry();
 
-    //Add button listeners
-    document.getElementById("show-home").addEventListener("click", showHomeScreen, false);
+    window.addEventListener("hashchange", loadSubPage, false);
 
-    document.getElementById("show-overall").addEventListener("click", function () {
-        showScreen("overall");
-    }, false);
-    document.getElementById("show-lassi").addEventListener("click", function () {
-        showScreen("lassi");
-    }, false);
-    document.getElementById("show-lassi-spear").addEventListener("click", function () {
-        showScreen("lassi-spear");
-    }, false);
-    document.getElementById("show-smes").addEventListener("click", function () {
-        showScreen("smes");
-    }, false);
-    document.getElementById("show-vicnames").addEventListener("click", function () {
-        showScreen("vicnames");
-    }, false);
-    document.getElementById("show-landata-tpi").addEventListener("click", function () {
-        showScreen("landata-tpi");
-    }, false);
-    document.getElementById("show-landata-vmt").addEventListener("click", function () {
-        showScreen("landata-vmt");
-    }, false);
+    loadBar = document.getElementById("load-bar");
+    showLoadBar();
 
+    //Add listener for date range changes
+    var dateRangeElement = document.getElementById("weekSelector");
+    dateRangeElement.value = formatDateString(returnLastFullWeekDate(), "query");
+    dateRangeElement.addEventListener("change", function () {
+        //Ensure a future date hasn't been selected
+        var todaysDate = new Date();
+        if (document.getElementById("weekSelector").value > formatDateString(todaysDate, "query")) {
+            document.getElementById("weekSelector").value = formatDateString(todaysDate, "query");
+        }
+
+        showLoadBar();
+        changeRetrievalDate(dateRangeElement.value);
+    }, false);
 };
 
+/* 
+    Update the date displayed on the screen - called after the starting date for the week is determined
+*/
+
+function updateScreenDateSelection(newDate) {
+    //Re-set the on-screen date to the first day of the week
+    document.getElementById("weekSelector").value = formatDateString(newDate, "query");
+
+}
+
+/* 
+    Show the loading bar
+*/
+
+function showLoadBar() {
+    loadBar.classList.remove("hidden");
+}
+
+/* 
+    Hide the loading bar
+*/
+function hideLoadBar() {
+    loadBar.classList.add("hidden");
+}
+
+
+/* 
+    Load up the correct sub-page by looking at the hash URL.  Sub-pages are "loaded" by recreating elements in the DOM
+*/
+
+function loadSubPage(loadType) {
+
+    var screenHashURLs = ["#overall", "#lassi", "#lassi-spear", "#smes", "#vicnames", "#landata-tpi", "#landata-vmt"];
+    var hashURLIndex = screenHashURLs.indexOf(window.location.hash);
+    var pageTitle = document.getElementById("page-title");
+
+
+    if (typeof loadType === "undefined") {
+        loadType = "any";
+    }
+
+
+    if (hashURLIndex >= 0) {
+        //If this is not a specific loading of the home screen, load the screen type 
+        if (loadType !== "home") {
+            showScreen(window.location.hash.substr(1));
+        }
+
+        updateActiveLinks(window.location.hash.substr(1));
+
+
+        //Update title bar
+        if (hashURLIndex === 0) {
+            //Set the title for the overall page
+            pageTitle.textContent = "Overall LASSI applications usage stats and trends";
+        } else {
+            //For an application page, set the title to to app label
+            pageTitle.textContent = APP_LABELS[hashURLIndex - 1] + " usage stats and trends";
+        }
+
+
+    } else {
+        //If this is not a specific loading of a screen other than the home screen, load the screen type
+        if (loadType !== "specific") {
+            showHomeScreen();
+        }
+
+        //Update the active links
+        updateActiveLinks("home");
+
+        //Update title bar
+        pageTitle.textContent = "LASSI applications usage stats and trends";
+
+    }
+
+}
+
+/* 
+    Update the links on the screen to show what has been selected
+*/
+
+function updateActiveLinks(selectionName) {
+    var allLinkElements, elCounter;
+
+    allLinkElements = document.getElementsByClassName("active-link");
+
+    //Work through link elements and make them visible and remove is-selected class
+    for (elCounter = 0; elCounter < allLinkElements.length; elCounter++) {
+        allLinkElements[elCounter].classList.remove("hidden");
+    }
+
+    //Work through inactive link elements and remove is-selected class
+    allLinkElements = document.getElementsByClassName("inactive-link");
+    for (elCounter = 0; elCounter < allLinkElements.length; elCounter++) {
+        allLinkElements[elCounter].classList.remove("is-selected");
+        allLinkElements[elCounter].classList.remove("mdl-color-text--blue-200");
+        allLinkElements[elCounter].classList.remove("mdl-color-text--grey");
+        allLinkElements[elCounter].classList.add("hidden");
+    }
+
+
+
+    //Now hide active-link element, replace with non-link element and set is-selected
+    document.getElementById(selectionName + "-link").classList.add("hidden");
+    document.getElementById(selectionName + "-non-link").classList.remove("hidden");
+    document.getElementById(selectionName + "-non-link").classList.add("is-selected");
+    document.getElementById(selectionName + "-non-link").classList.add("mdl-color-text--cyan-100");
+
+}
+
+/* 
+    Disable all links on the screen during loading
+*/
+function disableAllLinks() {
+    var allLinkElements, elCounter;
+
+    //Work through link elements and make them invisible
+    allLinkElements = document.getElementsByClassName("active-link");
+    for (elCounter = 0; elCounter < allLinkElements.length; elCounter++) {
+        allLinkElements[elCounter].classList.add("hidden");
+    }
+
+    //Work through inactive link elements and make them visible
+    allLinkElements = document.getElementsByClassName("inactive-link");
+    for (elCounter = 0; elCounter < allLinkElements.length; elCounter++) {
+        allLinkElements[elCounter].classList.remove("hidden");
+        allLinkElements[elCounter].classList.add("mdl-color-text--grey");
+    }
+
+
+}
 
 /* 
     Set-up the masonry options
@@ -92,7 +217,7 @@ function refreshCharts() {
 
     window.setTimeout(function () {
         executeRefresh();
-    }, 1000);
+    }, 500);
 
 }
 
@@ -103,7 +228,7 @@ function executeRefresh() {
     "use strict";
 
     if (refreshQueue.length > 0) {
-        var chartNum = refreshQueue.shift();
+        var chartNum = refreshQueue.pop();
 
         //console.log('Execute refresh chart ' + chartNum);
 
@@ -115,7 +240,7 @@ function executeRefresh() {
 
         window.setTimeout(function () {
             executeRefresh();
-        }, 200);
+        }, 100);
 
     } else {
         //Ensure layout is correct after refresh
@@ -160,16 +285,49 @@ function createElement(elementId, elementClassString, elementHTML, buttonId, tra
         //Add a button event listener if required
         if (typeof buttonId !== "undefined") {
             //Use type of transformation to define button click event
+            var transformButton = document.getElementById(buttonId);
             if (transformFunctionType === "transformArea") {
-                document.getElementById(buttonId).addEventListener("click", function () {
+                transformButton.addEventListener("click", function () {
+                    //Re-set the correct transform icon
+                    if (transformButton.classList.contains("area-chart")) {
+                        transformButton.innerHTML = '<i class="material-icons">timeline</i>';
+                        transformButton.classList.add("bar-chart");
+                        transformButton.classList.remove("area-chart");
+                    } else {
+                        transformButton.innerHTML = '<i class="material-icons">equalizer</i>';
+                        transformButton.classList.add("area-chart");
+                        transformButton.classList.remove("bar-chart");
+                    }
+
                     transformArea(chartRef);
                 }, false);
             } else if (transformFunctionType === "transformHorizontalStackedGrouped") {
-                document.getElementById(buttonId).addEventListener("click", function () {
+                transformButton.addEventListener("click", function () {
+                    //Re-set the correct transform icon
+                    if (transformButton.classList.contains("stacked-chart")) {
+                        transformButton.innerHTML = '<i class="material-icons">sort</i>';
+                        transformButton.classList.add("grouped-chart");
+                        transformButton.classList.remove("stacked-chart");
+                    } else {
+                        transformButton.innerHTML = '<i class="material-icons">view_carousel</i>';
+                        transformButton.classList.add("stacked-chart");
+                        transformButton.classList.remove("grouped-chart");
+                    }
+
                     transformHorizontalStackedGrouped(chartRef);
                 }, false);
             } else if (transformFunctionType === "transformVerticalStackedGrouped") {
-                document.getElementById(buttonId).addEventListener("click", function () {
+                transformButton.addEventListener("click", function () {
+                    if (transformButton.classList.contains("stacked-chart")) {
+                        transformButton.innerHTML = '<i class="material-icons">equalizer</i>';
+                        transformButton.classList.add("grouped-chart");
+                        transformButton.classList.remove("stacked-chart");
+                    } else {
+                        transformButton.innerHTML = '<i class="material-icons">view_column</i>';
+                        transformButton.classList.add("stacked-chart");
+                        transformButton.classList.remove("grouped-chart");
+                    }
+
                     transformVerticalStackedGrouped(chartRef);
                 }, false);
 
@@ -221,6 +379,8 @@ function showHomeScreen() {
  * Builds the charts for the overall screen - the page breakdown and page visits for each app
  */
 function showScreen(appElementName) {
+
+    showLoadBar();
 
     clearChartsFromScreen();
 
@@ -285,7 +445,7 @@ function showScreen(appElementName) {
     }, false);
 
 
-
+    hideLoadBar();
 
 }
 
@@ -350,7 +510,7 @@ function buildWeeklyUsersCharts() {
 
     //Set-up overall chart
     currentWeekArray = ["Week starting " + formatDateString(startDate, "display")];
-    lastWeekArray = ["Week starting" + formatDateString(lastWeekStartDate, "display")];
+    lastWeekArray = ["Week starting " + formatDateString(lastWeekStartDate, "display")];
     lastYearArray = ["Median for the last year"];
 
     Array.prototype.push.apply(currentWeekArray, allApplicationData.currentWeekUserData);
@@ -362,10 +522,27 @@ function buildWeeklyUsersCharts() {
     columnData.push(lastWeekArray);
     columnData.push(currentWeekArray);
 
+    /*Card classes mdl-card mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet mdl-shadow--3dp*/
+    /*Print Definition
+    <div class="mdl-card__actions mdl-card--border print-only">
+                            <div class="mdl-typography--font-light mdl-typography--title mdl-color-text--primary">Site Visits for the Week</div>
+                            <div class="chart-sub-title-text mdl-color-text--grey-600">No of visits</div>
+                        </div> */
+
+    /* Screen definition
+      <div class="card-bottom-spacer"></div>
+                        <div class="mdl-card__actions mdl-card--border no-print align-card-bottom">
+                            <div class="mdl-typography--font-light mdl-typography--title mdl-color-text--primary">Site Visits for the Week</div>
+                            <div class="chart-sub-title-text mdl-color-text--grey-600">No of visits</div>
+                        </div>
+    */
+
     //Create the DOM element 
     createElement('weekly-users-overall-card',
         'card full-width home overall',
-        '<div id="weekly-users-overall"></div><button id="weekly-users-overall-button">Change overall weekly users chart</button>',
+        '<div id="weekly-users-overall"></div>' +
+        '<button id="weekly-users-overall-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>',
+        //<button id="weekly-users-overall-button">Change overall weekly users chart</button>',
         'weekly-users-overall-button',
         "transformArea", nextChartORef);
 
@@ -378,7 +555,7 @@ function buildWeeklyUsersCharts() {
     for (var appCounter = 0; appCounter < APP_NAMES.length; appCounter++) {
         //Set-up lassi chart
         currentWeekArray = ["Week starting " + formatDateString(startDate, "display")];
-        lastWeekArray = ["Week starting" + formatDateString(lastWeekStartDate, "display")];
+        lastWeekArray = ["Week starting " + formatDateString(lastWeekStartDate, "display")];
         lastYearArray = ["Median for the last year"];
         columnData = [];
         var nextChartRef = chartRefs.length;
@@ -396,8 +573,12 @@ function buildWeeklyUsersCharts() {
         //Create the DOM element 
         createElement('weekly-users-' + ELEMENT_NAMES[appCounter] + '-card',
             'card home ' + ELEMENT_NAMES[appCounter],
-            '<div id="weekly-users-' + ELEMENT_NAMES[appCounter] + '"></div><button id="weekly-users-' + ELEMENT_NAMES[appCounter] + '-button">Change ' +
-            ELEMENT_NAMES[appCounter] + ' weekly users chart</button>',
+            '<div id="weekly-users-' + ELEMENT_NAMES[appCounter] + '"></div>' +
+
+            /*<button id="weekly-users-' + ELEMENT_NAMES[appCounter] + '-button">Change ' +
+            ELEMENT_NAMES[appCounter] + ' weekly users chart</button>',*/
+            '<button id="weekly-users-' + ELEMENT_NAMES[appCounter] +
+            '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>',
             'weekly-users-' + ELEMENT_NAMES[appCounter] + '-button',
             "transformArea", nextChartRef);
 
@@ -456,7 +637,9 @@ function buildChartsForType(elementName, appName) {
         //Create the DOM element 
         createElement('yearly-pages-overall-card',
             cardClasses,
-            '<div id="yearly-pages-overall"></div><button id="yearly-pages-overall-button">Change overall yearly pages chart</button>',
+            '<div id="yearly-pages-overall"></div>' +
+            '<button id="yearly-pages-overall-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>',
+            //<button id="yearly-pages-overall-button">Change overall yearly pages chart</button>',
             'yearly-pages-overall-button',
             "transformVerticalStackedGrouped", nextChartORef);
 
@@ -494,7 +677,11 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-users-' + elementName + '-card',
         cardClasses,
-        '<div id="weekly-users-' + elementName + '"></div><button id="weekly-users-' + elementName + '-button">Change ' + elementName + ' weekly users chart</button>',
+        '<div id="weekly-users-' + elementName + '"></div>' +
+        '<button id="weekly-users-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>',
+
+        //<button id="weekly-users-' + elementName + '-button">Change ' + elementName + ' weekly users chart</button>',
         'weekly-users-' + elementName + '-button',
         "transformArea", nextChartORef);
 
@@ -560,7 +747,11 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-sessions-' + elementName + '-card',
         cardClasses,
-        '<div id="weekly-sessions-' + elementName + '"></div><button id="weekly-sessions-' + elementName + '-button">Change ' + elementName + ' weekly sessions chart</button>',
+        '<div id="weekly-sessions-' + elementName + '"></div>' +
+        '<button id="weekly-sessions-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>',
+
+        //<button id="weekly-sessions-' + elementName + '-button">Change ' + elementName + ' weekly sessions chart</button>',
         'weekly-sessions-' + elementName + '-button',
         "transformArea", nextChartORef);
 
@@ -587,7 +778,11 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('visitor-return-' + elementName + '-card',
         cardClasses,
-        '<div id="visitor-return-' + elementName + '"></div><button id="visitor-return-' + elementName + '-button">Change ' + elementName + ' visitor return chart</button>',
+        '<div id="visitor-return-' + elementName + '"></div>' +
+        '<button id="visitor-return-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>',
+
+        //<button id="visitor-return-' + elementName + '-button">Change ' + elementName + ' visitor return chart</button>',
         'visitor-return-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
@@ -618,7 +813,11 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('yearly-browsers-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-browsers-' + elementName + '"></div><button id="yearly-browsers-' + elementName + '-button">Change ' + elementName + ' yearly browsers chart</button>',
+        '<div id="yearly-browsers-' + elementName + '"></div>' +
+        '<button id="yearly-browsers-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>',
+
+        //<button id="yearly-browsers-' + elementName + '-button">Change ' + elementName + ' yearly browsers chart</button>',
         'yearly-browsers-' + elementName + '-button',
         "transformVerticalStackedGrouped", nextChartORef);
 
@@ -649,7 +848,11 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-maps-' + elementName + '-card',
         cardClasses,
-        '<div id="weekly-maps-' + elementName + '"></div><button id="weekly-maps-' + elementName + '-button">Change ' + elementName + ' weekly map types chart</button>',
+        '<div id="weekly-maps-' + elementName + '"></div>' +
+        '<button id="weekly-maps-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>',
+
+        //<button id="weekly-maps-' + elementName + '-button">Change ' + elementName + ' weekly map types chart</button>',
         'weekly-maps-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
@@ -678,7 +881,11 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('yearly-maps-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-maps-' + elementName + '"></div><button id="yearly-maps-' + elementName + '-button">Change ' + elementName + ' yearly map types chart</button>',
+        '<div id="yearly-maps-' + elementName + '"></div>' +
+        '<button id="yearly-maps-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>',
+
+        //<button id="yearly-maps-' + elementName + '-button">Change ' + elementName + ' yearly map types chart</button>',
         'yearly-maps-' + elementName + '-button',
         "transformVerticalStackedGrouped", nextChartORef);
 
@@ -711,8 +918,15 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-search-' + elementName + '-card',
         cardClasses + " raw",
-        '<div id="weekly-search-' + elementName + '"></div><button id="weekly-search-' + elementName + '-button">Change ' + elementName + ' weekly search chart</button>' +
-        '<button id = "weekly-search-' + elementName + '-switch-to-per-button">Switch to per visit values</button>',
+        '<div id="weekly-search-' + elementName + '"></div>' +
+        '<button id="weekly-search-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<button id="weekly-search-' + elementName +
+        '-switch-to-per-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_right</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-search-' + elementName + '-switch-to-per-button">Display per visit values</div>',
+
+        //<button id="weekly-search-' + elementName + '-button">Change ' + elementName + ' weekly search chart</button>' +
+        //'<button id = "weekly-search-' + elementName + '-switch-to-per-button">Switch to per visit values</button>',
         'weekly-search-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
@@ -745,8 +959,15 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-search-per-' + elementName + '-card',
         cardClasses + " per-visit hidden",
-        '<div id="weekly-search-per-' + elementName + '"></div><button id="weekly-search-per-' + elementName + '-button">Change ' + elementName + ' weekly search chart</button>' +
-        '<button id = "weekly-search-' + elementName + '-switch-to-raw-button">Switch to absolute values</button>',
+        '<div id="weekly-search-per-' + elementName + '"></div>' +
+        '<button id="weekly-search-per-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<button id="weekly-search-' + elementName +
+        '-switch-to-raw-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_left</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-search-' + elementName + '-switch-to-raw-button">Display raw number of values</div>',
+
+        //<button id="weekly-search-per-' + elementName + '-button">Change ' + elementName + ' weekly search chart</button>' +
+        //'<button id = "weekly-search-' + elementName + '-switch-to-raw-button">Switch to absolute values</button>',
         'weekly-search-per-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
@@ -776,7 +997,11 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('yearly-search-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-search-' + elementName + '"></div><button id="yearly-search-' + elementName + '-button">Change ' + elementName + ' yearly search chart</button>',
+        '<div id="yearly-search-' + elementName + '"></div>' +
+        '<button id="yearly-search-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>',
+
+        //<button id="yearly-search-' + elementName + '-button">Change ' + elementName + ' yearly search chart</button>',
         'yearly-search-' + elementName + '-button',
         "transformVerticalStackedGrouped", nextChartORef);
 
@@ -808,10 +1033,18 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-activity-types-' + elementName + '-card',
         cardClasses + " raw",
-        '<div id="weekly-activity-types-' + elementName + '"></div><button id="weekly-activity-types-' + elementName + '-button">Change ' +
+        '<div id="weekly-activity-types-' + elementName + '"></div>' +
+        '<button id="weekly-activity-types-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<button id="weekly-activity-types-' + elementName +
+        '-switch-to-per-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_right</i></button>' +
+        '<button id="weekly-activity-types-' + elementName +
+        '-switch-to-raw-activities-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">zoom_in</i></button>',
+
+        /*<button id="weekly-activity-types-' + elementName + '-button">Change ' +
         elementName + ' weekly activity types chart</button>' +
         '<button id = "weekly-activity-types-' + elementName + '-switch-to-per-button">Switch to per visit values</button>' +
-        '<button id = "weekly-activity-types-' + elementName + '-switch-to-raw-activities-button">Switch to detailed activity breakdown</button>',
+        '<button id = "weekly-activity-types-' + elementName + '-switch-to-raw-activities-button">Switch to detailed activity breakdown</button>',*/
         'weekly-activity-types-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
@@ -841,10 +1074,18 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-activity-types-per-' + elementName + '-card',
         cardClasses + " per-visit hidden",
-        '<div id="weekly-activity-types-per-' + elementName + '"></div><button id="weekly-activity-types-per-' + elementName +
+        '<div id="weekly-activity-types-per-' + elementName + '"></div>' +
+        '<button id="weekly-activity-types-per-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<button id="weekly-activity-types-' + elementName +
+        '-switch-to-raw-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_left</i></button>' +
+        '<button id="weekly-activity-types-' + elementName +
+        '-switch-to-per-activities-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">zoom_in</i></button>',
+
+        /*<button id="weekly-activity-types-per-' + elementName +
         '-button">Change ' + elementName + ' weekly activity types chart</button>' +
         '<button id = "weekly-activity-types-' + elementName + '-switch-to-raw-button">Switch to per visit values</button>' +
-        '<button id = "weekly-activity-types-' + elementName + '-switch-to-per-activities-button">Switch to detailed activity breakdown</button>',
+        '<button id = "weekly-activity-types-' + elementName + '-switch-to-per-activities-button">Switch to detailed activity breakdown</button>',*/
         'weekly-activity-types-per-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
@@ -878,10 +1119,18 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-activities-' + elementName + '-card',
         cardClasses + " details hidden",
-        '<div id="weekly-activities-' + elementName + '"></div><button id="weekly-activities-' + elementName +
+        '<div id="weekly-activities-' + elementName + '"></div>' +
+        '<button id="weekly-activities-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<button id="weekly-activities-' + elementName +
+        '-switch-to-per-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_right</i></button>' +
+        '<button id="weekly-activities-' + elementName +
+        '-switch-to-raw-activity-types-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">zoom_out</i></button>',
+
+        /*<button id="weekly-activities-' + elementName +
         '-button">Change ' + elementName + ' weekly activities chart</button>' +
         '<button id = "weekly-activities-' + elementName + '-switch-to-per-button">Switch to per visit values</button>' +
-        '<button id = "weekly-activities-' + elementName + '-switch-to-raw-activity-types-button">Switch to activity type breakdown</button>',
+        '<button id = "weekly-activities-' + elementName + '-switch-to-raw-activity-types-button">Switch to activity type breakdown</button>',*/
         'weekly-activities-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
@@ -912,10 +1161,18 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('weekly-activities-per-' + elementName + '-card',
         cardClasses + " details-per-visit hidden",
-        '<div id="weekly-activities-per-' + elementName + '"></div><button id="weekly-activities-per-' + elementName +
+        '<div id="weekly-activities-per-' + elementName + '"></div>' +
+        '<button id="weekly-activities-per-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<button id="weekly-activities-' + elementName +
+        '-switch-to-raw-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_left</i></button>' +
+        '<button id="weekly-activities-' + elementName +
+        '-switch-to-per-activity-types-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">zoom_out</i></button>',
+
+        /*          <button id="weekly-activities-per-' + elementName +
         '-button">Change ' + elementName + ' weekly activities per visit chart</button>' +
         '<button id = "weekly-activities-' + elementName + '-switch-to-raw-button">Switch to absolute values</button>' +
-        '<button id = "weekly-activities-' + elementName + '-switch-to-per-activity-types-button">Switch to activity type breakdown</button>',
+        '<button id = "weekly-activities-' + elementName + '-switch-to-per-activity-types-button">Switch to activity type breakdown</button>',*/
         'weekly-activities-per-' + elementName + '-button',
         "transformHorizontalStackedGrouped", nextChartORef);
 
@@ -975,7 +1232,11 @@ function buildChartsForType(elementName, appName) {
     //Create the DOM element 
     createElement('yearly-activity-types-' + elementName + '-card',
         cardClasses,
-        '<div id="yearly-activity-types-' + elementName + '"></div><button id="yearly-activity-types-' + elementName + '-button">Change overall yearly activity types chart</button>',
+        '<div id="yearly-activity-types-' + elementName + '"></div>' +
+        '<button id="yearly-activity-types-' + elementName +
+        '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>',
+
+        //<button id="yearly-activity-types-' + elementName + '-button">Change overall yearly activity types chart</button>',
         'yearly-activity-types-' + elementName + '-button',
         "transformVerticalStackedGrouped", nextChartORef);
 

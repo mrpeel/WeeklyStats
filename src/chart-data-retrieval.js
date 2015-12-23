@@ -1,7 +1,7 @@
 /*global window, GARequests, console, Promise, assert, buildWeeklyUsersCharts, buildYearlyUsersCharts, buildWeeklySessionCharts, buildYearlyBrowserCharts, buildYearlyPagesChart*/
 /*global buildVisitorReturnCharts, buildWeekSearchTypes, buildWeekPerVisitSearchTypes, buildYearSearchTypes, buildWeekMapTypes, buildYearMapTypes */
 /*global buildWeekActivities, buildWeekPerVisitActivities, buildWeekActivityTypes, buildWeekPerVisitActivityTypes, buildYearActivities, buildYearActivityTypes*/
-/*global showHomeScreen */
+/*global showHomeScreen, hideLoadBar, loadSubPage, disableAllLinks, updateScreenDateSelection */
 
 /** 
  * Retrieves the data required for each of the charts and executes required processing, then returns the data as an object.
@@ -82,6 +82,7 @@ var startDate, endDate, ids;
 var lastWeekStartDate, lastWeekEndDate;
 var lastYearStartDate, lastYearEndDate;
 var previousYearStartDate, previousYearEndDate;
+var retrievalId;
 
 //Set-up requester with rate limit - 5 requests per second - this is a global variable so that the rate limit is applied wherever it is called
 var gaRequester = new GARequests(5);
@@ -96,110 +97,193 @@ var last12MonthsLabels = [];
 var allApplicationData = [];
 var applicationData = {};
 
-/** 
- * Run the data retrieval process
- * @param {string or date} - rStartDate - the start date for the comparison period as a date or date string 
- * @param {string or date} - rEndDate - the end date for the comparison period as a date or date string 
- * @param {string} - rIds - the Google Aanalytics id string
- */
-
-function retrieveData(rStartDate, rEndDate, rIds) {
+/**
+     Accept a date and GA id.  Convert the date to start / end date for the working week (Mon - Sun) and store the date period and GA id, then start the data retrieval process.
+    * @param {string or date} - selectedDate - the date for the comparison period as a date or date string 
+    * @param {string} - sIds - the Google Aanalytics id string
+*/
+function setupRetrieval(selectedDate, sIds) {
     "use strict";
 
-    assert(isDate(rStartDate), 'retrieveData assert failed - startDate: ' + rStartDate);
-    assert(new Date(rStartDate).getDay() === 1, 'retrieveData assert failed - startDate is not Monday: ' + rStartDate);
-    assert(isDate(rEndDate), 'retrieveData assert failed - endDate: ' + rEndDate);
-    assert(new Date(rEndDate).getDay() === 0, 'retrieveData assert failed - endDate is not Sunday: ' + rEndDate);
+    assert(isDate(selectedDate), 'setupRetrieval assert failed - selectedDate: ' + selectedDate);
+    assert(sIds !== "", 'setupRetrieval assert failed - sIds empty');
+
+    //Update the GA id
+    ids = sIds;
+
+    //Start the data retrieval process with the date
+    changeRetrievalDate(selectedDate);
+
+}
+
+/**
+     Accept a new date and update the date period if required.
+    * @param {string or date} - selectedDate - the date for the comparison period as a date or date string 
+*/
+function changeRetrievalDate(newDate) {
+    "use strict";
+
+    assert(isDate(newDate), 'changeRetrievalDate assert failed - newDate: ' + newDate);
+
+    var dayOfWeek = new Date(newDate).getDay();
+
+    //Use dayofweek to set the correct Monday 
+    //because Sunday is the last day of the working week all day values should be shifted back -1
+    dayOfWeek--;
+
+    if (dayOfWeek === -1) {
+        dayOfWeek = 6;
+    }
+
+    var newStartDate = dateAdd(newDate, "d", (dayOfWeek * -1));
+
+    //check if this date change has alrtered the time period - if so, update the time period and retrieve the data
+    if (!startDate || startDate !== newStartDate) {
+        startDate = newStartDate;
+        endDate = dateAdd(startDate, "d", 6);
+        retrieveData();
+        updateScreenDateSelection(startDate);
+    }
+}
+
+/**
+     Work out what the last complete work was from today
+    * @return {date} - The last full week (Mon - Sun)
+*/
+function returnLastFullWeekDate() {
+    "use strict";
+
+    var todaysDate = new Date();
+
+    //If the day of week is a Sunday, the return current week, otherwise return the previous week
+    if (todaysDate.getDay() === 0) {
+        return todaysDate;
+    } else {
+        return dateAdd(todaysDate, "d", -7);
+    }
+
+}
+
+/** 
+ * Run the data retrieval process 
+ */
+
+function retrieveData() {
+    "use strict";
+
+    assert(isDate(startDate), 'retrieveData assert failed - startDate: ' + startDate);
+    assert(new Date(startDate).getDay() === 1, 'retrieveData assert failed - startDate is not Monday: ' + startDate);
+    assert(isDate(endDate), 'retrieveData assert failed - endDate: ' + endDate);
+    assert(new Date(endDate).getDay() === 0, 'retrieveData assert failed - endDate is not Sunday: ' + endDate);
     assert(ids !== "", 'retrieveData assert failed - ids empty');
 
 
-    startDate = rStartDate;
-    endDate = rEndDate;
-    ids = rIds;
 
     console.time("dataLoad");
 
+    //Record the timestamp as a retrieval Id
+    retrievalId = Date.now();
+
+    //Store the local copy of the retrieval Id
+    var localId = retrievalId;
+
     //Make sure the queue has been emptied
     gaRequester.clearQueryQueue();
+
+    disableAllLinks();
 
     //Set date and page filters
     setDates();
     setPages();
 
+
     //Start retrieval process
     retrieveTopBrowsers(5)
         .then(function () {
-            return retrieveYearlyPages();
+            //Check that this data retrieval is still the current retrieval.  If not, return false and move on.
+            if (localId === retrievalId) {
+                return retrieveYearlyPages();
+            } else {
+                return false;
+            }
         })
         .then(function () {
-            return retrieveWeeklyUsers();
+            if (localId === retrievalId) {
+                return retrieveWeeklyUsers();
+            } else {
+                return false;
+            }
         })
         .then(function () {
-            showHomeScreen();
-            return true;
+            //If on home screen then call loader function
+            if (localId === retrievalId) {
+                loadSubPage("home");
+                //Make sure to disable the links again 
+                disableAllLinks();
+                return true;
+            } else {
+                return false;
+            }
         })
         .then(function () {
-            return retrieveYearlyUsers();
-        })
-        /*.then(function () {
-            buildYearlyUsersCharts();
-            return true;
-        })*/
-        .then(function () {
-            return retrieveWeeklySessions();
-        })
-        /*.then(function () {
-            buildWeeklySessionCharts();
-            return true;
-        })*/
-        .then(function () {
-            return retrieveYearlyBrowsers();
-        })
-        /*.then(function () {
-            buildYearlyBrowserCharts();
-            return true;
-        })*/
-        .then(function () {
-            return retrieveVisitorReturns();
-        })
-        /*.then(function () {
-            buildVisitorReturnCharts();
-            return true;
-        })*/
-        .then(function () {
-            return retrieveTotalVisits();
+            if (localId === retrievalId) {
+                return retrieveYearlyUsers();
+            } else {
+                return false;
+            }
         })
         .then(function () {
-            return retrieveSearchTypes();
+            if (localId === retrievalId) {
+                return retrieveWeeklySessions();
+            } else {
+                return false;
+            }
         })
-        /*
-                .then(function () {
-                    buildWeekSearchTypes();
-                    buildWeekPerVisitSearchTypes();
-                    buildYearSearchTypes();
-                    return true;
-                })*/
         .then(function () {
-            return retrieveMapTypes();
+            if (localId === retrievalId) {
+                return retrieveYearlyBrowsers();
+            } else {
+                return false;
+            }
         })
-        /*.then(function () {
-            buildWeekMapTypes();
-            buildYearMapTypes();
-            return true;
-        })*/
         .then(function () {
-            return retrieveActivities();
+            if (localId === retrievalId) {
+                return retrieveVisitorReturns();
+            } else {
+                return false;
+            }
         })
-        /*.then(function () {
-            buildWeekActivities();
-            buildWeekPerVisitActivities();
-            buildWeekActivityTypes();
-            buildWeekPerVisitActivityTypes();
-            buildYearActivities();
-            buildYearActivityTypes();
-            return true;
-        })*/
         .then(function () {
+            if (localId === retrievalId) {
+                return retrieveTotalVisits();
+            } else {
+                return false;
+            }
+        })
+        .then(function () {
+            if (localId === retrievalId) {
+                return retrieveSearchTypes();
+            } else {
+                return false;
+            }
+        })
+        .then(function () {
+            if (localId === retrievalId) {
+                return retrieveMapTypes();
+            } else {
+                return false;
+            }
+        })
+        .then(function () {
+            if (localId === retrievalId) {
+                return retrieveActivities();
+            } else {
+                return false;
+            }
+        })
+        .then(function () {
+            loadSubPage("specific");
+            hideLoadBar();
             console.timeEnd("dataLoad");
         })
         .catch(function (err) {
@@ -287,6 +371,13 @@ function retrieveYearlyPages() {
 
     return new Promise(function (resolve, reject) {
 
+        allApplicationData.pageData = {};
+        allApplicationData.pageTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        APP_NAMES.forEach(function (appName) {
+            allApplicationData.pageData[appName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        });
+
         gaRequester.queryGA({
             "start-date": formatDateString(lastYearStartDate, "query"),
             "end-date": formatDateString(lastYearEndDate, "query"),
@@ -296,14 +387,6 @@ function retrieveYearlyPages() {
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:yearMonth"
         }).then(function (results) {
-
-
-            allApplicationData.pageData = {};
-            allApplicationData.pageTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-            APP_NAMES.forEach(function (appName) {
-                allApplicationData.pageData[appName] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            });
 
 
             if (results) {
@@ -403,6 +486,38 @@ function retrieveWeeklyUsers() {
 
     return new Promise(function (resolve, reject) {
 
+        var appName;
+
+        //Set-up base values for current week user data
+        allApplicationData.currentWeekUserData = [0, 0, 0, 0, 0, 0, 0];
+
+        for (appName in applicationData) {
+            applicationData[appName].currentWeekUserData = [0, 0, 0, 0, 0, 0, 0];
+        }
+
+        //Set-up base values for last week user data
+        allApplicationData.lastWeekUserData = [0, 0, 0, 0, 0, 0, 0];
+
+        for (appName in applicationData) {
+            applicationData[appName].lastWeekUserData = [0, 0, 0, 0, 0, 0, 0];
+        }
+
+        //Set up empty arrays for each day of the week for last year median data
+        allApplicationData.lastYearMedianUserData = [0, 0, 0, 0, 0, 0, 0];
+
+        for (appName in applicationData) {
+            applicationData[appName].lastYearUserData = [
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    []
+                ];
+            applicationData[appName].lastYearMedianUserData = [0, 0, 0, 0, 0, 0, 0];
+        }
+
         gaRequester.queryGA({
             "start-date": formatDateString(startDate, "query"),
             "end-date": formatDateString(endDate, "query"),
@@ -412,12 +527,6 @@ function retrieveWeeklyUsers() {
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:date"
         }).then(function (results) {
-            //map in 0 values for current week user data
-            allApplicationData.currentWeekUserData = [0, 0, 0, 0, 0, 0, 0];
-
-            for (var appName in applicationData) {
-                applicationData[appName].currentWeekUserData = [0, 0, 0, 0, 0, 0, 0];
-            }
 
             if (results) {
                 results.rows.forEach(function (dataRow) {
@@ -446,13 +555,6 @@ function retrieveWeeklyUsers() {
                 "sort": "ga:pageTitle,ga:date"
             });
         }).then(function (results) {
-            //map in 0 values for current week user data
-            allApplicationData.lastWeekUserData = [0, 0, 0, 0, 0, 0, 0];
-
-            for (var appName in applicationData) {
-                applicationData[appName].lastWeekUserData = [0, 0, 0, 0, 0, 0, 0];
-            }
-
             if (results) {
                 results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName
@@ -482,22 +584,6 @@ function retrieveWeeklyUsers() {
                 "max-results": 10000
             });
         }).then(function (results) {
-            var appName;
-            //map in empty arrays for each day of the week
-            allApplicationData.lastYearMedianUserData = [0, 0, 0, 0, 0, 0, 0];
-
-            for (appName in applicationData) {
-                applicationData[appName].lastYearUserData = [
-                    [],
-                    [],
-                    [],
-                    [],
-                    [],
-                    [],
-                    []
-                ];
-                applicationData[appName].lastYearMedianUserData = [0, 0, 0, 0, 0, 0, 0];
-            }
             var convertedDayIndex;
 
             if (results) {
@@ -561,6 +647,21 @@ function retrieveYearlyUsers() {
 
 
     return new Promise(function (resolve, reject) {
+        var appName;
+        //Set-up base values for current year data
+        allApplicationData.thisYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        for (appName in applicationData) {
+            applicationData[appName].thisYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
+        //Set-up base values for previous year data
+        allApplicationData.previousYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        for (appName in applicationData) {
+            applicationData[appName].previousYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
 
         gaRequester.queryGA({
             "start-date": formatDateString(lastYearStartDate, "query"),
@@ -571,12 +672,6 @@ function retrieveYearlyUsers() {
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:yearMonth"
         }).then(function (results) {
-            //map in 0 values for current year data
-            allApplicationData.thisYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-            for (var appName in applicationData) {
-                applicationData[appName].thisYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            }
 
             if (results) {
                 results.rows.forEach(function (dataRow) {
@@ -605,12 +700,6 @@ function retrieveYearlyUsers() {
                 "sort": "ga:pageTitle,ga:nthMonth"
             });
         }).then(function (results) {
-            //map in 0 values for previous year data
-            allApplicationData.previousYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-            for (var appName in applicationData) {
-                applicationData[appName].previousYearUserData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            }
 
             if (results) {
                 results.rows.forEach(function (dataRow) {
@@ -648,6 +737,21 @@ function retrieveWeeklySessions() {
     assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveWeeklySeesions assert failed - topPagesFilter: ' + topPagesFilter);
 
     return new Promise(function (resolve, reject) {
+        var appName;
+
+        //Set-up base values for current week session data
+        allApplicationData.currentWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
+
+        for (appName in applicationData) {
+            applicationData[appName].currentWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
+        }
+
+        //Set-up base values for last week session data
+        allApplicationData.lastWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
+
+        for (appName in applicationData) {
+            applicationData[appName].lastWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
+        }
 
         gaRequester.queryGA({
             "start-date": formatDateString(startDate, "query"),
@@ -658,12 +762,6 @@ function retrieveWeeklySessions() {
             "filters": topPagesFilter,
             "sort": "ga:pageTitle,ga:date"
         }).then(function (results) {
-            //map in 0 values for current week user data
-            allApplicationData.currentWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
-
-            for (var appName in applicationData) {
-                applicationData[appName].currentWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
-            }
 
             if (results) {
                 results.rows.forEach(function (dataRow) {
@@ -698,13 +796,6 @@ function retrieveWeeklySessions() {
                 "sort": "ga:pageTitle,ga:date"
             });
         }).then(function (results) {
-            //map in 0 values for current week user data
-            allApplicationData.lastWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
-
-            for (var appName in applicationData) {
-                applicationData[appName].lastWeekSessionData = [0, 0, 0, 0, 0, 0, 0];
-            }
-
             if (results) {
                 results.rows.forEach(function (dataRow) {
                     /*Results structure -   dataRow[0] = appName

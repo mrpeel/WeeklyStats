@@ -5,6 +5,9 @@ CACHE MANIFEST
 CACHE:
 weekly-stats-c3.min.js
 weekly_stats.min.css
+c3.min.js
+d3.v3.min.js
+masonry.pkgd.min.js
 
 # All other resources (e.g. sites) require the user to be online. 
 NETWORK:

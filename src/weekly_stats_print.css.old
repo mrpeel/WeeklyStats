@@ -1,0 +1,118 @@
+/** --------------------------------------------------------------------------------------------------------------
+  This web app uses the application cache - any change requires the weekly_stats.appcache file to be modified.  
+    Modify the timestamp comment in the 2nd line to force browsers to refresh  
+  ----------------------------------------------------------------------------------------------------------------
+*/
+
+@media only print {
+    @page {
+        margin: 1.5cm;
+        size: A4 portrait;
+    }
+    div,
+    header,
+    main,
+    p {
+        float: none !important;
+        position: static !important;
+        box-sizing: content-box !important;
+        display: block;
+        font-family: Roboto, Helvetica, Arial, sans-serif;
+    }
+    .print-only {
+        display: block;
+    }
+    .title-text {
+        margin: 0;
+        left: 55px;
+        width: 100%;
+        border: 0;
+        margin: 0;
+        padding: 0;
+        float: none !important;
+        line-height: 40px;
+        display: block;
+        font-size: 26px;
+        font-weight: 300;
+    }
+    .print-sub-heading {
+        margin: 0;
+        left: 55px;
+        width: 100%;
+        border: 0;
+        margin: 0;
+        padding: 0;
+        float: none !important;
+        font-size: 20px;
+    }
+    .mdl-layout__header {
+        display: block;
+        height: 100px;
+    }
+    .mdl-layout__header-row {
+        width: 100%;
+        margin: 0;
+        display: block;
+    }
+    .mdl-layout__drawer-button {
+        display: none;
+        position: static;
+    }
+    .no-print {
+        display: none;
+    }
+    .mdl-layout,
+    .mdl-layout__content {
+        background-color: white;
+        display: block;
+        overflow: visible;
+    }
+    .mdl-layout-title {
+        position: static;
+    }
+    .mdl-grid {
+        display: block;
+        overflow: visible;
+        padding: 0;
+        margin: 0;
+    }
+    .print-spacer {
+        height: 2.2cm;
+    }
+    .print-spacer-double {
+        height: 4.4cm;
+    }
+    .mdl-card:nth-child(3n+4) {
+        margin-top: 1.25cm;
+    }
+    .mdl-card:nth-child(3n+5) {
+        margin-top: 4cm;
+    }
+    .mdl-card:nth-child(1) {
+        margin-top: 0.1cm;
+    }
+    .mdl-card:nth-child(2) {
+        margin-top: 3cm;
+    }
+    .mdl-card {
+        height: 10cm;
+    }
+    .mdl-card,
+    .mdl-navigation {
+        overflow: visible;
+        position: static;
+        vertical-align: top;
+        width: 100% !important;
+        page-break-inside: avoid;
+    }
+    .mdl-card__actions {
+        margin-left: 45px;
+        font-size: 20px;
+        font-weight: 300;
+        color: rgb(96, 125, 139) !important;
+    }
+    .chart-sub-title-text {
+        font-size: 16px;
+        font-weight: lighter;
+    }
+}
