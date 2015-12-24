@@ -302,6 +302,10 @@ html {
 body {
     margin: 0;
 }
+.page-content {
+    margin-left: 10px;
+    margin-top: 10px;
+}
 .header-nav .mdl-navigation__link:hover {
     text-decoration: none;
     color: #00bcd4;
@@ -313,6 +317,10 @@ i {
 .is-selected {
     font-size: 16px;
     font-weight: 700;
+}
+.chart-title {
+    float: left;
+    margin-left: 10px;
 }
 
 /*hide nav styles under 840 pixels*/
@@ -398,7 +406,7 @@ i {
     }
 }
 .DateRangeSelector-item input {
-    background-color: #607d8b;
+    background: transparent;
     color: white;
 }
 
@@ -434,14 +442,20 @@ i {
 .chart-sub-title-text {
     font-size: 0.9em;
 }
+.card {
+    padding-top: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+}
 .mdl-card {
     padding: 10px;
 }
 .chart-icon {
     color: #0097A7;
     float: right;
-    margin-left: 15px;
-    margin-right: 15px;
+    margin-left: 10px;
+    margin-right: 10px;
     /*top: 10px;
     right: 10px;*/
 }
@@ -454,7 +468,10 @@ i {
         bottom: 2px
     }
     .card-bottom-spacer {
-        height: 53px;
+        height: 40px;
+    }
+    .card-top-spacer {
+        height: 10px;
     }
 }
 header,
