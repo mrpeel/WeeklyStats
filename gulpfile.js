@@ -140,6 +140,6 @@ gulp.task('serve', ['copylibfiles'], function () {
 
 /* Task to deploy the built app to the github pages branch */
 gulp.task('deploy', function () {
-    return gulp.src('./dist/**/*')
+    return gulp.src('dist/*.*')
         .pipe(ghPages());
 });
