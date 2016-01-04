@@ -42,7 +42,10 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# All node modules
+# =========================
 node_modules
+
 
 # gh-pages
 # =========================
