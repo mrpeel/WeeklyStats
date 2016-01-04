@@ -1501,7 +1501,7 @@ function retrieveSearchTypes() {
                         //Loop through each month values and map into data array
                         for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                             //Convert to percentage of total
-                            applicationData[appYName].yearSearchTypes.data[dataIndex].push(Math.round(applicationData[appYName].yearSearchTypes.rawValues[searchType][monthCounter] /
+                            applicationData[appYName].yearSearchTypes.data[dataIndex].push(roundTo2(applicationData[appYName].yearSearchTypes.rawValues[searchType][monthCounter] /
                                 (applicationData[appYName].yearSearchTypes.monthTotals[monthCounter] || 1) * 100));
 
                         }
@@ -1520,7 +1520,7 @@ function retrieveSearchTypes() {
                     //Loop through each month values and map into data array
                     for (var monthCounterAll = 0; monthCounterAll < 12; monthCounterAll++) {
                         //Convert to percentage of total
-                        allApplicationData.yearSearchTypes.data[dataIndexAll].push(Math.round(allApplicationData.yearSearchTypes.rawValues[searchTypeAll][monthCounterAll] /
+                        allApplicationData.yearSearchTypes.data[dataIndexAll].push(roundTo2(allApplicationData.yearSearchTypes.rawValues[searchTypeAll][monthCounterAll] /
                             (allApplicationData.yearSearchTypes.monthTotals[monthCounterAll] || 1) * 100));
 
                     }
@@ -1736,7 +1736,7 @@ function retrieveMapTypes() {
                         //Loop through each month values and map into data array
                         for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                             //Convert to percentage of total
-                            applicationData[appYName].yearMapTypes.data[dataIndex].push(Math.round(applicationData[appYName].yearMapTypes.rawValues[mapType][monthCounter] /
+                            applicationData[appYName].yearMapTypes.data[dataIndex].push(roundTo2(applicationData[appYName].yearMapTypes.rawValues[mapType][monthCounter] /
                                 (applicationData[appYName].yearMapTypes.monthTotals[monthCounter] || 1) * 100));
 
                         }
@@ -1755,7 +1755,7 @@ function retrieveMapTypes() {
                     //Loop through each month values and map into data array
                     for (var monthCounterAll = 0; monthCounterAll < 12; monthCounterAll++) {
                         //Convert to percentage of total
-                        allApplicationData.yearMapTypes.data[dataIndexAll].push(Math.round(allApplicationData.yearMapTypes.rawValues[mapTypeAll][monthCounterAll] /
+                        allApplicationData.yearMapTypes.data[dataIndexAll].push(roundTo2(allApplicationData.yearMapTypes.rawValues[mapTypeAll][monthCounterAll] /
                             (allApplicationData.yearMapTypes.monthTotals[monthCounterAll] || 1) * 100));
 
                     }
@@ -2115,7 +2115,7 @@ function retrieveActivities() {
                         //Loop through each month values and map into data array
                         for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
                             //Convert to percentage of total
-                            applicationData[appYName].yearActivities.data[dataIndex].push(Math.round(applicationData[appYName].yearActivities.rawValues[activity][monthCounter] /
+                            applicationData[appYName].yearActivities.data[dataIndex].push(roundTo2(applicationData[appYName].yearActivities.rawValues[activity][monthCounter] /
                                 (applicationData[appYName].yearActivities.monthTotals[monthCounter] || 1) * 100));
 
                         }
@@ -2132,7 +2132,7 @@ function retrieveActivities() {
                         //Loop through each month values and map into data array
                         for (var monthCounterType = 0; monthCounterType < 12; monthCounterType++) {
                             //Convert to percentage of total
-                            applicationData[appYName].yearActivityTypes.data[dataIndexType].push(Math.round(applicationData[appYName].yearActivityTypes.rawValues[activityType][monthCounterType] /
+                            applicationData[appYName].yearActivityTypes.data[dataIndexType].push(roundTo2(applicationData[appYName].yearActivityTypes.rawValues[activityType][monthCounterType] /
                                 (applicationData[appYName].yearActivities.monthTotals[monthCounterType] || 1) * 100));
 
                         }
@@ -2150,7 +2150,7 @@ function retrieveActivities() {
                     //Loop through each month values and map into data array
                     for (var monthCounterAll = 0; monthCounterAll < 12; monthCounterAll++) {
                         //Convert to percentage of total
-                        allApplicationData.yearActivities.data[dataIndexAll].push(Math.round(allApplicationData.yearActivities.rawValues[activityAll][monthCounterAll] /
+                        allApplicationData.yearActivities.data[dataIndexAll].push(roundTo2(allApplicationData.yearActivities.rawValues[activityAll][monthCounterAll] /
                             (allApplicationData.yearActivities.monthTotals[monthCounterAll] || 1) * 100));
 
                     }
@@ -2167,7 +2167,7 @@ function retrieveActivities() {
                     //Loop through each month values and map into data array
                     for (var monthCounterTypeAll = 0; monthCounterTypeAll < 12; monthCounterTypeAll++) {
                         //Convert to percentage of total
-                        allApplicationData.yearActivityTypes.data[dataIndexTypeAll].push(Math.round(allApplicationData.yearActivityTypes.rawValues[activityTypeAll][monthCounterTypeAll] /
+                        allApplicationData.yearActivityTypes.data[dataIndexTypeAll].push(roundTo2(allApplicationData.yearActivityTypes.rawValues[activityTypeAll][monthCounterTypeAll] /
                             (allApplicationData.yearActivities.monthTotals[monthCounterTypeAll] || 1) * 100));
 
                     }

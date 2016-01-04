@@ -165,6 +165,12 @@ function updateActiveLinks(selectionName) {
     document.getElementById(selectionName + "-non-link").classList.add("is-selected");
     document.getElementById(selectionName + "-non-link").classList.add("mdl-color-text--cyan-100");
 
+    //Repeat the process for the drawer links
+    document.getElementById("drawer-" + selectionName + "-link").classList.add("hidden");
+    document.getElementById("drawer-" + selectionName + "-non-link").classList.remove("hidden");
+    document.getElementById("drawer-" + selectionName + "-non-link").classList.add("is-selected");
+    document.getElementById("drawer-" + selectionName + "-non-link").classList.add("mdl-color-text--black");
+
 }
 
 /* 
@@ -472,11 +478,13 @@ function switchVisibleChart(visibleElementName, hiddenElementNames) {
     if (typeof visibleElement !== "undefined") {
         visibleElement.classList.remove("hidden");
 
-        //Loop through the chart references to see which one isbeing made visibleCheck if this is the chart being made visible
+        //Loop through the chart references to see which one is being made visible. 
         for (var chartCounter = 0; chartCounter < chartRefs.length; chartCounter++) {
-            //Check if this is the chart being made visible
-            if (document.getElementById(chartRefs[chartCounter].pageElement).parentNode.id === visibleElementName) {
-                //Immediately re-draw the chart
+            /* Check if this is the chart being made visible
+               Structure is card div -> mdl_card__actions div -> chart div
+               Need to check the grandparent element */
+            if (document.getElementById(chartRefs[chartCounter].pageElement).parentElement.parentElement.id === visibleElementName) {
+                //Re-draw the chart
                 chartRefs[chartCounter].chart.flush();
                 break;
             }
@@ -551,7 +559,7 @@ function buildWeeklyUsersCharts() {
     createElement('weekly-users-overall-card',
         'card full-width home overall',
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Visits across all applications for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Visits across all applications for the week</div>' +
         '<button id="weekly-users-overall-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
         '<div class="card-bottom-spacer"></div>' +
         '<div class="mdl-card__actions mdl-card--border">' +
@@ -590,7 +598,7 @@ function buildWeeklyUsersCharts() {
         createElement('weekly-users-' + ELEMENT_NAMES[appCounter] + '-card',
             'card home ' + ELEMENT_NAMES[appCounter],
             '<div class="card-top-spacer"></div>' +
-            '<div class="mdl-typography--title mdl-color-text--black chart-title">' + APP_LABELS[appCounter] + ' visits for the week</div>' +
+            '<div class="mdl-typography--title chart-title">' + APP_LABELS[appCounter] + ' visits for the week</div>' +
             '<button id="weekly-users-' + ELEMENT_NAMES[appCounter] +
             '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
             '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -657,7 +665,7 @@ function buildChartsForType(elementName, appName) {
         createElement('yearly-pages-overall-card',
             cardClasses,
             '<div class="card-top-spacer"></div>' +
-            '<div class="mdl-typography--title mdl-color-text--black chart-title">Visit breakdown by application for the year</div>' +
+            '<div class="mdl-typography--title chart-title">Visit breakdown by application for the year</div>' +
             '<button id="yearly-pages-overall-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
             '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
             '<div id="yearly-pages-overall"></div>' +
@@ -701,7 +709,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-users-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall visits for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall visits for the week</div>' +
         '<button id="weekly-users-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -738,7 +746,7 @@ function buildChartsForType(elementName, appName) {
     createElement('yearly-users-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall year over year visit comparison</div>' +
+        '<div class="mdl-typography--title chart-title">Overall year over year visit comparison</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="yearly-users-' + elementName + '"></div>' +
         '</div>');
@@ -779,7 +787,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-sessions-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall duration of visits for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall duration of visits for the week</div>' +
         '<button id="weekly-sessions-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -814,7 +822,7 @@ function buildChartsForType(elementName, appName) {
     createElement('visitor-return-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall time between visits</div>' +
+        '<div class="mdl-typography--title chart-title">Overall time between visits</div>' +
         '<button id="visitor-return-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -853,7 +861,7 @@ function buildChartsForType(elementName, appName) {
     createElement('yearly-browsers-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall browser usage for the year</div>' +
+        '<div class="mdl-typography--title chart-title">Overall browser usage for the year</div>' +
         '<button id="yearly-browsers-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -892,7 +900,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-maps-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall map selection for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall map selection for the week</div>' +
         '<button id="weekly-maps-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -929,7 +937,7 @@ function buildChartsForType(elementName, appName) {
     createElement('yearly-maps-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall map selection for the year</div>' +
+        '<div class="mdl-typography--title chart-title">Overall map selection for the year</div>' +
         '<button id="yearly-maps-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -970,7 +978,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-search-' + elementName + '-card',
         cardClasses + " raw",
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall searches for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall searches for the week</div>' +
         '<button id="weekly-search-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
         '<button id="weekly-search-' + elementName +
@@ -1015,7 +1023,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-search-per-' + elementName + '-card',
         cardClasses + " per-visit hidden",
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall searches per visit for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall searches per visit for the week</div>' +
         '<button id="weekly-search-per-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
         '<button id="weekly-search-' + elementName +
@@ -1057,7 +1065,7 @@ function buildChartsForType(elementName, appName) {
     createElement('yearly-search-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall searches for the year</div>' +
+        '<div class="mdl-typography--title chart-title">Overall searches for the year</div>' +
         '<button id="yearly-search-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -1097,7 +1105,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-activity-types-' + elementName + '-card',
         cardClasses + " raw",
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall activity types for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall activity types for the week</div>' +
         '<button id="weekly-activity-types-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
         '<button id="weekly-activity-types-' + elementName +
@@ -1142,7 +1150,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-activity-types-per-' + elementName + '-card',
         cardClasses + " per-visit hidden",
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall activity types per visit for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall activity types per visit for the week</div>' +
         '<button id="weekly-activity-types-per-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
         '<button id="weekly-activity-types-' + elementName +
@@ -1191,7 +1199,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-activities-' + elementName + '-card',
         cardClasses + " details hidden",
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall activity breakdown for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall activity breakdown for the week</div>' +
         '<button id="weekly-activities-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
         '<button id="weekly-activities-' + elementName +
@@ -1237,7 +1245,7 @@ function buildChartsForType(elementName, appName) {
     createElement('weekly-activities-per-' + elementName + '-card',
         cardClasses + " details-per-visit hidden",
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall activity breakdown per visit for the week</div>' +
+        '<div class="mdl-typography--title chart-title">Overall activity breakdown per visit for the week</div>' +
         '<button id="weekly-activities-per-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
         '<button id="weekly-activities-' + elementName +
@@ -1284,7 +1292,7 @@ function buildChartsForType(elementName, appName) {
     createElement('yearly-activity-types-' + elementName + '-card',
         cardClasses,
         '<div class="card-top-spacer"></div>' +
-        '<div class="mdl-typography--title mdl-color-text--black chart-title">Overall activity types for the year</div>' +
+        '<div class="mdl-typography--title chart-title">Overall activity types for the year</div>' +
         '<button id="yearly-activity-types-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +

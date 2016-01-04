@@ -18,6 +18,9 @@ html {
 body {
     margin: 0;
 }
+.mdl-layout__drawer-button {
+    padding-top: 10px;
+}
 .page-content {
     margin-left: 10px;
     margin-top: 10px;
@@ -37,6 +40,7 @@ i {
 .chart-title {
     float: left;
     margin-left: 10px;
+    color: rgba(0, 0, 0, 0.87);
 }
 
 /*hide nav styles under 840 pixels*/
