@@ -5,7 +5,7 @@ var replace = require('gulp-replace-task');
 var rename = require('gulp-rename');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
-var minifyCss = require('gulp-minify-css');
+var nano = require('gulp-cssnano');
 var connect = require('gulp-connect');
 var gutil = require('gulp-util');
 var ghPages = require('gulp-gh-pages');
@@ -55,7 +55,7 @@ gulp.task('minifycss', ['buildjs'], function () {
         .pipe(concat('weekly-stats-c3.css'))
         .pipe(gulp.dest('build/'))
         .pipe(rename('weekly-stats-c3.min.css'))
-        .pipe(minifyCss()).on('error', gutil.log)
+        .pipe(nano()).on('error', gutil.log)
         .pipe(gulp.dest('build/'))
         .pipe(gulp.dest('dist/'));
 });

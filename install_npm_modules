@@ -1,9 +1,9 @@
-npm install -g gulp --save-dev
-npm install -g gulp-replace-task --save-dev
-npm install -g gulp-rename --save-dev
-npm install -g gulp-concat --save-dev
-npm install -g gulp-uglify --save-dev
-npm install -g gulp-minify-css --save-dev
-npm install -g gulp-connect --save-dev
-npm install -g gulp-util --save-dev
-npm install -g gulp-gh-pages --save-dev
+npm install gulp --save-dev
+npm install gulp-replace-task --save-dev
+npm install gulp-rename --save-dev
+npm install gulp-concat --save-dev
+npm install gulp-uglify --save-dev
+npm install gulp-cssnano --save-dev
+npm install gulp-connect --save-dev
+npm install gulp-util --save-dev
+npm install gulp-gh-pages --save-dev
