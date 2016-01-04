@@ -1,0 +1,15 @@
+CACHE MANIFEST
+#  1451885350138
+
+# Explicitly cached entries
+CACHE:
+weekly-stats-c3.min.js
+weekly-stats-c3.min.css
+c3.min.js
+d3.v3.min.js
+masonry.pkgd.min.js
+
+# All other resources (e.g. sites) require the user to be online. 
+NETWORK:
+*
+

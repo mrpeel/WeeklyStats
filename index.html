@@ -1,0 +1,188 @@
+<html lang=en manifest="weekly_stats.appcache">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="A web application to query Google analytics and generate custom graphs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title id="bar-title">LASSI applications Weekly Usage Stats</title>
+
+    <meta name="application-name" content="System Weekly Usage Stats" />
+    <link rel="icon" href="favicon.ico" />
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.0.6/material.blue_grey-cyan.min.css" />
+    <link href="weekly-stats-c3.min.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <header id="header-element" class="mdl-layout__header mdl-layout__header--waterfall">
+            <div class="mdl-layout__drawer-button"><i class="material-icons">menu</i></div>
+            <!-- Top row, always visible -->
+            <div class="mdl-layout__header-row">
+                <!-- Title -->
+                <div id="load-bar" class="loader"></div>
+                <span class="mdl-layout-title title-text" id="page-title">LASSI applications usage stats and trends</span>
+                <div id="print-sub-heading" class="mdl-typography--font-light mdl-typography--title print-only">
+                </div>
+
+                <div class="mdl-layout-spacer no-print"></div>
+
+                <aside class="Header-auth" id="header-auth">
+                    <div class="Header-embedApi" id="embed-api-auth-container"></div>
+                    <a class="Header-logout" href="https://accounts.google.com/logout">Logout</a>
+                </aside>
+                <div class="auth-message no-print" id="auth-button"></div>
+
+
+            </div>
+            <!-- Bottom row, not visible on scroll -->
+            <div class="mdl-layout__header-row collapse-tablet no-print">
+
+                <div id="date-range-selector-container" class="header-collapsable">
+                    <div class="DateRangeSelector">
+                        <div class="DateRangeSelector-item">
+                            <label class="min-label mdl-button mdl-js-button mdl-button--icon" for="weekSelector">
+                                <i class="material-icons">date_range</i>
+                            </label>
+                            <label class="full-label" for="weekSelector">
+                                For week starting:
+                            </label>
+                            <input id="weekSelector" type="date">
+                        </div>
+                    </div>
+                </div>
+                <div class="mdl-layout-spacer header-hide-tablet no-print"></div>
+                <nav class="header-hide-tablet mdl-navigation header-collapsable no-print">
+                    <a id="home-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#home">Home</a>
+                    <div id="home-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link is-selected">Home</div>
+                    <a id="overall-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#overall">Overall</a>
+                    <div id="overall-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">Overall</div>
+                    <a id="lassi-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#lassi">LASSI</a>
+                    <div id="lassi-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LASSI</div>
+                    <a id="lassi-spear-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#lassi-spear">LASSI SPEAR</a>
+                    <div id="lassi-spear-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LASSI SPEAR</div>
+                    <a id="smes-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#smes">SMES</a>
+                    <div id="smes-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">SMES</div>
+                    <a id="vicnames-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#vicnames">VICNAMES</a>
+                    <div id="vicnames-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">VICNAMES</div>
+                    <a id="landata-tpi-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#landata-tpi">LANDATA TPI</a>
+                    <div id="landata-tpi-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LANDATA TPI</div>
+                    <a id="landata-vmt-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#landata-vmt">LANDATA VMT</a>
+                    <div id="landata-vmt-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LANDATA VMT</div>
+                </nav>
+
+            </div>
+        </header>
+        <div class="mdl-layout__drawer mdl-typography--title no-print">
+            <span class="mdl-layout-title">Selection</span>
+            <nav class="mdl-navigation no-print">
+                <a id="drawer-home-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#home">Home</a>
+                <div id="drawer-home-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link is-selected">Home</div>
+                <a id="drawer-overall-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#overall">Overall</a>
+                <div id="drawer-overall-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">Overall</div>
+                <a id="drawer-lassi-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#lassi">LASSI</a>
+                <div id="drawer-lassi-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LASSI</div>
+                <a id="drawer-lassi-spear-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#lassi-spear">LASSI SPEAR</a>
+                <div id="drawer-lassi-spear-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LASSI SPEAR</div>
+                <a id="drawer-smes-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#smes">SMES</a>
+                <div id="drawer-smes-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">SMES</div>
+                <a id="drawer-vicnames-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#vicnames">VICNAMES</a>
+                <div id="drawer-vicnames-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">VICNAMES</div>
+                <a id="drawer-landata-tpi-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#landata-tpi">LANDATA TPI</a>
+                <div id="drawer-landata-tpi-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LANDATA TPI</div>
+                <a id="drawer-landata-vmt-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#landata-vmt">LANDATA VMT</a>
+                <div id="drawer-landata-vmt-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LANDATA VMT</div>
+            </nav>
+        </div>
+
+
+        <main class="mdl-layout__content mdl-color--grey-200">
+            <div class="page-content">
+
+
+
+                <div id="masonry-grid">
+                    <div class="grid-sizer"></div>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+
+
+    <script src="d3.v3.min.js"></script>
+    <script src="c3.min.js"></script>
+    <script src="masonry.pkgd.min.js"></script>
+    <script src="weekly-stats-c3.min.js"></script>
+    <script src="https://storage.googleapis.com/code.getmdl.io/1.0.6/material.min.js"></script>
+
+    <script>
+        // If Promise is not supported, include the polyfill
+        window.Promise || document.write("<script src=Promise.min.js><\/script>");
+
+        //If an app cache update has happened, re-load the page.
+        window.applicationCache.addEventListener('updateready', function(e) {
+            if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+                // Browser downloaded a new app cache.
+                window.location.reload();
+            }
+        }, false);
+
+    </script>
+
+    <!--Load the analytics API-->
+    <script>
+        (function(w, d, s, g, js, fjs) {
+            g = w.gapi || (w.gapi = {});
+            g.analytics = {
+                q: [],
+                ready: function(cb) {
+                    this.q.push(cb)
+                }
+            };
+            js = d.createElement(s);
+            fjs = d.getElementsByTagName(s)[0];
+            js.src = 'https://apis.google.com/js/platform.js';
+            fjs.parentNode.insertBefore(js, fjs);
+            js.onload = function() {
+                g.load('analytics')
+            };
+        }(window, document, 'script'));
+
+    </script>
+    <!-- When the Analytics API is ready - authorise and get going -->
+    <script>
+        gapi.analytics.ready(function() {
+
+            console.log("Analytics ready");
+
+            // Authorize the user.
+            var CLIENT_ID = '940998236407-ll26vtigl8bs52nt0ld3cumii6kmesmg.apps.googleusercontent.com';
+            var gaId = 'ga:89463991';
+            var accountName = '';
+
+
+            gapi.analytics.auth.authorize({
+                container: 'embed-api-auth-container',
+                clientid: CLIENT_ID,
+            });
+
+
+
+            gapi.analytics.auth.on('success', function(response) {
+                var lastFullWeekDate = returnLastFullWeekDate();
+                setupRetrieval(lastFullWeekDate, "ga:89463991");
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>
