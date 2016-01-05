@@ -561,6 +561,7 @@ function buildWeeklyUsersCharts() {
         '<div class="card-top-spacer"></div>' +
         '<div class="mdl-typography--title chart-title">Visits across all applications for the week</div>' +
         '<button id="weekly-users-overall-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-users-overall-button">Switch between line chart and bar chart</div>' +
         '<div class="card-bottom-spacer"></div>' +
         '<div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-users-overall"></div>' +
@@ -601,6 +602,7 @@ function buildWeeklyUsersCharts() {
             '<div class="mdl-typography--title chart-title">' + APP_LABELS[appCounter] + ' visits for the week</div>' +
             '<button id="weekly-users-' + ELEMENT_NAMES[appCounter] +
             '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
+            '<div class="mdl-tooltip" for="weekly-users-' + ELEMENT_NAMES[appCounter] + '-button">Switch between line chart and bar chart</div>' +
             '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
             '<div id="weekly-users-' + ELEMENT_NAMES[appCounter] + '"></div>' +
             '</div>',
@@ -667,6 +669,7 @@ function buildChartsForType(elementName, appName) {
             '<div class="card-top-spacer"></div>' +
             '<div class="mdl-typography--title chart-title">Visit breakdown by application for the year</div>' +
             '<button id="yearly-pages-overall-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
+            '<div class="mdl-tooltip" for="yearly-pages-overall-button">Switch between stacked bar chart and grouped bar chart</div>' +
             '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
             '<div id="yearly-pages-overall"></div>' +
             '</div>',
@@ -712,6 +715,7 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall visits for the week</div>' +
         '<button id="weekly-users-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-users-' + elementName + '-button">Switch between line chart and bar chart</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-users-' + elementName + '"></div>' +
         '</div>',
@@ -790,6 +794,7 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall duration of visits for the week</div>' +
         '<button id="weekly-sessions-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-sessions-' + elementName + '-button">Switch between line chart and bar chart</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-sessions-' + elementName + '"></div>' +
         '</div>',
@@ -825,6 +830,7 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall time between visits</div>' +
         '<button id="visitor-return-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<div class="mdl-tooltip" for="visitor-return-' + elementName + '-button">Switch between separate values and stacked values</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="visitor-return-' + elementName + '"></div>' +
         '</div>',
@@ -864,6 +870,7 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall browser usage for the year</div>' +
         '<button id="yearly-browsers-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
+        '<div class="mdl-tooltip" for="yearly-browsers-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="yearly-browsers-' + elementName + '"></div>' +
         '</div>',
@@ -903,6 +910,7 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall map selection for the week</div>' +
         '<button id="weekly-maps-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-maps-' + elementName + '-button">Switch between separate values and stacked values</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-maps-' + elementName + '"></div>' +
         '</div>',
@@ -940,6 +948,7 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall map selection for the year</div>' +
         '<button id="yearly-maps-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
+        '<div class="mdl-tooltip" for="yearly-maps-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="yearly-maps-' + elementName + '"></div>' +
         '</div>',
@@ -981,9 +990,10 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall searches for the week</div>' +
         '<button id="weekly-search-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-search-' + elementName + '-button">Switch between separate values and stacked values</div>' +
         '<button id="weekly-search-' + elementName +
         '-switch-to-per-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_right</i></button>' +
-        '<div class="mdl-tooltip" for="weekly-search-' + elementName + '-switch-to-per-button">Display per visit values</div>' +
+        '<div class="mdl-tooltip" for="weekly-search-' + elementName + '-switch-to-per-button">Switch to per visit values</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-search-' + elementName + '"></div>' +
         '</div>',
@@ -1026,9 +1036,10 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall searches per visit for the week</div>' +
         '<button id="weekly-search-per-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-search-per-' + elementName + '-button">Switch between separate values and stacked values</div>' +
         '<button id="weekly-search-' + elementName +
         '-switch-to-raw-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_left</i></button>' +
-        '<div class="mdl-tooltip" for="weekly-search-' + elementName + '-switch-to-raw-button">Display raw number of values</div>' +
+        '<div class="mdl-tooltip" for="weekly-search-' + elementName + '-switch-to-raw-button">Switch to raw values</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-search-per-' + elementName + '"></div>' +
         '</div>',
@@ -1068,6 +1079,7 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall searches for the year</div>' +
         '<button id="yearly-search-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
+        '<div class="mdl-tooltip" for="yearly-search-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="yearly-search-' + elementName + '"></div>' +
         '</div>',
@@ -1108,10 +1120,13 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall activity types for the week</div>' +
         '<button id="weekly-activity-types-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activity-types-' + elementName + '-button">Switch between separate values and stacked values</div>' +
         '<button id="weekly-activity-types-' + elementName +
         '-switch-to-per-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_right</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activity-types-' + elementName + '-switch-to-per-button">Switch to per visit values</div>' +
         '<button id="weekly-activity-types-' + elementName +
         '-switch-to-raw-activities-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">zoom_in</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activity-types-' + elementName + '-switch-to-raw-activities-button">Switch to detailed activity values</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-activity-types-' + elementName + '"></div>' +
         '</div>',
@@ -1153,10 +1168,13 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall activity types per visit for the week</div>' +
         '<button id="weekly-activity-types-per-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activity-types-per-' + elementName + '-button">Switch between separate values and stacked values</div>' +
         '<button id="weekly-activity-types-' + elementName +
         '-switch-to-raw-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_left</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activity-types-' + elementName + '-switch-to-raw-button">Switch to raw values</div>' +
         '<button id="weekly-activity-types-' + elementName +
         '-switch-to-per-activities-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">zoom_in</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activity-types-' + elementName + '-switch-to-per-activities-button">Switch to detailed activity values</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-activity-types-per-' + elementName + '"></div>' +
         '</div>',
@@ -1202,10 +1220,13 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall activity breakdown for the week</div>' +
         '<button id="weekly-activities-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activities-' + elementName + '-button">Switch between separate values and stacked values</div>' +
         '<button id="weekly-activities-' + elementName +
         '-switch-to-per-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_right</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activities-' + elementName + '-switch-to-per-button">Switch to per visit values</div>' +
         '<button id="weekly-activities-' + elementName +
         '-switch-to-raw-activity-types-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">zoom_out</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activities-' + elementName + '-switch-to-raw-activity-types-button">Switch to grouped activity type values</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-activities-' + elementName + '"></div>' +
         '</div>',
@@ -1248,10 +1269,13 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall activity breakdown per visit for the week</div>' +
         '<button id="weekly-activities-per-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activities-per-' + elementName + '-button">Switch between separate values and stacked values</div>' +
         '<button id="weekly-activities-' + elementName +
         '-switch-to-raw-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">subdirectory_arrow_left</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activities-' + elementName + '-switch-to-raw-button">Switch to raw values</div>' +
         '<button id="weekly-activities-' + elementName +
         '-switch-to-per-activity-types-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">zoom_out</i></button>' +
+        '<div class="mdl-tooltip" for="weekly-activities-' + elementName + '-switch-to-per-activity-types-button">Switch to grouped activity type values</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="weekly-activities-per-' + elementName + '"></div>' +
         '</div>',
@@ -1295,6 +1319,7 @@ function buildChartsForType(elementName, appName) {
         '<div class="mdl-typography--title chart-title">Overall activity types for the year</div>' +
         '<button id="yearly-activity-types-' + elementName +
         '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
+        '<div class="mdl-tooltip" for="yearly-activity-types-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
         '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
         '<div id="yearly-activity-types-' + elementName + '"></div>' +
         '</div>',

@@ -116,17 +116,24 @@ gulp.task('copylibfiles', ['disthtml'], function () {
         .pipe(gulp.dest('dist/'));
 });
 
+/* Copy favicon files to the build and dist directories.
+ */
+gulp.task('copyfavicon', ['copylibfiles'], function () {
+    gulp.src(['src/favicon.png', 'src/favicon.ico'])
+        .pipe(gulp.dest('build/'))
+        .pipe(gulp.dest('dist/'));
+});
 
 
 /* Watch for changes to html and then reload when updated
  */
-gulp.task('html', ['copylibfiles'], function () {
+gulp.task('html', ['copyfavicon'], function () {
     gulp.src('./build/*.html')
         .pipe(connect.reload());
 });
 
 /* Standard server task */
-gulp.task('serve', ['copylibfiles'], function () {
+gulp.task('serve', ['copyfavicon'], function () {
     connect.server({
         root: 'build',
         livereload: true
