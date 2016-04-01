@@ -3371,8 +3371,6 @@ var chartRefs = [];
 var refreshQueue = [];
 var loadBar;
 
-//Variable for masonry layout
-var msnry;
 //Variable to hold the parent element for all chart cards
 var parentElement;
 
@@ -3451,8 +3449,8 @@ function updateReady(worker) {
 window.onload = function () {
   "use strict";
 
-  parentElement = document.getElementById("masonry-grid");
-  createMasonry();
+  parentElement = document.getElementById("chart-grid");
+
 
   window.addEventListener("hashchange", loadSubPage, false);
 
@@ -3622,28 +3620,6 @@ function disableAllLinks() {
 
 }
 
-/* 
-    Set-up the masonry options
-*/
-function createMasonry() {
-  "use strict";
-
-  return;
-
-  msnry = new Masonry(parentElement, {
-    // options
-    "itemSelector": ".card",
-    "columnWidth": ".grid-sizer",
-    transitionDuration: "0.4s"
-      //"gutter": 5 //,
-      //"percentPosition": true
-  });
-
-  //Refresh charts after layout is complete
-  /*msnry.on('layoutComplete', function (items) {
-      refreshCharts();
-  });*/
-}
 
 /* 
     Work through all charts and refresh them
@@ -3800,21 +3776,10 @@ function clearChartsFromScreen() {
   //Remove the items from masonry and the DOM
   while (parentElement.firstChild) {
     //Check if masonry object has been created - if so, remove the element from it
-    if (typeof msnry !== "undefined") {
-      msnry.remove(parentElement.firstChild);
-    }
-
     parentElement.removeChild(parentElement.firstChild);
   }
 
-  var sizerDiv = document.createElement('div');
 
-  sizerDiv.className = "grid-sizer";
-  parentElement.appendChild(sizerDiv);
-
-  if (typeof msnry !== "undefined") {
-    msnry.layout();
-  }
 
 }
 
@@ -3996,7 +3961,7 @@ function buildWeeklyUsersCharts() {
 
   //Create the DOM element 
   createElement('weekly-users-overall-card',
-    'card full-width home overall',
+    'card mdl-cell mdl-cell--12-col home overall',
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Visits across all applications for the week</div>' +
     '<button id="weekly-users-overall-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
@@ -4036,7 +4001,7 @@ function buildWeeklyUsersCharts() {
 
     //Create the DOM element 
     createElement('weekly-users-' + ELEMENT_NAMES[appCounter] + '-card',
-      'card home ' + ELEMENT_NAMES[appCounter],
+      'card mdl-cell mdl-cell--6-col home ' + ELEMENT_NAMES[appCounter],
       '<div class="card-top-spacer"></div>' +
       '<div class="mdl-typography--title chart-title">' + APP_LABELS[appCounter] + ' visits for the week</div>' +
       '<button id="weekly-users-' + ELEMENT_NAMES[appCounter] +
@@ -4084,7 +4049,9 @@ function buildChartsForType(elementName, appName) {
 
   var currentWeekArray, lastWeekArray, lastYearArray, previousYearArray, currentYearArray, dataLabels, seriesLabels;
   var columnData, nextChartORef;
-  var cardClasses = "card half-width " + elementName;
+  var cardClassesFull = "card mdl-cell mdl-cell--12-col " + elementName;
+  var cardClassesTrend = "card mdl-cell mdl-cell--6-col " + elementName;
+  var cardClassesWeek = "card mdl-cell mdl-cell--6-col " + elementName;
   var chartDataArray;
   var docFragment = document.createDocumentFragment();
   var t0 = performance.now();
@@ -4117,9 +4084,9 @@ function buildChartsForType(elementName, appName) {
 
     //Create the DOM element 
     createElement('yearly-pages-overall-card',
-      cardClasses,
+      cardClassesFull,
       '<div class="card-top-spacer"></div>' +
-      '<div class="mdl-typography--title chart-title">Visit breakdown by application for the year</div>' +
+      '<div class="mdl-typography--title chart-title">Application breakdown trend</div>' +
       '<button id="yearly-pages-overall-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon area-chart"><i class="material-icons">equalizer</i></button>' +
       '<div class="mdl-tooltip" for="yearly-pages-overall-button">Switch between stacked bar chart and grouped bar chart</div>' +
       '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
@@ -4162,7 +4129,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-users-' + elementName + '-card',
-    cardClasses,
+    cardClassesWeek,
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall visits for the week</div>' +
     '<button id="weekly-users-' + elementName +
@@ -4200,9 +4167,9 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('yearly-users-' + elementName + '-card',
-    cardClasses,
+    cardClassesTrend,
     '<div class="card-top-spacer"></div>' +
-    '<div class="mdl-typography--title chart-title">Overall year over year visit comparison</div>' +
+    '<div class="mdl-typography--title chart-title">Overall visit trend</div>' +
     '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
     '<div id="yearly-users-' + elementName + '"></div>' +
     '</div>');
@@ -4241,7 +4208,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-sessions-' + elementName + '-card',
-    cardClasses,
+    cardClassesWeek,
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall duration of visits for the week</div>' +
     '<button id="weekly-sessions-' + elementName +
@@ -4277,7 +4244,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('visitor-return-' + elementName + '-card',
-    cardClasses,
+    cardClassesTrend,
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall time between visits</div>' +
     '<button id="visitor-return-' + elementName +
@@ -4295,44 +4262,43 @@ function buildChartsForType(elementName, appName) {
   //chartRefs[nextChartORef].createHorizontalBarChart("Time to return");
 
   /* 
-  Build  yearly browser usage charts.  Relies on the daya already being present within:
-      allApplicationData.browserData[browserName]
-          OR
-      applicationData[appName].browserData[browserName]
-      
+      Build yearly vertical stacked bar graphs of map types.  Relies on the data already being present within:
+          allApplicationData.yearSearchTypes.data        
+              OR
+          applicationData[appName].yearSearchTypes.data
+          
+          last12MonthsLabels
   */
-  columnData = [];
+  columnData = chartDataArray.yearMapTypes.data.slice();
+  seriesLabels = [];
   nextChartORef = chartRefs.length;
 
-  //Map in values for each browser month combination to the series then add to the columnData
-  for (var bCounter = 0; bCounter < topBrowsersArray.length; bCounter++) {
-    //Create data set
-    columnData.push([]);
-    //Add name for data set
-    columnData[columnData.length - 1].push(topBrowsersArray[bCounter]);
-    //add data set to chart column data
-    Array.prototype.push.apply(columnData[columnData.length - 1], chartDataArray.browserData[topBrowsersArray[bCounter]]);
-  }
+  //The first entry in the row contains the label used for the data
+  chartDataArray.yearMapTypes.data.forEach(function (dataRow) {
+    seriesLabels.push(dataRow[0]);
+  });
 
 
   //Create the DOM element 
-  createElement('yearly-browsers-' + elementName + '-card',
-    cardClasses,
+  createElement('yearly-maps-' + elementName + '-card',
+    cardClassesTrend,
     '<div class="card-top-spacer"></div>' +
-    '<div class="mdl-typography--title chart-title">Overall browser usage for the year</div>' +
-    '<button id="yearly-browsers-' + elementName +
+    '<div class="mdl-typography--title chart-title">Overall map use trend</div>' +
+    '<button id="yearly-maps-' + elementName +
     '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
-    '<div class="mdl-tooltip" for="yearly-browsers-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
+    '<div class="mdl-tooltip" for="yearly-maps-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
     '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
-    '<div id="yearly-browsers-' + elementName + '"></div>' +
+    '<div id="yearly-maps-' + elementName + '"></div>' +
     '</div>',
 
-    //<button id="yearly-browsers-' + elementName + '-button">Change ' + elementName + ' yearly browsers chart</button>',
-    'yearly-browsers-' + elementName + '-button',
+    //<button id="yearly-maps-' + elementName + '-button">Change ' + elementName + ' yearly map types chart</button>',
+    'yearly-maps-' + elementName + '-button',
     "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
-  chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-browsers-" + elementName, last12MonthsLabels, topBrowsersArray);
-  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
+  chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-maps-" + elementName, last12MonthsLabels, seriesLabels);
+  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of map types");
+
+
 
   /* 
   Build weekly horizontal bar graphs for map types.  Relies on the data already being present within:
@@ -4357,9 +4323,9 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-maps-' + elementName + '-card',
-    cardClasses,
+    cardClassesWeek,
     '<div class="card-top-spacer"></div>' +
-    '<div class="mdl-typography--title chart-title">Overall map selection for the week</div>' +
+    '<div class="mdl-typography--title chart-title">Overall map use for the week</div>' +
     '<button id="weekly-maps-' + elementName +
     '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">view_carousel</i></button>' +
     '<div class="mdl-tooltip" for="weekly-maps-' + elementName + '-button">Switch between separate values and stacked values</div>' +
@@ -4375,42 +4341,44 @@ function buildChartsForType(elementName, appName) {
   //chartRefs[nextChartORef].createHorizontalBarChart("Map type");
 
 
+
   /* 
-    Build yearly vertical stacked bar graphs of map types.  Relies on the data already being present within:
-        allApplicationData.yearSearchTypes.data        
-            OR
-        applicationData[appName].yearSearchTypes.data
-        
-        last12MonthsLabels
-*/
-  columnData = chartDataArray.yearMapTypes.data.slice();
-  seriesLabels = [];
+  Build yearly vertical stacked bar graphs of search types.  Relies on the data already being present within:
+      allApplicationData.yearSearchTypes.data
+          OR
+      applicationData[appName].yearSearchTypes.data
+              
+      last12MonthsLabels
+      
+      */
+  columnData = chartDataArray.yearSearchTypes.data.slice();
   nextChartORef = chartRefs.length;
+  seriesLabels = [];
 
   //The first entry in the row contains the label used for the data
-  chartDataArray.yearMapTypes.data.forEach(function (dataRow) {
+  chartDataArray.yearSearchTypes.data.forEach(function (dataRow) {
     seriesLabels.push(dataRow[0]);
   });
 
 
   //Create the DOM element 
-  createElement('yearly-maps-' + elementName + '-card',
-    cardClasses,
+  createElement('yearly-search-' + elementName + '-card',
+    cardClassesTrend,
     '<div class="card-top-spacer"></div>' +
-    '<div class="mdl-typography--title chart-title">Overall map selection for the year</div>' +
-    '<button id="yearly-maps-' + elementName +
+    '<div class="mdl-typography--title chart-title">Overall searches trend</div>' +
+    '<button id="yearly-search-' + elementName +
     '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
-    '<div class="mdl-tooltip" for="yearly-maps-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
+    '<div class="mdl-tooltip" for="yearly-search-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
     '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
-    '<div id="yearly-maps-' + elementName + '"></div>' +
+    '<div id="yearly-search-' + elementName + '"></div>' +
     '</div>',
 
-    //<button id="yearly-maps-' + elementName + '-button">Change ' + elementName + ' yearly map types chart</button>',
-    'yearly-maps-' + elementName + '-button',
+    //<button id="yearly-search-' + elementName + '-button">Change ' + elementName + ' yearly search chart</button>',
+    'yearly-search-' + elementName + '-button',
     "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
-  chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-maps-" + elementName, last12MonthsLabels, seriesLabels);
-  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of map types");
+  chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-search-" + elementName, last12MonthsLabels, seriesLabels);
+  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of searches");
 
 
 
@@ -4437,7 +4405,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-search-' + elementName + '-card',
-    cardClasses + " raw",
+    cardClassesWeek + " raw",
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall searches for the week</div>' +
     '<button id="weekly-search-' + elementName +
@@ -4483,7 +4451,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-search-per-' + elementName + '-card',
-    cardClasses + " per-visit hidden",
+    cardClassesWeek + " per-visit hidden",
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall searches per visit for the week</div>' +
     '<button id="weekly-search-per-' + elementName +
@@ -4505,44 +4473,46 @@ function buildChartsForType(elementName, appName) {
   //chartRefs[nextChartORef].createHorizontalBarChart("Search type");
 
 
+
+
   /* 
-  Build yearly vertical stacked bar graphs of search types.  Relies on the data already being present within:
-      allApplicationData.yearSearchTypes.data
-          OR
-      applicationData[appName].yearSearchTypes.data
-              
-      last12MonthsLabels
-      
-      */
-  columnData = chartDataArray.yearSearchTypes.data.slice();
+    Build yearly vertical stacked bar graphs of activity types.  Relies on the data already being present within:
+        allApplicationData.yearActivityTypes.data
+            OR
+        applicationData[appName].yearActivityTypes.data
+
+        last12MonthsLabels
+        
+*/
+  columnData = chartDataArray.yearActivityTypes.data.slice();
   nextChartORef = chartRefs.length;
   seriesLabels = [];
 
+  //Set-up overall chart
   //The first entry in the row contains the label used for the data
-  chartDataArray.yearSearchTypes.data.forEach(function (dataRow) {
+  chartDataArray.yearActivityTypes.data.forEach(function (dataRow) {
     seriesLabels.push(dataRow[0]);
   });
 
 
   //Create the DOM element 
-  createElement('yearly-search-' + elementName + '-card',
-    cardClasses,
+  createElement('yearly-activity-types-' + elementName + '-card',
+    cardClassesTrend,
     '<div class="card-top-spacer"></div>' +
-    '<div class="mdl-typography--title chart-title">Overall searches for the year</div>' +
-    '<button id="yearly-search-' + elementName +
+    '<div class="mdl-typography--title chart-title">Overall activity types trend</div>' +
+    '<button id="yearly-activity-types-' + elementName +
     '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
-    '<div class="mdl-tooltip" for="yearly-search-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
+    '<div class="mdl-tooltip" for="yearly-activity-types-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
     '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
-    '<div id="yearly-search-' + elementName + '"></div>' +
+    '<div id="yearly-activity-types-' + elementName + '"></div>' +
     '</div>',
 
-    //<button id="yearly-search-' + elementName + '-button">Change ' + elementName + ' yearly search chart</button>',
-    'yearly-search-' + elementName + '-button',
+    //<button id="yearly-activity-types-' + elementName + '-button">Change overall yearly activity types chart</button>',
+    'yearly-activity-types-' + elementName + '-button',
     "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
-  chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-search-" + elementName, last12MonthsLabels, seriesLabels);
-  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of searches");
-
+  chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-activity-types-" + elementName, last12MonthsLabels, seriesLabels);
+  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of activities");
 
   /* 
     Build weekly horizontal bar graphs of activity types with absolute numbers.  Relies on the data already being present within:
@@ -4567,7 +4537,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-activity-types-' + elementName + '-card',
-    cardClasses + " raw",
+    cardClassesWeek + " raw",
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall activity types for the week</div>' +
     '<button id="weekly-activity-types-' + elementName +
@@ -4615,7 +4585,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-activity-types-per-' + elementName + '-card',
-    cardClasses + " per-visit hidden",
+    cardClassesWeek + " per-visit hidden",
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall activity types per visit for the week</div>' +
     '<button id="weekly-activity-types-per-' + elementName +
@@ -4667,7 +4637,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-activities-' + elementName + '-card',
-    cardClasses + " details hidden",
+    cardClassesWeek + " details hidden",
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall activity breakdown for the week</div>' +
     '<button id="weekly-activities-' + elementName +
@@ -4716,7 +4686,7 @@ function buildChartsForType(elementName, appName) {
 
   //Create the DOM element 
   createElement('weekly-activities-per-' + elementName + '-card',
-    cardClasses + " details-per-visit hidden",
+    cardClassesWeek + " details-per-visit hidden",
     '<div class="card-top-spacer"></div>' +
     '<div class="mdl-typography--title chart-title">Overall activity breakdown per visit for the week</div>' +
     '<button id="weekly-activities-per-' + elementName +
@@ -4744,46 +4714,48 @@ function buildChartsForType(elementName, appName) {
 
 
 
+
+
+
   /* 
-    Build yearly vertical stacked bar graphs of activity types.  Relies on the data already being present within:
-        allApplicationData.yearActivityTypes.data
-            OR
-        applicationData[appName].yearActivityTypes.data
-
-        last12MonthsLabels
-        
-*/
-  columnData = chartDataArray.yearActivityTypes.data.slice();
+  Build  yearly browser usage charts.  Relies on the daya already being present within:
+      allApplicationData.browserData[browserName]
+          OR
+      applicationData[appName].browserData[browserName]
+      
+  */
+  columnData = [];
   nextChartORef = chartRefs.length;
-  seriesLabels = [];
 
-  //Set-up overall chart
-  //The first entry in the row contains the label used for the data
-  chartDataArray.yearActivityTypes.data.forEach(function (dataRow) {
-    seriesLabels.push(dataRow[0]);
-  });
+  //Map in values for each browser month combination to the series then add to the columnData
+  for (var bCounter = 0; bCounter < topBrowsersArray.length; bCounter++) {
+    //Create data set
+    columnData.push([]);
+    //Add name for data set
+    columnData[columnData.length - 1].push(topBrowsersArray[bCounter]);
+    //add data set to chart column data
+    Array.prototype.push.apply(columnData[columnData.length - 1], chartDataArray.browserData[topBrowsersArray[bCounter]]);
+  }
 
 
   //Create the DOM element 
-  createElement('yearly-activity-types-' + elementName + '-card',
-    cardClasses,
+  createElement('yearly-browsers-' + elementName + '-card',
+    cardClassesFull,
     '<div class="card-top-spacer"></div>' +
-    '<div class="mdl-typography--title chart-title">Overall activity types for the year</div>' +
-    '<button id="yearly-activity-types-' + elementName +
+    '<div class="mdl-typography--title chart-title">Overall browser usage trend</div>' +
+    '<button id="yearly-browsers-' + elementName +
     '-button" class="mdl-button mdl-js-button mdl-button--icon chart-icon stacked-chart"><i class="material-icons">equalizer</i></button>' +
-    '<div class="mdl-tooltip" for="yearly-activity-types-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
+    '<div class="mdl-tooltip" for="yearly-browsers-' + elementName + '-button">Switch between stacked bar chart and grouped bar chart</div>' +
     '<div class="card-bottom-spacer"></div><div class="mdl-card__actions mdl-card--border">' +
-    '<div id="yearly-activity-types-' + elementName + '"></div>' +
+    '<div id="yearly-browsers-' + elementName + '"></div>' +
     '</div>',
 
-    //<button id="yearly-activity-types-' + elementName + '-button">Change overall yearly activity types chart</button>',
-    'yearly-activity-types-' + elementName + '-button',
+    //<button id="yearly-browsers-' + elementName + '-button">Change ' + elementName + ' yearly browsers chart</button>',
+    'yearly-browsers-' + elementName + '-button',
     "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
-  chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-activity-types-" + elementName, last12MonthsLabels, seriesLabels);
-  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of activities");
-
-
+  chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-browsers-" + elementName, last12MonthsLabels, topBrowsersArray);
+  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
 
   /*
     //Layout the screen with charts
