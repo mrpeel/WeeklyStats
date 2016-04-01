@@ -4001,7 +4001,7 @@ function buildWeeklyUsersCharts() {
 
     //Create the DOM element 
     createElement('weekly-users-' + ELEMENT_NAMES[appCounter] + '-card',
-      'card mdl-cell mdl-cell--6-col home ' + ELEMENT_NAMES[appCounter],
+      'card mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet  home ' + ELEMENT_NAMES[appCounter],
       '<div class="card-top-spacer"></div>' +
       '<div class="mdl-typography--title chart-title">' + APP_LABELS[appCounter] + ' visits for the week</div>' +
       '<button id="weekly-users-' + ELEMENT_NAMES[appCounter] +
@@ -4050,8 +4050,8 @@ function buildChartsForType(elementName, appName) {
   var currentWeekArray, lastWeekArray, lastYearArray, previousYearArray, currentYearArray, dataLabels, seriesLabels;
   var columnData, nextChartORef;
   var cardClassesFull = "card mdl-cell mdl-cell--12-col " + elementName;
-  var cardClassesTrend = "card mdl-cell mdl-cell--6-col " + elementName;
-  var cardClassesWeek = "card mdl-cell mdl-cell--6-col " + elementName;
+  var cardClassesTrend = "card mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet " + elementName;
+  var cardClassesWeek = "card mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet " + elementName;
   var chartDataArray;
   var docFragment = document.createDocumentFragment();
   var t0 = performance.now();
