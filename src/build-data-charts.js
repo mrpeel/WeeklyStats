@@ -1,7 +1,7 @@
 /*global window, document, Promise, console, topPagesFilter, topBrowsersFilter, startDate, endDate, ids, lastWeekStartDate, lastWeekEndDate  */
 /*global lastYearStartDate, lastYearEndDate, currentWeekdayLabels, last12MonthsLabels,  YearlyDataLabels, allApplicationData, applicationData */
 /*global APP_NAMES, APP_LABELS, topBrowsersArray, Masonry, formatDateString, C3StatsChart, assert, changeRetrievalDate, returnLastFullWeekDate, gapi */
-/*global setupRetrieval, componentHandler, navigator */
+/*global setupRetrieval, componentHandler, navigator, performance */
 
 
 //The element suffixes which are used to differentiate elements for the same data type
@@ -270,6 +270,8 @@ function disableAllLinks() {
 function createMasonry() {
   "use strict";
 
+  return;
+
   msnry = new Masonry(parentElement, {
     // options
     "itemSelector": ".card",
@@ -329,7 +331,7 @@ function executeRefresh() {
 
   } else {
     //Ensure layout is correct after refresh
-    msnry.layout();
+    //msnry.layout();
   }
 
 }
@@ -337,7 +339,6 @@ function executeRefresh() {
 /**
  * Checks if an element with the specified Id exists in the DOM.  If not, a new div element is created.  If a button Id and button function are specified, will also 
  *    add an event listener to the button.
- * @param {node} parentElement -  the parent parentElement to create the new element under
  * @param {string} elementId - the id for the element
  * @param {string} elementClassString - the class(es) to be applied to the element
  * @param {string} elementHTML - the HTML for the element
@@ -345,7 +346,7 @@ function executeRefresh() {
  * @param {string} transformFunctionType - if a button has been specified, the type of transform to run
  * @param {number} chartRef - the reference number for the chart object
  */
-function createElement(elementId, elementClassString, elementHTML, buttonId, transformFunctionType, chartRef) {
+function createElement(elementId, elementClassString, elementHTML, buttonId, transformFunctionType, chartRef, docFragment) {
   "use strict";
 
   assert(typeof elementId !== "undefined", 'createElement assert failed - elementId: ' + elementId);
@@ -355,72 +356,81 @@ function createElement(elementId, elementClassString, elementHTML, buttonId, tra
     (typeof buttonId === "undefined" && typeof transformFunctionType === "undefined" && typeof chartRef === "undefined"),
     'createElement assert failed - button parameters: ' + buttonId + ', ' + transformFunctionType + ', ' + chartRef);
 
-  if (document.getElementById(elementId) === null) {
-    var newDiv = document.createElement('div');
+  //if (document.getElementById(elementId) === null) {
+  var newDiv = document.createElement('div');
 
-    newDiv.id = elementId;
-    newDiv.className = elementClassString;
-    newDiv.innerHTML = elementHTML;
+  newDiv.id = elementId;
+  newDiv.className = elementClassString;
+  newDiv.innerHTML = elementHTML;
 
-    parentElement.appendChild(newDiv);
+  /*if (docFragment) {
+    docFragment.appendChild(newDiv);
+  } else {*/
+  parentElement.appendChild(newDiv);
 
-    //Tell masonry that the item has been added
-    msnry.appended(newDiv);
+  //Tell masonry that the item has been added
+  //msnry.appended(newDiv);
+  //}
 
-    //Add a button event listener if required
-    if (typeof buttonId !== "undefined") {
-      //Use type of transformation to define button click event
-      var transformButton = document.getElementById(buttonId);
-      if (transformFunctionType === "transformArea") {
-        transformButton.addEventListener("click", function () {
-          //Re-set the correct transform icon
-          if (transformButton.classList.contains("area-chart")) {
-            transformButton.innerHTML = '<i class="material-icons">timeline</i>';
-            transformButton.classList.add("bar-chart");
-            transformButton.classList.remove("area-chart");
-          } else {
-            transformButton.innerHTML = '<i class="material-icons">equalizer</i>';
-            transformButton.classList.add("area-chart");
-            transformButton.classList.remove("bar-chart");
-          }
+  //Add a button event listener if required
+  if (typeof buttonId !== "undefined") {
+    //Use type of transformation to define button click event
+    var transformButton;
+    /*if (docFragment) {
+      transformButton = docFragment.getElementById(buttonId);
+    } else {*/
+    transformButton = document.getElementById(buttonId);
+    //}
+    if (transformFunctionType === "transformArea") {
+      transformButton.addEventListener("click", function () {
+        //Re-set the correct transform icon
+        if (transformButton.classList.contains("area-chart")) {
+          transformButton.innerHTML = '<i class="material-icons">timeline</i>';
+          transformButton.classList.add("bar-chart");
+          transformButton.classList.remove("area-chart");
+        } else {
+          transformButton.innerHTML = '<i class="material-icons">equalizer</i>';
+          transformButton.classList.add("area-chart");
+          transformButton.classList.remove("bar-chart");
+        }
 
-          transformArea(chartRef);
-        }, false);
-      } else if (transformFunctionType === "transformHorizontalStackedGrouped") {
-        transformButton.addEventListener("click", function () {
-          //Re-set the correct transform icon
-          if (transformButton.classList.contains("stacked-chart")) {
-            transformButton.innerHTML = '<i class="material-icons">sort</i>';
-            transformButton.classList.add("grouped-chart");
-            transformButton.classList.remove("stacked-chart");
-          } else {
-            transformButton.innerHTML = '<i class="material-icons">view_carousel</i>';
-            transformButton.classList.add("stacked-chart");
-            transformButton.classList.remove("grouped-chart");
-          }
+        transformArea(chartRef);
+      }, false);
+    } else if (transformFunctionType === "transformHorizontalStackedGrouped") {
+      transformButton.addEventListener("click", function () {
+        //Re-set the correct transform icon
+        if (transformButton.classList.contains("stacked-chart")) {
+          transformButton.innerHTML = '<i class="material-icons">sort</i>';
+          transformButton.classList.add("grouped-chart");
+          transformButton.classList.remove("stacked-chart");
+        } else {
+          transformButton.innerHTML = '<i class="material-icons">view_carousel</i>';
+          transformButton.classList.add("stacked-chart");
+          transformButton.classList.remove("grouped-chart");
+        }
 
-          transformHorizontalStackedGrouped(chartRef);
-        }, false);
-      } else if (transformFunctionType === "transformVerticalStackedGrouped") {
-        transformButton.addEventListener("click", function () {
-          if (transformButton.classList.contains("stacked-chart")) {
-            transformButton.innerHTML = '<i class="material-icons">equalizer</i>';
-            transformButton.classList.add("grouped-chart");
-            transformButton.classList.remove("stacked-chart");
-          } else {
-            transformButton.innerHTML = '<i class="material-icons">view_column</i>';
-            transformButton.classList.add("stacked-chart");
-            transformButton.classList.remove("grouped-chart");
-          }
+        transformHorizontalStackedGrouped(chartRef);
+      }, false);
+    } else if (transformFunctionType === "transformVerticalStackedGrouped") {
+      transformButton.addEventListener("click", function () {
+        if (transformButton.classList.contains("stacked-chart")) {
+          transformButton.innerHTML = '<i class="material-icons">equalizer</i>';
+          transformButton.classList.add("grouped-chart");
+          transformButton.classList.remove("stacked-chart");
+        } else {
+          transformButton.innerHTML = '<i class="material-icons">view_column</i>';
+          transformButton.classList.add("stacked-chart");
+          transformButton.classList.remove("grouped-chart");
+        }
 
-          transformVerticalStackedGrouped(chartRef);
-        }, false);
-
-      }
+        transformVerticalStackedGrouped(chartRef);
+      }, false);
 
     }
 
   }
+
+  //}
 
 
 }
@@ -572,7 +582,7 @@ function switchVisibleChart(visibleElementName, hiddenElementNames) {
 
   //Re-run the layout functions
   //refreshCharts();
-  msnry.layout();
+  //msnry.layout();
 
 }
 
@@ -594,6 +604,8 @@ function buildWeeklyUsersCharts() {
   var currentWeekArray, lastWeekArray, lastYearArray;
   var columnData = [];
   var nextChartORef = chartRefs.length;
+  var t0 = performance.now();
+  var docFragment = document.createDocumentFragment();
 
   //Set-up overall chart
   currentWeekArray = ["Week starting " + formatDateString(startDate, "display")];
@@ -638,10 +650,10 @@ function buildWeeklyUsersCharts() {
 
     //<button id="weekly-users-overall-button">Change overall weekly users chart</button>',
     'weekly-users-overall-button',
-    "transformArea", nextChartORef);
+    "transformArea", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-users-overall");
-  chartRefs[nextChartORef].createWeekDayAreaChart();
+  //chartRefs[nextChartORef].createWeekDayAreaChart();
 
 
 
@@ -676,20 +688,31 @@ function buildWeeklyUsersCharts() {
       '<div id="weekly-users-' + ELEMENT_NAMES[appCounter] + '"></div>' +
       '</div>',
       'weekly-users-' + ELEMENT_NAMES[appCounter] + '-button',
-      "transformArea", nextChartRef);
+      "transformArea", nextChartRef, docFragment);
 
     chartRefs[nextChartRef] = new C3StatsChart(columnData, "weekly-users-" + ELEMENT_NAMES[appCounter]);
-    chartRefs[nextChartRef].createWeekDayAreaChart();
+    //chartRefs[nextChartRef].createWeekDayAreaChart();
 
 
 
   }
 
+  //parentElement.appendChild(docFragment);
 
-  refreshCharts();
-  msnry.layout();
+  //msnry.layout();
+
+  for (var cCounter = 0; cCounter < chartRefs.length; cCounter++) {
+    chartRefs[cCounter].createWeekDayAreaChart();
+  }
+
+  //refreshCharts();
+  //msnry.appended(parentElement.childNodes);
+
   //Call the Material Design compoment upgrade to make tool-tips work
   componentHandler.upgradeAllRegistered();
+
+  var t1 = performance.now();
+  console.log("buildWeeklyUsersCharts elapsed time: " + (t1 - t0) + " milliseconds.");
 
 }
 
@@ -705,6 +728,8 @@ function buildChartsForType(elementName, appName) {
   var columnData, nextChartORef;
   var cardClasses = "card half-width " + elementName;
   var chartDataArray;
+  var docFragment = document.createDocumentFragment();
+  var t0 = performance.now();
 
   if (elementName === "overall") {
     chartDataArray = allApplicationData;
@@ -744,10 +769,10 @@ function buildChartsForType(elementName, appName) {
       '</div>',
       //<button id="yearly-pages-overall-button">Change overall yearly pages chart</button>',
       'yearly-pages-overall-button',
-      "transformVerticalStackedGrouped", nextChartORef);
+      "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
     chartRefs[nextChartORef] = new C3StatsChart(columnData, 'yearly-pages-overall', last12MonthsLabels, APP_LABELS);
-    chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
+    //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
 
   }
 
@@ -791,10 +816,10 @@ function buildChartsForType(elementName, appName) {
 
     //<button id="weekly-users-' + elementName + '-button">Change ' + elementName + ' weekly users chart</button>',
     'weekly-users-' + elementName + '-button',
-    "transformArea", nextChartORef);
+    "transformArea", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-users-" + elementName);
-  chartRefs[nextChartORef].createWeekDayAreaChart();
+  //chartRefs[nextChartORef].createWeekDayAreaChart();
 
 
   /* Build current / previous year charts.  Relies on the daya already being present within:
@@ -825,7 +850,7 @@ function buildChartsForType(elementName, appName) {
     '</div>');
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-users-" + elementName, last12MonthsLabels);
-  chartRefs[nextChartORef].createStaticVerticalTwoSeriesBarChart();
+  //chartRefs[nextChartORef].createStaticVerticalTwoSeriesBarChart();
 
 
 
@@ -873,7 +898,7 @@ function buildChartsForType(elementName, appName) {
     "transformArea", nextChartORef);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-sessions-" + elementName);
-  chartRefs[nextChartORef].createWeekDayAreaChart();
+  //chartRefs[nextChartORef].createWeekDayAreaChart();
 
   /* 
     Build visitor return chart.  Relies on the daya already being present within:
@@ -906,10 +931,10 @@ function buildChartsForType(elementName, appName) {
 
     //<button id="visitor-return-' + elementName + '-button">Change ' + elementName + ' visitor return chart</button>',
     'visitor-return-' + elementName + '-button',
-    "transformHorizontalStackedGrouped", nextChartORef);
+    "transformHorizontalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "visitor-return-" + elementName, dataLabels, seriesLabels);
-  chartRefs[nextChartORef].createHorizontalBarChart("Time to return");
+  //chartRefs[nextChartORef].createHorizontalBarChart("Time to return");
 
   /* 
   Build  yearly browser usage charts.  Relies on the daya already being present within:
@@ -946,10 +971,10 @@ function buildChartsForType(elementName, appName) {
 
     //<button id="yearly-browsers-' + elementName + '-button">Change ' + elementName + ' yearly browsers chart</button>',
     'yearly-browsers-' + elementName + '-button',
-    "transformVerticalStackedGrouped", nextChartORef);
+    "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-browsers-" + elementName, last12MonthsLabels, topBrowsersArray);
-  chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
+  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of visits");
 
   /* 
   Build weekly horizontal bar graphs for map types.  Relies on the data already being present within:
@@ -986,10 +1011,10 @@ function buildChartsForType(elementName, appName) {
 
     //<button id="weekly-maps-' + elementName + '-button">Change ' + elementName + ' weekly map types chart</button>',
     'weekly-maps-' + elementName + '-button',
-    "transformHorizontalStackedGrouped", nextChartORef);
+    "transformHorizontalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-maps-" + elementName, dataLabels, seriesLabels);
-  chartRefs[nextChartORef].createHorizontalBarChart("Map type");
+  //chartRefs[nextChartORef].createHorizontalBarChart("Map type");
 
 
   /* 
@@ -1024,10 +1049,10 @@ function buildChartsForType(elementName, appName) {
 
     //<button id="yearly-maps-' + elementName + '-button">Change ' + elementName + ' yearly map types chart</button>',
     'yearly-maps-' + elementName + '-button',
-    "transformVerticalStackedGrouped", nextChartORef);
+    "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-maps-" + elementName, last12MonthsLabels, seriesLabels);
-  chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of map types");
+  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of map types");
 
 
 
@@ -1070,11 +1095,11 @@ function buildChartsForType(elementName, appName) {
     //<button id="weekly-search-' + elementName + '-button">Change ' + elementName + ' weekly search chart</button>' +
     //'<button id = "weekly-search-' + elementName + '-switch-to-per-button">Switch to per visit values</button>',
     'weekly-search-' + elementName + '-button',
-    "transformHorizontalStackedGrouped", nextChartORef);
+    "transformHorizontalStackedGrouped", nextChartORef, docFragment);
 
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-" + elementName, dataLabels, seriesLabels);
-  chartRefs[nextChartORef].createHorizontalBarChart("Search type");
+  //chartRefs[nextChartORef].createHorizontalBarChart("Search type");
 
 
   /* 
@@ -1116,10 +1141,10 @@ function buildChartsForType(elementName, appName) {
     //<button id="weekly-search-per-' + elementName + '-button">Change ' + elementName + ' weekly search chart</button>' +
     //'<button id = "weekly-search-' + elementName + '-switch-to-raw-button">Switch to absolute values</button>',
     'weekly-search-per-' + elementName + '-button',
-    "transformHorizontalStackedGrouped", nextChartORef);
+    "transformHorizontalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-search-per-" + elementName, dataLabels, seriesLabels);
-  chartRefs[nextChartORef].createHorizontalBarChart("Search type");
+  //chartRefs[nextChartORef].createHorizontalBarChart("Search type");
 
 
   /* 
@@ -1155,10 +1180,10 @@ function buildChartsForType(elementName, appName) {
 
     //<button id="yearly-search-' + elementName + '-button">Change ' + elementName + ' yearly search chart</button>',
     'yearly-search-' + elementName + '-button',
-    "transformVerticalStackedGrouped", nextChartORef);
+    "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-search-" + elementName, last12MonthsLabels, seriesLabels);
-  chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of searches");
+  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of searches");
 
 
   /* 
@@ -1205,10 +1230,10 @@ function buildChartsForType(elementName, appName) {
     '<button id = "weekly-activity-types-' + elementName + '-switch-to-per-button">Switch to per visit values</button>' +
     '<button id = "weekly-activity-types-' + elementName + '-switch-to-raw-activities-button">Switch to detailed activity breakdown</button>',*/
     'weekly-activity-types-' + elementName + '-button',
-    "transformHorizontalStackedGrouped", nextChartORef);
+    "transformHorizontalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activity-types-" + elementName, dataLabels, seriesLabels);
-  chartRefs[nextChartORef].createHorizontalBarChart("Activity type");
+  //chartRefs[nextChartORef].createHorizontalBarChart("Activity type");
 
 
   /* 
@@ -1253,10 +1278,10 @@ function buildChartsForType(elementName, appName) {
     '<button id = "weekly-activity-types-' + elementName + '-switch-to-raw-button">Switch to per visit values</button>' +
     '<button id = "weekly-activity-types-' + elementName + '-switch-to-per-activities-button">Switch to detailed activity breakdown</button>',*/
     'weekly-activity-types-per-' + elementName + '-button',
-    "transformHorizontalStackedGrouped", nextChartORef);
+    "transformHorizontalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activity-types-per-" + elementName, dataLabels, seriesLabels);
-  chartRefs[nextChartORef].createHorizontalBarChart("Activity type");
+  //chartRefs[nextChartORef].createHorizontalBarChart("Activity type");
 
 
 
@@ -1305,10 +1330,10 @@ function buildChartsForType(elementName, appName) {
     '<button id = "weekly-activities-' + elementName + '-switch-to-per-button">Switch to per visit values</button>' +
     '<button id = "weekly-activities-' + elementName + '-switch-to-raw-activity-types-button">Switch to activity type breakdown</button>',*/
     'weekly-activities-' + elementName + '-button',
-    "transformHorizontalStackedGrouped", nextChartORef);
+    "transformHorizontalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activities-" + elementName, dataLabels, seriesLabels);
-  chartRefs[nextChartORef].createHorizontalBarChart("Activity");
+  //chartRefs[nextChartORef].createHorizontalBarChart("Activity");
 
 
   /* 
@@ -1354,10 +1379,10 @@ function buildChartsForType(elementName, appName) {
     '<button id = "weekly-activities-' + elementName + '-switch-to-raw-button">Switch to absolute values</button>' +
     '<button id = "weekly-activities-' + elementName + '-switch-to-per-activity-types-button">Switch to activity type breakdown</button>',*/
     'weekly-activities-per-' + elementName + '-button',
-    "transformHorizontalStackedGrouped", nextChartORef);
+    "transformHorizontalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "weekly-activities-per-" + elementName, dataLabels, seriesLabels);
-  chartRefs[nextChartORef].createHorizontalBarChart("Activity");
+  //chartRefs[nextChartORef].createHorizontalBarChart("Activity");
 
 
 
@@ -1395,19 +1420,68 @@ function buildChartsForType(elementName, appName) {
 
     //<button id="yearly-activity-types-' + elementName + '-button">Change overall yearly activity types chart</button>',
     'yearly-activity-types-' + elementName + '-button',
-    "transformVerticalStackedGrouped", nextChartORef);
+    "transformVerticalStackedGrouped", nextChartORef, docFragment);
 
   chartRefs[nextChartORef] = new C3StatsChart(columnData, "yearly-activity-types-" + elementName, last12MonthsLabels, seriesLabels);
-  chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of activities");
+  //chartRefs[nextChartORef].createStackedVerticalBarChart("Percentage of activities");
 
 
 
+  /*
+    //Layout the screen with charts
+    refreshCharts();
+    msnry.layout();*/
 
-  //Layout the screen with charts
-  refreshCharts();
-  msnry.layout();
+  //parentElement.appendChild(docFragment);
+
+  for (var cCounter = 0; cCounter < chartRefs.length; cCounter++) {
+    var elId = chartRefs[cCounter].pageElement;
+
+    if (elId.startsWith("yearly-pages-overall")) {
+      chartRefs[cCounter].createStackedVerticalBarChart("Percentage of visits");
+    } else if (elId.startsWith("weekly-users-")) {
+      chartRefs[cCounter].createWeekDayAreaChart();
+    } else if (elId.startsWith("yearly-users-")) {
+      chartRefs[cCounter].createStaticVerticalTwoSeriesBarChart();
+    } else if (elId.startsWith("weekly-sessions-")) {
+      chartRefs[cCounter].createWeekDayAreaChart();
+    } else if (elId.startsWith("visitor-return-")) {
+      chartRefs[cCounter].createHorizontalBarChart("Time to return");
+    } else if (elId.startsWith("yearly-browsers-")) {
+      chartRefs[cCounter].createStackedVerticalBarChart("Percentage of visits");
+    } else if (elId.startsWith("weekly-maps-")) {
+      chartRefs[cCounter].createHorizontalBarChart("Map type");
+    } else if (elId.startsWith("yearly-maps-")) {
+      chartRefs[cCounter].createStackedVerticalBarChart("Percentage of map types");
+    } else if (elId.startsWith("weekly-search-")) {
+      chartRefs[cCounter].createHorizontalBarChart("Search type");
+    } else if (elId.startsWith("weekly-search-per-")) {
+      chartRefs[cCounter].createHorizontalBarChart("Search type");
+    } else if (elId.startsWith("yearly-search-")) {
+      chartRefs[cCounter].createStackedVerticalBarChart("Percentage of searches");
+    } else if (elId.startsWith("weekly-activity-types-")) {
+      chartRefs[cCounter].createHorizontalBarChart("Activity type");
+    } else if (elId.startsWith("weekly-activity-types-per-")) {
+      chartRefs[cCounter].createHorizontalBarChart("Activity type");
+    } else if (elId.startsWith("weekly-activities-")) {
+      chartRefs[cCounter].createHorizontalBarChart("Activity");
+    } else if (elId.startsWith("weekly-activities-per-")) {
+      chartRefs[cCounter].createHorizontalBarChart("Activity");
+    } else if (elId.startsWith("yearly-activity-types-")) {
+      chartRefs[cCounter].createStackedVerticalBarChart("Percentage of activities");
+    }
+
+  }
+
+  //refreshCharts();
+  //msnry.appended(parentElement.childNodes);
+
   //Call the Material Design compoment upgrade to make tool-tips work
   componentHandler.upgradeAllRegistered();
+
+  var t1 = performance.now();
+  console.log("buildChartsForType elapsed time: " + (t1 - t0) + " milliseconds.");
+
 
 
 }
