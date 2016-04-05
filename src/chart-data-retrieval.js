@@ -24,6 +24,7 @@ var APP_NAMES = ["LASSI - Land and Survey Spatial Information", "LASSI - SPEAR",
                  "LASSI - TPC", "LASSI - VMT"];
 var APP_LABELS = ["LASSI", "LASSI - SPEAR", "SMES", "VICNAMES", "LANDATA TPI", "LANDATA VMT"];
 var MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+var deviceCategories = ["desktop", "mobile", "tablet"];
 
 //Categorise for UI activities
 var clickLookupCategories = [
@@ -214,7 +215,7 @@ function retrieveData() {
         return false;
       }
     })
-    .then(function () {
+    /*.then(function () {
       //If on home screen then call loader function
       if (localId === retrievalId) {
         loadSubPage("home");
@@ -224,7 +225,7 @@ function retrieveData() {
       } else {
         return false;
       }
-    })
+    })*/
     .then(function () {
       if (localId === retrievalId) {
         return retrieveYearlyUsers();
@@ -247,6 +248,14 @@ function retrieveData() {
       }
     })
     .then(function () {
+      if (localId === retrievalId) {
+        return retrieveYearlyDevices();
+      } else {
+        return false;
+      }
+    })
+
+  .then(function () {
       if (localId === retrievalId) {
         return retrieveVisitorReturns();
       } else {
@@ -282,7 +291,7 @@ function retrieveData() {
       }
     })
     .then(function () {
-      loadSubPage("specific");
+      loadSubPage();
       hideLoadBar();
       console.timeEnd("dataLoad");
     })
@@ -984,6 +993,105 @@ function retrieveYearlyBrowsers() {
             for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
               applicationData[appTName].browserData[browserName][monthCounter] = roundTo2(applicationData[appTName].browserData[browserName][monthCounter] /
                 applicationData[appTName].browserTotals[monthCounter] * 100);
+            }
+
+
+          }
+
+
+        }
+
+
+      }
+
+      resolve(true);
+
+    }).catch(function (err) {
+      console.log(err);
+      reject(err);
+    });
+  });
+
+}
+
+
+/**
+ * Retrieve the yearly devices data for individual applications and the overall total
+ * @return {Promise} a promise which wil resolve with the data
+ */
+function retrieveYearlyDevices() {
+  "use strict";
+
+  assert(isDate(lastYearStartDate), 'retrieveYearlyDevices assert failed - lastYearStartDate: ' + lastYearStartDate);
+  assert(isDate(lastYearEndDate), 'retrieveYearlyDevices assert failed - lastYearEndDate: ' + lastYearEndDate);
+  assert((typeof topPagesFilter !== "undefined" && topPagesFilter !== ""), 'retrieveYearlyDevices assert failed - topPagesFilter: ' + topPagesFilter);
+  assert((typeof topBrowsersFilter !== "undefined" && topBrowsersFilter !== ""), 'retrieveYearlyDevices assert failed - topBrowsersFilter: ' + topBrowsersFilter);
+
+
+  return new Promise(function (resolve, reject) {
+
+    gaRequester.queryGA({
+      "start-date": formatDateString(lastYearStartDate, "query"),
+      "end-date": formatDateString(lastYearEndDate, "query"),
+      "ids": ids,
+      "dimensions": "ga:pageTitle,ga:deviceCategory,ga:yearMonth,ga:nthMonth",
+      "metrics": "ga:pageviews",
+      "filters": topPagesFilter,
+      "sort": "ga:pageTitle,ga:deviceCategory,ga:yearMonth"
+    }).then(function (results) {
+      //map in 0 values for each browser month combination
+      allApplicationData.deviceCategoryData = {};
+      allApplicationData.deviceCategoryTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+      deviceCategories.forEach(function (category) {
+        allApplicationData.deviceCategoryData[category] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      });
+
+
+      for (var appName in applicationData) {
+        applicationData[appName].deviceCategoryData = {};
+        applicationData[appName].deviceCategoryTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (var categoryCounter = 0; categoryCounter < deviceCategories.length; categoryCounter++) {
+          applicationData[appName].deviceCategoryData[deviceCategories[categoryCounter]] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
+      }
+
+      if (results) {
+        results.rows.forEach(function (dataRow) {
+          /*Results structure -   dataRow[0] = appName
+                                  dataRow[1] = deviceCategory
+                                  dataRow[2] = yearMonth
+                                  dataRow[3] = monthIndex
+                                  dataRow[4] = value
+          */
+          //Record value for each application
+          applicationData[dataRow[0]].deviceCategoryData[dataRow[1]][+dataRow[3]] = +dataRow[4];
+          //Add to category monthly total value for each application
+          applicationData[dataRow[0]].deviceCategoryTotals[+dataRow[3]] += (+dataRow[4]);
+
+          //Add value to all application total
+          allApplicationData.deviceCategoryData[dataRow[1]][+dataRow[3]] += (+dataRow[4]);
+          //Add to category monthly overall total value
+          allApplicationData.deviceCategoryTotals[+dataRow[3]] += (+dataRow[4]);
+        });
+
+        //Need to convert raw numbers to percentages - using month totals for overall figures
+        deviceCategories.forEach(function (category) {
+          for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
+            allApplicationData.deviceCategoryData[category][monthCounter] = roundTo2(allApplicationData.deviceCategoryData[category][monthCounter] /
+              allApplicationData.deviceCategoryTotals[monthCounter] * 100);
+          }
+        });
+
+        //Need to convert raw numbers to percentages - using month totals for each application
+        for (var appTName in applicationData) {
+          for (var bCounter = 0; bCounter < deviceCategories.length; bCounter++) {
+            var categoryName = deviceCategories[bCounter];
+
+            for (var monthCounter = 0; monthCounter < 12; monthCounter++) {
+              applicationData[appTName].deviceCategoryData[categoryName][monthCounter] = roundTo2(applicationData[appTName].deviceCategoryData[categoryName][monthCounter] /
+                applicationData[appTName].deviceCategoryTotals[monthCounter] * 100);
             }
 
 

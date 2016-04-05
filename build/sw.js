@@ -1,6 +1,10 @@
 /*global self, caches, Promise, URL, location, fetch */
 
+<<<<<<< HEAD
 var staticCacheName = 'weekly-stats-v1459815059038';
+=======
+var staticCacheName = 'weekly-stats-v1459814623192';
+>>>>>>> refs/remotes/origin/remove-masonry
 var preCache = [
                 'material.min.css',
                 'material.min.js',

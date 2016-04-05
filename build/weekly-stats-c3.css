@@ -1,0 +1,628 @@
+<<<<<<< HEAD
+=======
+/*-- Chart --*/
+
+.c3 svg {
+    font-family: 'Roboto';
+    font-size: 1em;
+}
+.c3 path,
+.c3 line {
+    fill: none;
+    stroke: #000;
+}
+.c3 text {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+.c3-legend-item-tile,
+.c3-xgrid-focus,
+.c3-ygrid,
+.c3-event-rect,
+.c3-bars path {
+    shape-rendering: crispEdges;
+}
+.c3-chart-arc path {
+    stroke: #fff;
+}
+.c3-chart-arc text {
+    fill: #fff;
+    font-size: 13px;
+}
+
+/*-- Axis --*/
+
+
+/*-- Grid --*/
+
+.c3-grid line {
+    stroke: #d8d8d8;
+    opacity: 0.5;
+}
+.c3-grid text {
+    fill: #aaa;
+}
+.c3-xgrid,
+.c3-ygrid {
+    stroke-dasharray: 1;
+}
+
+/*-- Text on Chart --*/
+
+.c3-text.c3-empty {
+    fill: #808080;
+    font-size: 2em;
+}
+
+/*-- Line --*/
+
+.c3-line {
+    stroke-width: 1px;
+}
+
+/*-- Point --*/
+
+.c3-circle._expanded_ {
+    stroke-width: 1px;
+    stroke: white;
+}
+.c3-selected-circle {
+    fill: white;
+    stroke-width: 2px;
+}
+
+/*-- Bar --*/
+
+.c3-bar {
+    stroke-width: 0;
+}
+.c3-bar._expanded_ {
+    fill-opacity: 0.75;
+}
+
+/*-- Focus --*/
+
+.c3-target.c3-focused {
+    opacity: 1;
+}
+.c3-target.c3-focused path.c3-line,
+.c3-target.c3-focused path.c3-step {
+    stroke-width: 2px;
+}
+.c3-target.c3-defocused {
+    opacity: 0.3 !important;
+}
+
+/*-- Region --*/
+
+.c3-region {
+    fill: steelblue;
+    fill-opacity: 0.1;
+}
+
+/*-- Brush --*/
+
+.c3-brush .extent {
+    fill-opacity: 0.1;
+}
+
+/*-- Select - Drag --*/
+
+
+/*-- Legend --*/
+
+.c3-legend-item {
+    font-size: 1em;
+    padding-right: 20px;
+    display: inline-block;
+}
+.c3-legend-item-hidden {
+    opacity: 0.15;
+}
+.c3-legend-background {
+    opacity: 0.75;
+    fill: white;
+    stroke: lightgray;
+    stroke-width: 1;
+}
+
+/*-- Tooltip --*/
+
+.c3-tooltip-container {
+    z-index: 10;
+}
+.c3-tooltip {
+    font-family: 'Roboto';
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: #fff;
+    empty-cells: show;
+    -webkit-box-shadow: 7px 7px 12px -9px #777777;
+    -moz-box-shadow: 7px 7px 12px -9px #777777;
+    box-shadow: 7px 7px 12px -9px #777777;
+    opacity: 0.9;
+}
+.c3-tooltip tr {
+    border: 1px solid #CCC;
+}
+.c3-tooltip th {
+    background-color: #aaa;
+    font-size: 14px;
+    padding: 2px 5px;
+    text-align: left;
+    color: #FFF;
+}
+.c3-tooltip td {
+    font-size: 13px;
+    padding: 3px 6px;
+    background-color: #fff;
+    border-left: 1px dotted #999;
+}
+.c3-tooltip td > span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+}
+.c3-tooltip td.value {
+    text-align: right;
+}
+
+/*-- Area --*/
+
+.c3-area {
+    stroke-width: 0;
+    opacity: 0.2;
+}
+
+/*-- Arc --*/
+
+.c3-chart-arcs-title {
+    dominant-baseline: middle;
+    font-size: 1.3em;
+}
+.c3-chart-arcs .c3-chart-arcs-background {
+    fill: #e0e0e0;
+    stroke: none;
+}
+.c3-chart-arcs .c3-chart-arcs-gauge-unit {
+    fill: #000;
+    font-size: 16px;
+}
+.c3-chart-arcs .c3-chart-arcs-gauge-max {
+    fill: #777;
+}
+.c3-chart-arcs .c3-chart-arcs-gauge-min {
+    fill: #777;
+}
+.c3-chart-arc .c3-gauge-value {
+    fill: #000;
+    /*  font-size: 28px !important;*/
+}
+
+/** --------------------------------------------------------------------------------------------------------------
+  This web app uses the application cache - any change requires the weekly_stats.appcache file to be modified.  
+    Modify the timestamp comment in the 2nd line to force browsers to refresh  
+  ----------------------------------------------------------------------------------------------------------------
+*/
+
+html {
+  /*font-family: 'And Black', Helvetica, Arial, sans-serif;*/
+  font-family: 'Muli', sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  box-sizing: border-box;
+  height: 100%;
+  color: #212121;
+  font-size: .875em;
+  text-rendering: optimizeLegibility;
+}
+body {
+  margin: 0;
+  background-color: rgb(238, 238, 238);
+}
+.mdl-layout__drawer-button {
+  padding-top: 10px;
+}
+.mdl-tooltip {
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+.page-content {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  width: calc(100% - 40px);
+  /*max-width: 1000px;*/
+}
+.header-nav .mdl-navigation__link:hover {
+  text-decoration: none;
+  color: #00bcd4;
+}
+
+/* Ensure nav links display correct colours */
+
+.mdl-navigation__link.mdl-color-text--blue {
+  color: #2196f3 !important;
+}
+.mdl-navigation__link.mdl-color-text--red {
+  color: #f44336 !important;
+}
+.mdl-navigation__link.mdl-color-text--indigo {
+  color: #3f51b5 !important;
+}
+.mdl-navigation__link.mdl-color-text--deep-orange {
+  color: #ff5722 !important;
+}
+.mdl-navigation__link.mdl-color-text--green {
+  color: #4caf50 !important;
+}
+.mdl-navigation__link.mdl-color-text--deep-purple {
+  color: #673ab7 !important;
+}
+.mdl-navigation__link.mdl-color-text--teal {
+  color: #009688 !important;
+}
+i {
+  display: inline-block;
+  font: inherit;
+}
+.is-selected {
+  font-size: 16px;
+  font-weight: 700;
+}
+.chart-title {
+  float: left;
+  margin-left: 10px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+/*hide nav styles under 840 pixels*/
+
+@media only screen and (max-width: 840px) {
+  .header-hide-tablet {
+    display: none;
+  }
+  /*.collapse-tablet {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-flex-wrap: wrap;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        width: auto;
+    }
+    .header-collapsable {
+        -webkit-flex: 0 1 auto;
+        -ms-flex: 0 1 auto;
+        flex: 0 1 auto;
+        font-size: 0.75em;
+        border: 0px;
+    }*/
+  .Header-auth {
+    display: none;
+  }
+  .full-label {
+    display: none;
+  }
+  .min-label {
+    display: inline-block;
+  }
+}
+@media only screen and (min-width: 841px) {
+  .Header-auth {
+    margin-left: 20px;
+  }
+  .full-label {
+    display: inline-block;
+  }
+  .min-label {
+    display: none;
+  }
+}
+@media only screen and (min-width: 840px) and (max-width: 1100px) {
+  /*.collapse-tablet {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-flex-wrap: wrap;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        width: auto;
+    }
+    .header-collapsable {
+        -webkit-flex: 0 1 auto;
+        -ms-flex: 0 1 auto;
+        flex: 0 1 auto;
+        font-size: 0.75em;
+        border: 0px;
+    }*/
+  .DateRangeSelector-item input {
+    min-width: 150px;
+    width: 150px;
+  }
+}
+
+}
+@media only screen and (min-width: 1101px) {
+  /*CSS to style the GA selector and date input */
+  
+  .DateRangeSelector-item input {
+    min-width: 150px;
+  }
+}
+.DateRangeSelector-item input {
+  background: transparent;
+  color: white;
+}
+
+/*CSS to hide and display display loading bar*/
+.loader-hidden {
+  visibility: hidden;
+}
+.loader {
+  height: 4px;
+  width: 97%;
+  position: absolute;
+  top: 0px;
+  overflow: hidden;
+  background-color: #607d8b;
+  visibility: visible;
+}
+.loader:before {
+  display: block;
+  position: absolute;
+  content: "";
+  left: -200px;
+  width: 200px;
+  height: 4px;
+  background-color: #00bcd4;
+  animation: loading 2s linear infinite;
+}
+.title-text {
+  font-family: 'Muli', sans-serif;
+  /*font-family: 'And Black', Helvetica, Arial, sans-serif;*/
+  
+  font-size: 1.8em;
+}
+.chart-sub-title-text {
+  font-size: 0.9em;
+}
+.card {
+  padding-top: 20px;
+  padding-left: 10px;
+  padding-right: 0px;
+  padding-bottom: 10px;
+  background-color: white;
+}
+
+}
+.mdl-card {
+  padding: 10px;
+}
+.chart-icon {
+  color: #0097A7;
+  float: right;
+  margin-left: 10px;
+  margin-right: 10px;
+  /*top: 10px;
+    right: 10px;*/
+}
+@media only screen {
+  .print-only {
+    display: none;
+  }
+  .align-card-bottom {
+    position: absolute;
+    bottom: 2px
+  }
+  .card-bottom-spacer {
+    height: 40px;
+  }
+  .card-top-spacer {
+    height: 10px;
+  }
+}
+header,
+aside,
+main,
+menu,
+nav {
+  display: block;
+}
+a {
+  background-color: transparent;
+}
+a:active,
+a:hover {
+  outline: 0;
+}
+*,
+:after,
+:before {
+  box-sizing: inherit;
+}
+a {
+  color: #f05721;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+input,
+select {
+  /*border: 1px solid #d4d2d0;
+    border-radius: 4px;*/
+  border-style: none;
+  box-sizing: border-box;
+  font: inherit;
+  font-weight: 400;
+  height: 2.4285714285714284em;
+  line-height: 1.4285714285714286em;
+  padding: .42857142857142855em;
+}
+input:focus,
+input:hover,
+select:focus,
+select:hover {
+  border: 1px solid #4d90fe;
+  border-style: solid;
+  /*outline: 0;*/
+}
+@-webkit-keyframes increase {
+  10% {
+    background-color: #eaffea;
+    border-color: hsla(120, 100%, 25%, .5);
+    color: hsla(120, 100%, 25%, 1);
+  }
+}
+@keyframes increase {
+  10% {
+    background-color: #eaffea;
+    border-color: hsla(120, 100%, 25%, .5);
+    color: hsla(120, 100%, 25%, 1);
+  }
+}
+@-webkit-keyframes decrease {
+  10% {
+    background-color: #ffeaea;
+    border-color: hsla(0, 100%, 50%, .5);
+    color: red;
+  }
+}
+@keyframes decrease {
+  10% {
+    background-color: #ffeaea;
+    border-color: hsla(0, 100%, 50%, .5);
+    color: red;
+  }
+}
+
+/*.DateRangeSelector {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: 0 0 -1em -1em;
+}
+.DateRangeSelector-item {
+    margin: 0 0 1em 1em;
+    -webkit-flex: 1 0 calc(100% - 1em);
+    -ms-flex: 1 0 calc(100% - 1em);
+    flex: 1 0 calc(100% - 1em);
+}*/
+.DateRangeSelector-item>label {
+  margin: 0 .25em .25em 0;
+}
+.DateRangeSelector-item>input {
+  display: inline-block;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton {
+  background: #f7991c;
+  border-radius: 0;
+  display: block;
+  padding: 1em 1.5em;
+  transition: background-color .2s cubic-bezier(.4, 0, .2, 1);
+  width: auto;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton:hover {
+  background: #f05721;
+  cursor: pointer;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton-buttonText,
+.Header-auth .gapi-analytics-auth-styles-signinbutton-image {
+  display: inline-block;
+  vertical-align: middle;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton-image {
+  background: url(/public/images/ga-mark-white.svg) 0 50%/1.5em no-repeat;
+  border: 0;
+  height: 1.5em;
+  padding-left: 2.5em;
+  width: auto;
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton-image::after {
+  content: 'Click here to authorize\00a0\00a0→';
+}
+.Header-auth .gapi-analytics-auth-styles-signinbutton-buttonText,
+.Header-logout {
+  display: none;
+}
+@keyframes loading {
+  from {
+    left: -200px;
+    width: 30%;
+  }
+  50% {
+    width: 30%;
+  }
+  70% {
+    width: 70%;
+  }
+  80% {
+    left: 50%;
+  }
+  95% {
+    left: 120%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+/* Update message */
+.update-message {
+  position: absolute;
+  bottom: 30px;
+  left: 10px;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.75);
+  border: solid 1px rgba(255, 255, 255, 0.7);
+  border-radius: 3px;
+  box-shadow: 1px 1px 2px rgba(108, 107, 107, 0.7);
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  text-align: center;
+}
+.update-message-text {
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 1);
+}
+.update-countdown-value {
+  margin-left: 10px;
+}
+@media screen and (max-width: 1080px) {
+  .card {
+    width: 100%;
+  }
+}
+@media screen and (min-width: 1081px) {
+  /*and (max-width: 1280px) {*/
+  /*.card,
+  .card.half-width {
+    width: 100%;
+  }
+  .grid-sizer {
+    width: 50%;
+  }
+  .card.full-width {
+    width: 100%;
+  }*/
+}
+>>>>>>> refs/remotes/origin/remove-masonry
