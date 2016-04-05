@@ -1,6 +1,6 @@
 /*global self, caches, Promise, URL, location, fetch */
 
-var staticCacheName = 'weekly-stats-v1459484900637';
+var staticCacheName = 'weekly-stats-v1459814623192';
 var preCache = [
                 'material.min.css',
                 'material.min.js',
