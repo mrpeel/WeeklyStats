@@ -19,7 +19,7 @@
 
 <body>
   <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-    <header id="header-element" class="mdl-layout__header mdl-layout__header--waterfall">
+    <header id="header-element" class="mdl-layout__header mdl-layout__header--waterfall mdl-color--blue">
       <div class="mdl-layout__drawer-button"><i class="material-icons">menu</i></div>
       <!-- Top row, always visible -->
       <div class="mdl-layout__header-row">
@@ -57,8 +57,6 @@
         </div>
         <div class="mdl-layout-spacer header-hide-tablet no-print"></div>
         <nav class="header-hide-tablet mdl-navigation header-collapsable no-print">
-          <a id="home-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#home">Home</a>
-          <div id="home-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link is-selected">Home</div>
           <a id="overall-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#overall">Overall</a>
           <div id="overall-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">Overall</div>
           <a id="lassi-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#lassi">LASSI</a>
@@ -80,22 +78,20 @@
     <div class="mdl-layout__drawer mdl-typography--title no-print">
       <span class="mdl-layout-title">Selection</span>
       <nav class="mdl-navigation no-print">
-        <a id="drawer-home-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#home">Home</a>
-        <div id="drawer-home-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link is-selected">Home</div>
         <a id="drawer-overall-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#overall">Overall</a>
-        <div id="drawer-overall-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">Overall</div>
+        <div id="drawer-overall-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print mdl-color-text--blue inactive-link">Overall</div>
         <a id="drawer-lassi-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#lassi">LASSI</a>
-        <div id="drawer-lassi-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LASSI</div>
+        <div id="drawer-lassi-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print mdl-color-text--red inactive-link">LASSI</div>
         <a id="drawer-lassi-spear-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#lassi-spear">LASSI SPEAR</a>
-        <div id="drawer-lassi-spear-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LASSI SPEAR</div>
+        <div id="drawer-lassi-spear-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print mdl-color-text--indigo inactive-link">LASSI SPEAR</div>
         <a id="drawer-smes-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#smes">SMES</a>
-        <div id="drawer-smes-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">SMES</div>
+        <div id="drawer-smes-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print mdl-color-text--deep-orange inactive-link">SMES</div>
         <a id="drawer-vicnames-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#vicnames">VICNAMES</a>
-        <div id="drawer-vicnames-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">VICNAMES</div>
+        <div id="drawer-vicnames-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print mdl-color-text--green inactive-link">VICNAMES</div>
         <a id="drawer-landata-tpi-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#landata-tpi">LANDATA TPI</a>
-        <div id="drawer-landata-tpi-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LANDATA TPI</div>
+        <div id="drawer-landata-tpi-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print mdl-color-text--deep-purple inactive-link">LANDATA TPI</div>
         <a id="drawer-landata-vmt-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print active-link hidden" href="#landata-vmt">LANDATA VMT</a>
-        <div id="drawer-landata-vmt-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print inactive-link">LANDATA VMT</div>
+        <div id="drawer-landata-vmt-non-link" class="mdl-navigation__link mdl-typography--text-uppercase no-print mdl-color-text--teal inactive-link">LANDATA VMT</div>
       </nav>
     </div>
 
@@ -105,8 +101,8 @@
 
 
 
-        <div id="masonry-grid">
-          <div class="grid-sizer"></div>
+        <div id="chart-grid" class="mdl-grid">
+
 
         </div>
 
@@ -121,7 +117,6 @@
 
   <script src="d3.v3.min.js"></script>
   <script src="c3.min.js"></script>
-  <script src="masonry.pkgd.min.js"></script>
   <script src="material.min.js"></script>
   <script src="weekly-stats-c3.js"></script>
 
