@@ -8,8 +8,7 @@ var preCache = [
                 '@@jsfile',
                 'favicon.ico',
                 'd3.v3.min.js',
-                'c3.min.js',
-                'masonry.pkgd.min.js'
+                'c3.min.js'
             ];
 var opaqueCacheOnRequest = [
                 'https://fonts.gstatic.com',
